@@ -52,7 +52,7 @@ function castR(target)
         if Menu.rMEC then
                 local ultPos = GetAoESpellPosition(250, target)
                 if ultPos and GetDistance(ultPos) <= rRange     then
-                        if CountEnemies(ultPos, 250) >= Menu.MinEnem then
+                        if CountEnemies(ultPos, 600) >= Menu.MinEnem then
                                 CastSpell(_R, ultPos.x, ultPos.z)
                         end
                 end
