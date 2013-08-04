@@ -1,26 +1,19 @@
 --[ AutoCarry Plugin: Annie Hastur, the Dark Child by UglyOldGuy]--
 
-if myHero.charName ~= "Annie" then return end
+if myHero.charName ~= "Annie" then return end -- Hero Check
 
-require "AoE_Skillshot_Position"
+require "AoE_Skillshot_Position" -- Library Required in Common Folder
 
+--[ Plugin Loads] --
 function PluginOnLoad()
-	loadMain()
-	menuMain()
+	loadMain() -- Loads Global Variables
+	menuMain() -- Loads AllClass Menu
 end
+--[/Loads]
 
+--[Plugin OnTick]--
 function PluginOnTick()
 		Target = AutoCarry.GetAttackTarget(true)
-		dfgSlot, hxgSlot, bcSlot, sheenSlot, triSlot, lichSlot = GetInventorySlotItem(3128), GetInventorySlotItem(3146), GetInventorySlotItem(3144), GetInventorySlotItem(3057), GetInventorySlotItem(3078), GetInventorySlotItem(3100)
-        iceSlot, liandrysSlot, blackfireSlot = GetInventorySlotItem(3025), GetInventorySlotItem(3151), GetInventorySlotItem(3188)  
-		qReady = (myHero:CanUseSpell(_Q) == READY)
-		wReady = (myHero:CanUseSpell(_W) == READY)
-		eReady = (myHero:CanUseSpell(_E) == READY)
-		rReady = (myHero:CanUseSpell(_R) == READY)
-		dfgReady = (dfgSlot ~= nil and myHero:CanUseSpell(dfgSlot) == READY)
-        hxgReady = (hxgSlot ~= nil and myHero:CanUseSpell(hxgSlot) == READY)
-        bwcReady = (bwcSlot ~= nil and myHero:CanUseSpell(bwcSlot) == READY)
-        iReady = (ignite ~= nil and myHero:CanUseSpell(ignite) == READY)
 		
 		if Menu.dAttack then AutoCarry.CanAttack = false else AutoCarry.CanAttack = true end
 		if Menu.qKS and qReady then qKS() end
@@ -30,6 +23,7 @@ function PluginOnTick()
 		if Menu.cStun and eReady and not HaveStun and not Backing then CastSpell(_E) end
 		if Menu.bCombo and Carry.AutoCarry then smartCombo() end
 end
+--[/OnTick]--
 
 function qKS()
 		for i = 1, heroManager.iCount, 1 do
@@ -63,12 +57,14 @@ end
 
 function PluginOnCreateObj(object)
         if object and object.name == "StunReady.troy" then HaveStun = true end
-		if object and object.name == "TeleportHome.troy" then Backing = true end
+		if object and GetDistance(object) <= 150 and object.name == "TeleportHome.troy" then Backing = true end
+		if object and object.name == "BearFire_foot.troy" then HaveTibbers = true end 
 end
  
 function PluginOnDeleteObj(object)
         if object and object.name == "StunReady.troy" then HaveStun = false end
-		if object and object.name == "TeleportHome.troy" then Backing = false end
+		if object and GetDistance(object) <= 150 and object.name == "TeleportHome.troy" then Backing = false end
+		if object and object.name == "BearFire_foot.troy" then HaveTibbers = false end
 end
 
 function smartCombo()
@@ -90,14 +86,16 @@ function smartCombo()
             local dpsDmg = onspellDmg
             local itemsDmg = onhitDmg + qDmg + wDmg + rDmg + dfgDmg + hxgDmg + bwcDmg + iDmg + onspellDmg
 						
-			if Target and Target.health <= dpsDmg + qDmg then
-				TargetKillable = true
+			if Target and Target.health <= dpsDmg + qDmg and qReady then
+					ComboDisplay = 1
+					if qReady and qMana > myMana then ComboDisplay = 13 end
 					if qReady and qMana <= myMana and GetDistance(Target) <= qRange then
-						if qReady then CastSpell(_Q, Target) end
+					if qReady then CastSpell(_Q, Target) end
 					end
 			end
-			if Target and Target.health <= dpsDmg + itemsDmg + qDmg then
-				TargetKillable = true
+			if Target and Target.health <= dpsDmg + itemsDmg + qDmg and qReady then
+				ComboDisplay = 2
+					if qReady and qMana > myMana then ComboDisplay = 14 end
 					if qReady and qMana <= myMana and GetDistance(Target) <= qRange then
 						if dfgReady then CastSpell(dfgSlot, Target) end
 						if hxgReady then CastSpell(hxgSlot, Target) end
@@ -105,17 +103,36 @@ function smartCombo()
 						if qReady then CastSpell(_Q, Target) end
 					end
 			end
-			if Target and Target.health <= dpsDmg + qDmg + wDmg then
-				TargetKillable = true
+			if Target and Target.health <= dpsDmg + wDmg and wReady then
+				ComboDisplay = 3
+					if wReady and wMana > myMana then ComboDisplay = 15 end
+					if wReady and wMana <= myMana and GetDistance(Target) <= wRange then
+						if wReady then CastSpell(_W, Target)  end
+					end
+			end
+				if Target and Target.health <= dpsDmg + itemsDmg + wDmg and wReady then
+				ComboDisplay = 4
+					if wReady and wMana > myMana then ComboDisplay = 16 end
+					if wReady and qMana <= myMana and GetDistance(Target) <= wRange then
+						if dfgReady then CastSpell(dfgSlot, Target) end
+						if hxgReady then CastSpell(hxgSlot, Target) end
+						if bwcReady then CastSpell(bwcSlot, Target) end
+						if wReady then CastSpell(_W, Target) end
+					end
+			end
+			if Target and Target.health <= dpsDmg + qDmg + wDmg and qReady and wReady then
+				ComboDisplay = 5
 				ComboMana = qMana + wMana
+					if qReady and  wReady and ComboMana > myMana then ComboDisplay = 17 end
 					if ComboMana <= myMana and GetDistance(Target) <= qRange then
 						if qReady then CastSpell(_Q, Target) end
 						if wReady then CastSpell(_W, Target) end
 					end
 			end
-			if Target and Target.health <= dpsDmg + itemsDmg + qDmg + wDmg then
-				TargetKillable = true
+			if Target and Target.health <= dpsDmg + itemsDmg + qDmg + wDmg and qReady and wReady then
+				ComboDisplay = 6
 				ComboMana = qMana + wMana
+					if qReady and  wReady and ComboMana > myMana then ComboDisplay = 18 end
 					if ComboMana <= myMana and GetDistance(Target) <= qRange then
 						if dfgReady then CastSpell(dfgSlot, Target) end
 						if hxgReady then CastSpell(hxgSlot, Target) end
@@ -124,51 +141,80 @@ function smartCombo()
 						if wReady then CastSpell(_W, Target) end
 					end
 			end
-			if Target and Target.health <= dpsDmg + itemsDmg + rDmg + qDmg + wDmg then
-				TargetKillable = true
-				ComboMana = rMana + qMana + wMana 
-				if ComboMana <= myMana and GetDistance(Target) <= rRange then
-					if dfgReady then CastSpell(dfgSlot, Target) end
-					if hxgReady then CastSpell(hxgSlot, Target) end
-					if bwcReady then CastSpell(bwcSlot, Target) end
-					if rReady then castR(Target) end
-					if qReady and GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
-					if wReady and GetDistance(Target) <= wRange then CastSpell(_W, Target) end
+			if Target and Target.health <= rDmg and rReady then
+				ComboDisplay = 7
+					if rReady and  rMana > myMana then ComboDisplay = 19 end
+					if rMana <= myMana and GetDistance(Target) <= rRange then
+						if rReady then castR(Target) end
+					end
+			end
+			if Target and Target.health <= rDmg + qDmg and rReady and qReady then
+				ComboDisplay = 8
+				ComboMana = rMana + qMana
+					if rReady and qReady and ComboMana > myMana then ComboDisplay = 20 end
+					if ComboMana <= myMana and GetDistance(Target) <= rRange then
+						if rReady then castR(Target) end
+						if qReady then CastSpell(_Q, Target) end
+					end
+			end
+			if Target and Target.health <= rDmg + wDmg and rReady and wReady then
+				ComboDisplay = 9
+				ComboMana = rMana + wMana
+					if rReady and wReady and ComboMana > myMana then ComboDisplay = 21 end
+					if ComboMana <= myMana and GetDistance(Target) <= rRange then
+						if rReady then castR(Target) end
+						if wReady then CastSpell(_W, Target) end
+					end
+			end
+			if Target and Target.health <= rDmg + qDmg + wDmg and rReady and qReady and wReady then
+				ComboDisplay = 10
+				ComboMana = rMana + qMana + wMana
+					if rReady and qReady and wReady and ComboMana > myMana then ComboDisplay = 22 end
+					if ComboMana <= myMana and GetDistance(Target) <= rRange then
+						if rReady then castR(Target) end
+						if qReadt then CastSpell(_Q, Target) end
+						if wReady then CastSpell(_W, Target) end
+					end
+			end
+			if Target and Target.health <= dpsDmg + itemsDmg + rDmg + qDmg + wDmg and rReady and qReady and wReady then
+				ComboDisplay = 11
+				ComboMana = rMana + qMana + wMana
+					if rReady and qReady and wReady and ComboMana > myMana then ComboDisplay = 23 end
+					if ComboMana <= myMana and GetDistance(Target) <= rRange then
+						if dfgReady then CastSpell(dfgSlot, Target) end
+						if hxgReady then CastSpell(hxgSlot, Target) end
+						if bwcReady then CastSpell(bwcSlot, Target) end
+						if rReady and not HaveTibbers then castR(Target) end
+						if qReady and GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
+						if wReady and GetDistance(Target) <= wRange then CastSpell(_W, Target) end
 				end
 			end
 			if Target and Target.health > dpsDmg + itemsDmg + rDmg + qDmg + wDmg then
 				TargetKillable = false
+				ComboDisplay = 12
 					if dfgReady then CastSpell(dfgSlot, Target) end
 					if hxgReady then CastSpell(hxgSlot, Target) end
 					if bwcReady then CastSpell(bwcSlot, Target) end
-					if rReady and GetDistance(Target) <= rRange then castR(Target) end
+					if rReady and not HaveTibbers and HaveStun and GetDistance(Target) <= rRange then castR(Target) end
 					if qReady and GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
 					if wReady and GetDistance(Target) <= wRange then CastSpell(_W, Target) end
 			end
 		end
 end
 function PluginOnDraw()
-	if Menu.drawQ and not myHero.dead then
-                DrawCircle(myHero.x, myHero.y, myHero.z, qRange, 0x00FF00)
-    end
-	if not myHero.dead and Menu.drawC then
-		for i=1, heroManager.iCount do
-			local Unit = heroManager:GetHero(i)
-			if ValidTarget(Unit) then 
-				 if TargetKillable then
-				 	DrawCircle(Unit.x, Unit.y, Unit.z, 100, 0xFFFFFF00)
-					PrintFloatText(Unit,0,"Kill")
-				 end
-				 if not TargetKillable then
-					DrawCircle(Unit.x, Unit.y, Unit.z, 100, 0xFFFFFF00)
-				 	PrintFloatText(Unit,0,"Can't Kill")
-				 end
-			end
-
-		end
+	if not myHero.dead then
+                if Menu.drawQ then
+					DrawCircle(myHero.x, myHero.y, myHero.z, qRange, 0x00FF00)
+				end
+				for i=1, heroManager.iCount do
+					local dTarget = heroManager:GetHero(i)
+					if ValidTarget(dTarget) and Menu.drawC then
+						DrawCircle(dTarget.x, dTarget.y, dTarget.z, 100, 0xFFFFFF00)
+						PrintFloatText(dTarget, 0, PrintList[ComboDisplay])
+					end
+				end
 	end
 end
-
 
 function loadMain()
 		Menu = AutoCarry.PluginMenu
@@ -176,10 +222,31 @@ function loadMain()
         AutoCarry.SkillsCrosshair.range = 625
 		MinMana = ((myHero.mana/myHero.maxMana)*100)
 		HaveStun = false
+		HaveTibbers = false
 		KillableTarget = false
+		ComboDisplay = 12
 		HK1, HK2, HK3 = string.byte("Z"), string.byte("K"), string.byte("T")
         qRange, wRange, eRange, rRange = 625, 625, 600, 630
         qReady, wReady, eReady, rReady = false, false, false, false
+		dfgSlot, hxgSlot, bcSlot, sheenSlot, triSlot, lichSlot = GetInventorySlotItem(3128), GetInventorySlotItem(3146), GetInventorySlotItem(3144), GetInventorySlotItem(3057), GetInventorySlotItem(3078), GetInventorySlotItem(3100)
+        iceSlot, liandrysSlot, blackfireSlot = GetInventorySlotItem(3025), GetInventorySlotItem(3151), GetInventorySlotItem(3188)  
+		qReady = (myHero:CanUseSpell(_Q) == READY)
+		wReady = (myHero:CanUseSpell(_W) == READY)
+		eReady = (myHero:CanUseSpell(_E) == READY)
+		rReady = (myHero:CanUseSpell(_R) == READY)
+		dfgReady = (dfgSlot ~= nil and myHero:CanUseSpell(dfgSlot) == READY)
+        hxgReady = (hxgSlot ~= nil and myHero:CanUseSpell(hxgSlot) == READY)
+        bwcReady = (bwcSlot ~= nil and myHero:CanUseSpell(bwcSlot) == READY)
+		waittxt = {}
+        iReady = (ignite ~= nil and myHero:CanUseSpell(ignite) == READY)
+		for i=1, heroManager.iCount do waittxt[i] = i*3 end
+		PrintList = {"Kill with Q!", "Kill With Items+Q!", "Kill with W!", "Kill with Items+W!",
+					 "Kill with Q+W!", "Kill With Items+Q+W", "Kill with R", "Kill with R+Q!", 
+					 "Kill with R+W!", "Kill with R+Q+W!",  "Kill with Full Combo!", "Harrass!!", 
+					 "Need Mana for Q!", "Need Mana for Q!", "Need Mana for W!", "Need Mana for W!", 
+					 "Need Mana for Q+W!", "Need Mana for Q+W!", "Need Mana for R", "Need Mana for R+Q!",
+					 "Need Mana for R+W", "Need Mana for R+Q+W!", "Need Mana for Full Combo!"}
+
 end
 
  
