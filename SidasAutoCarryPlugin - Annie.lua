@@ -209,8 +209,14 @@ function PluginOnDraw()
 				for i=1, heroManager.iCount do
 					local dTarget = heroManager:GetHero(i)
 					if ValidTarget(dTarget) and Menu.drawC then
-						DrawCircle(dTarget.x, dTarget.y, dTarget.z, 100, 0xFFFFFF00)
-						PrintFloatText(dTarget, 0, PrintList[ComboDisplay])
+							if PrintList[ComboDisplay] and PrintList[ComboDisplay] ~= 0 or 12 then
+								DrawCircle(dTarget.x, dTarget.y, dTarget.z, 125, 0x099B2299)
+								PrintFloatText(dTarget, 0, PrintList[ComboDisplay])
+							end
+							if PrintList[ComboDisplay] and PrintList[ComboDisplay] == 12 then
+								DrawCircle(dTarget.x, dTarget.y, dTarget.z, 125, 0xFFFFFF00)
+								PrintFloatText(dTarget, 0, PrintList[ComboDisplay])
+							end
 					end
 				end
 	end
@@ -237,9 +243,7 @@ function loadMain()
 		dfgReady = (dfgSlot ~= nil and myHero:CanUseSpell(dfgSlot) == READY)
         hxgReady = (hxgSlot ~= nil and myHero:CanUseSpell(hxgSlot) == READY)
         bwcReady = (bwcSlot ~= nil and myHero:CanUseSpell(bwcSlot) == READY)
-		waittxt = {}
-        iReady = (ignite ~= nil and myHero:CanUseSpell(ignite) == READY)
-		for i=1, heroManager.iCount do waittxt[i] = i*3 end
+		iReady = (ignite ~= nil and myHero:CanUseSpell(ignite) == READY)
 		PrintList = {"Kill with Q!", "Kill With Items+Q!", "Kill with W!", "Kill with Items+W!",
 					 "Kill with Q+W!", "Kill With Items+Q+W", "Kill with R", "Kill with R+Q!", 
 					 "Kill with R+W!", "Kill with R+Q+W!",  "Kill with Full Combo!", "Harrass!!", 
