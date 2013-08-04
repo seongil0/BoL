@@ -209,12 +209,8 @@ function PluginOnDraw()
 				for i=1, heroManager.iCount do
 					local dTarget = heroManager:GetHero(i)
 					if ValidTarget(dTarget) and Menu.drawC then
-							if PrintList[ComboDisplay] and PrintList[ComboDisplay] ~= 0 or 12 then
+							if PrintList[ComboDisplay] and PrintList[ComboDisplay] ~= 0 then
 								DrawCircle(dTarget.x, dTarget.y, dTarget.z, 125, 0x099B2299)
-								PrintFloatText(dTarget, 0, PrintList[ComboDisplay])
-							end
-							if PrintList[ComboDisplay] and PrintList[ComboDisplay] == 12 then
-								DrawCircle(dTarget.x, dTarget.y, dTarget.z, 125, 0xFFFFFF00)
 								PrintFloatText(dTarget, 0, PrintList[ComboDisplay])
 							end
 					end
