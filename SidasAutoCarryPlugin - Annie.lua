@@ -15,6 +15,11 @@ end
 function PluginOnTick()
 		Target = AutoCarry.GetAttackTarget(true)
 		
+		qReady = (myHero:CanUseSpell(_Q) == READY)
+		wReady = (myHero:CanUseSpell(_W) == READY)
+		eReady = (myHero:CanUseSpell(_E) == READY)
+		rReady = (myHero:CanUseSpell(_R) == READY)
+		
 		if Menu.dAttack then AutoCarry.CanAttack = false else AutoCarry.CanAttack = true end
 		if Menu.qKS and qReady then qKS() end
 		if Menu.qHarrass and qReady and Target then CastSpell(_Q, Target) end
@@ -37,10 +42,13 @@ end
 function qFarm()
 		for _, minion in pairs(AutoCarry.EnemyMinions().objects) do
                         if ValidTarget(minion) and qReady and GetDistance(minion) <= qRange then
-                                if minion.health < getDmg("Q", minion, myHero) then CastSpell(_Q, minion) end
+                                if minion.health < getDmg("Q", minion, myHero) then 
+									CastSpell(_Q, minion) 
+								end
                         end
                 end
 end
+
 
 function castR(target)
         if Menu.rMEC then
@@ -209,10 +217,8 @@ function PluginOnDraw()
 				for i=1, heroManager.iCount do
 					local dTarget = heroManager:GetHero(i)
 					if ValidTarget(dTarget) and Menu.drawC then
-							if PrintList[ComboDisplay] and PrintList[ComboDisplay] ~= 0 then
-								DrawCircle(dTarget.x, dTarget.y, dTarget.z, 125, 0x099B2299)
-								PrintFloatText(dTarget, 0, PrintList[ComboDisplay])
-							end
+						DrawCircle(dTarget.x, dTarget.y, dTarget.z, 100, 0xFFFFFF00)
+						PrintFloatText(dTarget, 0, PrintList[ComboDisplay])
 					end
 				end
 	end
@@ -239,7 +245,9 @@ function loadMain()
 		dfgReady = (dfgSlot ~= nil and myHero:CanUseSpell(dfgSlot) == READY)
         hxgReady = (hxgSlot ~= nil and myHero:CanUseSpell(hxgSlot) == READY)
         bwcReady = (bwcSlot ~= nil and myHero:CanUseSpell(bwcSlot) == READY)
-		iReady = (ignite ~= nil and myHero:CanUseSpell(ignite) == READY)
+		waittxt = {}
+        iReady = (ignite ~= nil and myHero:CanUseSpell(ignite) == READY)
+		for i=1, heroManager.iCount do waittxt[i] = i*3 end
 		PrintList = {"Kill with Q!", "Kill With Items+Q!", "Kill with W!", "Kill with Items+W!",
 					 "Kill with Q+W!", "Kill With Items+Q+W", "Kill with R", "Kill with R+Q!", 
 					 "Kill with R+W!", "Kill with R+Q+W!",  "Kill with Full Combo!", "Harrass!!", 
@@ -257,7 +265,7 @@ function menuMain()
 		Menu:addParam("qMana", "Minimum % of Mana to farm",  SCRIPT_PARAM_SLICE, 25, 0, 100, 2)
 		Menu:addParam("sep1", "-- Combo Options --", SCRIPT_PARAM_INFO, "")
 		Menu:addParam("qHarrass", "Disintegrate(Q) - Harrass", SCRIPT_PARAM_ONKEYTOGGLE, true, HK3)
-		Menu:addParam("dAttack", "Disable Auto Attacks", SCRIPT_PARAM_ONOFF, false)
+		Menu:addParam("dAttack", "Disable Auto Attacks", SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("I"))
 		Menu:addParam("cStun", "Charge Stun with E", SCRIPT_PARAM_ONOFF, true)
 		Menu:addParam("bCombo", "Burst Combo while AutoCarry", SCRIPT_PARAM_ONOFF, true)
 		Menu:addParam("rMec", "Tibbers Use MEC", SCRIPT_PARAM_ONOFF, true)
@@ -267,5 +275,9 @@ function menuMain()
 		Menu:addParam("sep3", "-- Draw Options --", SCRIPT_PARAM_INFO, "")
 		Menu:addParam("drawQ", "Draw Disintegrate (Q)", SCRIPT_PARAM_ONOFF, true)
 		Menu:addParam("drawC", "Draw Enemy Circles", SCRIPT_PARAM_ONOFF, false)
+		AutoCarry.PluginMenu:permaShow("qFarm")
+		AutoCarry.PluginMenu:permaShow("qHarrass")
+		AutoCarry.PluginMenu:permaShow("dAttack")
+		AutoCarry.PluginMenu:permaShow("cFarm")
 		
 end
