@@ -116,7 +116,7 @@ function DamageCalc()
                 combo3 = combo3 + wDmg
                 combo4 = combo4 + wDmg
             end
-            if rReady then
+            if rReady and not HaveTibbers then
                 combo1 = combo1 + rDmg
                 combo2 = combo2 + rDmg
                 combo3 = combo3 + rDmg
