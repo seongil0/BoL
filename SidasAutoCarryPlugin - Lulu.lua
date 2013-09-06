@@ -46,7 +46,7 @@ function mainMenu()
 	Menu:addParam("useW", "Use Whimsy (W)", SCRIPT_PARAM_ONOFF, true)
 	Menu:addParam("useE", "Use Help, Pix! (E)", SCRIPT_PARAM_ONOFF, true)
 	Menu:addParam("sep3", "-- Draw Options --", SCRIPT_PARAM_INFO, "")
-	Menu:addParam("drawQ", "Draw - Thundering Shuriken", SCRIPT_PARAM_ONOFF, false)
+	Menu:addParam("drawQ", "Draw - Glitterlance (Q)", SCRIPT_PARAM_ONOFF, false)
 end
 
 --> Checks
