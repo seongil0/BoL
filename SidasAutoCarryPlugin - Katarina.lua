@@ -1,4 +1,13 @@
---[AutoCarry Script - Katarina by Skeem]--
+--[[
+	AutoCarry Script - Katarina by Skeem
+
+	Changelog :
+   1.0 - Initial Release
+   1.1 - Fixed Damage Calculation
+	   - Fixed Auto Ignite
+	   - Hopefully Fixed BugSplat
+ 	]] --		
+
 -- Hero Name Check
 if myHero.charName ~= "Katarina" then return end
 
@@ -87,18 +96,20 @@ function smartKS()
 	 for i=1, heroManager.iCount do
 	 local enemy = heroManager:GetHero(i)
 		if ValidTarget(enemy) then
-			dfgDmg, hxgDmg, bwcDmg, iDmg, sheenDmg, triDmg, lichDmg  = 0, 0, 0, 0, 0, 0, 0
+			dfgDmg, hxgDmg, bwcDmg, iDmg  = 0, 0, 0, 0
 			qDmg = getDmg("Q",enemy,myHero)
             wDmg = getDmg("W",enemy,myHero)
 			eDmg = getDmg("E",enemy,myHero)
             rDmg = getDmg("R",enemy,myHero)
-			dfgDmg = (dfgSlot and getDmg("DFG",enemy,myHero) or 0)
-            hxgDmg = (hxgSlot and getDmg("HXG",enemy,myHero) or 0)
-            bwcDmg = (bwcSlot and getDmg("BWC",enemy,myHero) or 0)
-            iDmg = (ignite and getDmg("IGNITE",enemy,myHero) or 0)
-            onhitDmg = (sheenSlot and getDmg("SHEEN",enemy,myHero) or 0)+(triSlot and getDmg("TRINITY",enemy,myHero) or 0)+(lichSlot and getDmg("LICHBANE",enemy,myHero) or 0)+(IcebornSlot and getDmg("ICEBORN",enemy,myHero) or 0)                                                 
+			if DFGREADY then dfgDmg = (dfgSlot and getDmg("DFG",enemy,myHero) or 0)	end
+            if HXGREADY then hxgDmg = (hxgSlot and getDmg("HXG",enemy,myHero) or 0) end
+            if BWCREADY then bwcDmg = (bwcSlot and getDmg("BWC",enemy,myHero) or 0) end
+            if IREADY then iDmg = (ignite and getDmg("IGNITE",enemy,myHero) or 0) end
             onspellDmg = (liandrysSlot and getDmg("LIANDRYS",enemy,myHero) or 0)+(blackfireSlot and getDmg("BLACKFIRE",enemy,myHero) or 0)
-            itemsDmg = onhitDmg + qDmg + wDmg + rDmg + dfgDmg + hxgDmg + bwcDmg + iDmg + onspellDmg
+            itemsDmg = dfgDmg + hxgDmg + bwcDmg + iDmg + onspellDmg
+			------- DEBUG --------
+			if Menu.debug then PrintChat(""..itemsDmg..enemy.name) end
+			------- DEBUG --------
 			if Menu.sKS then
 				if enemy.health <= (qDmg + itemsDmg) and GetDistance(enemy) <= qRange and QREADY then
 					if DFGREADY then CastSpell(dfgSlot, enemy) end
@@ -186,6 +197,9 @@ function smartKS()
 						if ROREADY and GetDistance(enemy) <= 500 then CastSpell(roSlot) end
 						if RREADY then CastSpell(_R) end
 				end
+				if enemy.health <= iDmg and GetDistance(enemy) <= 600 then
+					if IREADY then CastSpell(ignite, enemy) end
+				end
 			end
 		end
 	end
@@ -247,7 +261,7 @@ function mainMenu()
 	Menu:addParam("hHK", "Harrass Hotkey", SCRIPT_PARAM_ONKEYDOWN, false, 84)
 	Menu:addParam("wHarrass", "Always Sinister Steel (W)", SCRIPT_PARAM_ONOFF, true)
 	Menu:addParam("sep2", "-- Farm Options --", SCRIPT_PARAM_INFO, "")
-	Menu:addParam("mFarm", "Disable Farming", SCRIPT_PARAM_ONKEYTOGGLE, false, 671)
+	Menu:addParam("mFarm", "Disable Farming", SCRIPT_PARAM_ONKEYTOGGLE, false, 67)
 	Menu:addParam("qFarm", "Farm with Bouncing Blades (Q)", SCRIPT_PARAM_ONOFF, true)
 	Menu:addParam("wFarm", "Sinister Steel (W)", SCRIPT_PARAM_ONOFF, true)
 	Menu:addParam("eFarm", "Farm with Shunpo (E)", SCRIPT_PARAM_ONOFF, false)
@@ -256,6 +270,8 @@ function mainMenu()
 	Menu:addParam("qDraw", "Draw Bouncing Blades (Q) Range", SCRIPT_PARAM_ONOFF, true)
 	Menu:addParam("wDraw", "Draw Sinister Steel (W) Range", SCRIPT_PARAM_ONOFF, true)
 	Menu:addParam("eDraw", "Draw Shunpo (E) Range", SCRIPT_PARAM_ONOFF, true)
+	----------- DEBUG ----------
+	 Menu:addParam("debug", "Debugging Prints", SCRIPT_PARAM_ONKEYDOWN, false, 88)
 end
 --[/Main Menu Function]--
 
