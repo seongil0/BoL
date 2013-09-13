@@ -108,7 +108,7 @@ function smartKS()
             onspellDmg = (liandrysSlot and getDmg("LIANDRYS",enemy,myHero) or 0)+(blackfireSlot and getDmg("BLACKFIRE",enemy,myHero) or 0)
             itemsDmg = dfgDmg + hxgDmg + bwcDmg + iDmg + onspellDmg
 			------- DEBUG --------
-			if Menu.debug then PrintChat(""..itemsDmg..enemy.name) end
+			-- if Menu.debug then PrintChat(""..itemsDmg..enemy.name) end
 			------- DEBUG --------
 			if Menu.sKS then
 				if enemy.health <= (qDmg + itemsDmg) and GetDistance(enemy) <= qRange and QREADY then
@@ -271,7 +271,7 @@ function mainMenu()
 	Menu:addParam("wDraw", "Draw Sinister Steel (W) Range", SCRIPT_PARAM_ONOFF, true)
 	Menu:addParam("eDraw", "Draw Shunpo (E) Range", SCRIPT_PARAM_ONOFF, true)
 	----------- DEBUG ----------
-	 Menu:addParam("debug", "Debugging Prints", SCRIPT_PARAM_ONKEYDOWN, false, 88)
+	-- Menu:addParam("debug", "Debugging Prints", SCRIPT_PARAM_ONKEYDOWN, false, 88)
 end
 --[/Main Menu Function]--
 
