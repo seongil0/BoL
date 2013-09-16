@@ -1,20 +1,25 @@
 --[[
-	AutoCarry Script - Katarina by Skeem
+	AutoCarry Script - Katarina 1.2 by Skeem
 
 	Changelog :
    1.0 - Initial Release
    1.1 - Fixed Damage Calculation
 	   - Fixed Auto Ignite
 	   - Hopefully Fixed BugSplat
+   1.2 - Really fixed BugSplat Now
+	   - More Damage Calculation Adjustments
+	   - More checks for when to ult
+	   - More checks to not use W when enemy not in range
  	]] --		
 
 -- Hero Name Check
 if myHero.charName ~= "Katarina" then return end
 
+
 --[Plugin OnLoad]--
 function PluginOnLoad()
 	AutoCarry.SkillsCrosshair.range = 675
-	--> Main Load	
+	--> Main Load
 	mainLoad()
 	--> Main Menu
 	mainMenu()
@@ -78,15 +83,14 @@ end
 --[Burst Combo Function]--
 function bCombo()
 	if Target then
-		if DFGREADY then CastSpell(dfgSlot, enemy) end
-		if HXGREADY then CastSpell(hxgSlot, enemy) end
-		if BWCREADY then CastSpell(bwcSlot, enemy) end
-		if BRKREADY then CastSpell(brkSlot, enemy) end
-		if ROREADY and GetDistance(enemy) <= 500 then CastSpell(roSlot) end
+		if DFGREADY then CastSpell(dfgSlot, Target) end
+		if HXGREADY then CastSpell(hxgSlot, Target) end
+		if BWCREADY then CastSpell(bwcSlot, Target) end
+		if BRKREADY then CastSpell(brkSlot, Target) end
 		if GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
 		if GetDistance(Target) <= eRange then CastSpell(_E, Target) end
-		if GetDistance(Target) <= wRange then CastSpell(_W, Target) end
-		if GetDistance(Target) <= rRange then CastSpell(_R, Target) end
+		if GetDistance(Target) <= wRange then CastSpell(_W) end
+		if not QREADY and not EREADY and GetDistance(Target) <= rRange then CastSpell(_R) end
 	end
 end
 --[/Burst Combo Function]--
@@ -100,7 +104,7 @@ function smartKS()
 			qDmg = getDmg("Q",enemy,myHero)
             wDmg = getDmg("W",enemy,myHero)
 			eDmg = getDmg("E",enemy,myHero)
-            rDmg = getDmg("R",enemy,myHero)
+            rDmg = getDmg("R",enemy,myHero)*10
 			if DFGREADY then dfgDmg = (dfgSlot and getDmg("DFG",enemy,myHero) or 0)	end
             if HXGREADY then hxgDmg = (hxgSlot and getDmg("HXG",enemy,myHero) or 0) end
             if BWCREADY then bwcDmg = (bwcSlot and getDmg("BWC",enemy,myHero) or 0) end
@@ -108,7 +112,8 @@ function smartKS()
             onspellDmg = (liandrysSlot and getDmg("LIANDRYS",enemy,myHero) or 0)+(blackfireSlot and getDmg("BLACKFIRE",enemy,myHero) or 0)
             itemsDmg = dfgDmg + hxgDmg + bwcDmg + iDmg + onspellDmg
 			------- DEBUG --------
-			-- if Menu.debug then PrintChat(""..itemsDmg..enemy.name) end
+			--if Menu.debug then PrintChat("Total Items Dmg: "..itemsDmg.." Target: "..enemy.name) end
+			--if Menu.debug then PrintChat("rDmg"..rDmg) end	
 			------- DEBUG --------
 			if Menu.sKS then
 				if enemy.health <= (qDmg + itemsDmg) and GetDistance(enemy) <= qRange and QREADY then
@@ -116,7 +121,6 @@ function smartKS()
 					if HXGREADY then CastSpell(hxgSlot, enemy) end
 					if BWCREADY then CastSpell(bwcSlot, enemy) end
 					if BRKREADY then CastSpell(brkSlot, enemy) end
-					if ROREADY and GetDistance(enemy) <= 500 then CastSpell(roSlot) end
 					if QREADY then CastSpell(_Q, enemy) end
 				end
 				if enemy.health <= (wDmg + itemsDmg) and GetDistance(enemy) <= wRange and WREADY then
@@ -124,7 +128,6 @@ function smartKS()
 					if HXGREADY then CastSpell(hxgSlot, enemy) end
 					if BWCREADY then CastSpell(bwcSlot, enemy) end
 					if BRKREADY then CastSpell(brkSlot, enemy) end
-					if ROREADY and GetDistance(enemy) <= 500 then CastSpell(roSlot) end
 					if WREADY then CastSpell(_W, enemy) end
 				end
 				if enemy.health <= (eDmg + itemsDmg) and GetDistance(enemy) <= eRange and EREADY then
@@ -132,7 +135,6 @@ function smartKS()
 					if HXGREADY then CastSpell(hxgSlot, enemy) end
 					if BWCREADY then CastSpell(bwcSlot, enemy) end
 					if BRKREADY then CastSpell(brkSlot, enemy) end
-					if ROREADY and GetDistance(enemy) <= 500 then CastSpell(roSlot) end
 					if EREADY then CastSpell(_E, enemy) end
 				end
 				if enemy.health <= (qDmg + wDmg + itemsDmg) and GetDistance(enemy) <= wRange
@@ -141,8 +143,7 @@ function smartKS()
 						if HXGREADY then CastSpell(hxgSlot, enemy) end
 						if BWCREADY then CastSpell(bwcSlot, enemy) end
 						if BRKREADY then CastSpell(brkSlot, enemy) end
-						if ROREADY and GetDistance(enemy) <= 500 then CastSpell(roSlot) end
-						if WREADY then CastSpell(_W, enemy) end
+						if WREADY and GetDistance(enemy) <= wRange then CastSpell(_W, enemy) end
 						if QREADY then CastSpell(_Q, enemy) end
 				end
 				if enemy.health <= (qDmg + eDmg + itemsDmg) and GetDistance(enemy) <= qRange
@@ -151,7 +152,6 @@ function smartKS()
 						if HXGREADY then CastSpell(hxgSlot, enemy) end
 						if BWCREADY then CastSpell(bwcSlot, enemy) end
 						if BRKREADY then CastSpell(brkSlot, enemy) end
-						if ROREADY and GetDistance(enemy) <= 500 then CastSpell(roSlot) end
 						if QREADY then CastSpell(_Q, enemy) end
 						if EREADY then CastSpell(_E, enemy) end
 				end
@@ -162,7 +162,7 @@ function smartKS()
 						if BWCREADY then CastSpell(bwcSlot, enemy) end
 						if BRKREADY then CastSpell(brkSlot, enemy) end
 						if ROREADY and GetDistance(enemy) <= 500 then CastSpell(roSlot) end
-						if WREADY then CastSpell(_W, enemy) end
+						if WREADY and GetDistance(enemy) <= wRange then CastSpell(_W, enemy) end
 						if EREADY then CastSpell(_E, enemy) end
 				end
 				if enemy.health <= (qDmg + eDmg + wDmg + itemsDmg) and GetDistance(enemy) <= eRange
@@ -171,10 +171,9 @@ function smartKS()
 						if HXGREADY then CastSpell(hxgSlot, enemy) end
 						if BWCREADY then CastSpell(bwcSlot, enemy) end
 						if BRKREADY then CastSpell(brkSlot, enemy) end
-						if ROREADY and GetDistance(enemy) <= 500 then CastSpell(roSlot) end
 						if QREADY then CastSpell(_Q, enemy) end
 						if EREADY then CastSpell(_E, enemy) end
-						if WREADY then CastSpell(_W, enemy) end
+						if WREADY and GetDistance(enemy) <= wRange then CastSpell(_W, enemy) end
 				end
 				if enemy.health <= (qDmg + eDmg + wDmg + rDmg + itemsDmg) and GetDistance(enemy) <= qRange
 					and QREADY and EREADY and WREADY and RREADY and enemy.health > (qDmg + eDmg + wDmg) then
@@ -182,19 +181,17 @@ function smartKS()
 						if HXGREADY then CastSpell(hxgSlot, enemy) end
 						if BWCREADY then CastSpell(bwcSlot, enemy) end
 						if BRKREADY then CastSpell(brkSlot, enemy) end
-						if ROREADY and GetDistance(enemy) <= 500 then CastSpell(roSlot) end
 						if QREADY then CastSpell(_Q, enemy) end
 						if EREADY then CastSpell(_E, enemy) end
-						if WREADY then CastSpell(_W, enemy) end
-						if RREADY then CastSpell(_R, enemy) end
+						if WREADY and GetDistance(enemy) <= wRange then CastSpell(_W, enemy) end
+						if RREADY and not QREADY and not EREADY then CastSpell(_R) end
 				end
 				if enemy.health <= (rDmg + itemsDmg) and GetDistance(enemy) <= rRange
-					and RREADY then
+					and not QREADY and not EREADY and RREADY then
 						if DFGREADY then CastSpell(dfgSlot, enemy) end
 						if HXGREADY then CastSpell(hxgSlot, enemy) end
 						if BWCREADY then CastSpell(bwcSlot, enemy) end
 						if BRKREADY then CastSpell(brkSlot, enemy) end
-						if ROREADY and GetDistance(enemy) <= 500 then CastSpell(roSlot) end
 						if RREADY then CastSpell(_R) end
 				end
 				if enemy.health <= iDmg and GetDistance(enemy) <= 600 then
@@ -241,13 +238,11 @@ end
 
 --[Function mainLoad]--
 function mainLoad()
-	qRange, wRange, eRange, rRange = 675, 355, 700, 530
+	qRange, wRange, eRange, rRange = 675, 375, 700, 550
 	QREADY, WREADY, EREADY, RREADY = false, false, false, false
 	lastAnimation = "Run"
 	Menu = AutoCarry.PluginMenu
 	Carry = AutoCarry.MainMenu
-	if myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") then ignite = SUMMONER_1
-	elseif myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") then ignite = SUMMONER_2 end
 end
 --[/Function mainLoad]--
 
@@ -271,17 +266,17 @@ function mainMenu()
 	Menu:addParam("wDraw", "Draw Sinister Steel (W) Range", SCRIPT_PARAM_ONOFF, true)
 	Menu:addParam("eDraw", "Draw Shunpo (E) Range", SCRIPT_PARAM_ONOFF, true)
 	----------- DEBUG ----------
-	-- Menu:addParam("debug", "Debugging Prints", SCRIPT_PARAM_ONKEYDOWN, false, 88)
+	--Menu:addParam("debug", "Debugging Prints", SCRIPT_PARAM_ONKEYDOWN, false, 88)
 end
 --[/Main Menu Function]--
 
 --[Cooldown Checks]--
 function Checks()
+	if myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") then ignite = SUMMONER_1
+	elseif myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") then ignite = SUMMONER_2 end
 	Target = AutoCarry.GetAttackTarget(true)
 	dfgSlot, hxgSlot, bwcSlot = GetInventorySlotItem(3128), GetInventorySlotItem(3146), GetInventorySlotItem(3144)
-	sheenSlot, trinitySlot, LBSlot = GetInventorySlotItem(3057), GetInventorySlotItem(3078), GetInventorySlotItem(3100)
-	iSlot, ltSlot, btSlot = GetInventorySlotItem(3025), GetInventorySlotItem(3151), GetInventorySlotItem(3188)
-	stiSlot, roSlot, brkSlot = GetInventorySlotItem(3092),GetInventorySlotItem(3143),GetInventorySlotItem(3153)
+	brkSlot = GetInventorySlotItem(3092),GetInventorySlotItem(3143),GetInventorySlotItem(3153)
 	QREADY = (myHero:CanUseSpell(_Q) == READY)
 	WREADY = (myHero:CanUseSpell(_W) == READY)
 	EREADY = (myHero:CanUseSpell(_E) == READY)
@@ -289,7 +284,6 @@ function Checks()
 	DFGREADY = (dfgSlot ~= nil and myHero:CanUseSpell(dfgSlot) == READY)
 	HXGREADY = (hxgSlot ~= nil and myHero:CanUseSpell(hxgSlot) == READY)
 	BWCREADY = (bwcSlot ~= nil and myHero:CanUseSpell(bwcSlot) == READY)
-	STIREADY = (stiSlot ~= nil and myHero:CanUseSpell(stiSlot) == READY)
 	BRKREADY = (brkSlot ~= nil and myHero:CanUseSpell(brkSlot) == READY)
 	IREADY = (ignite ~= nil and myHero:CanUseSpell(ignite) == READY)
 end
