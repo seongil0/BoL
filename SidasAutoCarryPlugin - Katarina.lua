@@ -1,4 +1,4 @@
---[[
+﻿--[[
 	AutoCarry Script - Katarina 1.2 by Skeem
 
 	Changelog :
@@ -28,13 +28,13 @@ end
 
 --[Plugin OnTick]--
 function PluginOnTick()
-	if isChanneling() then
-		AutoCarry.CanAttack = false
-		AutoCarry.CanMove = false
-	else
-		AutoCarry.CanAttack = true
-		AutoCarry.CanMove = true
-	end
+	if isChanneling("Spell4") then
+        AutoCarry.CanAttack = false
+        AutoCarry.CanMove = false
+			else
+        AutoCarry.CanAttack = true
+        AutoCarry.CanMove = true
+    end
 	Checks()
 	smartKS()
 	if Menu.hHK then Harrass() end
@@ -205,17 +205,18 @@ end
 
 --[Plugin OnAnimation - Credits: Λnonymous]--
 function PluginOnAnimation(unit, animationName)
-	if unit.isMe and lastAnimation ~= animationName then lastAnimation = animationName end
+        -- Set lastAnimation = Last Animation used
+        if unit.isMe and lastAnimation ~= animationName then lastAnimation = animationName end
 end
 --[/Plugin OnAnimation - Credits: Λnonymous]--
 
 --[Channeling Function - Credits: Λnonymous]--
-function isChanneling()
-	if lastAnimation == "Spell4" then
-		return true
-	else
-		return false
-	end
+function isChanneling(animationName)
+        if lastAnimation == animationName then
+                return true
+        else
+                return false
+        end
 end
 --[/Channeling Function]--
 
@@ -240,7 +241,7 @@ end
 function mainLoad()
 	qRange, wRange, eRange, rRange = 675, 375, 700, 550
 	QREADY, WREADY, EREADY, RREADY = false, false, false, false
-	lastAnimation = "Run"
+	lastAnimation = nil
 	Menu = AutoCarry.PluginMenu
 	Carry = AutoCarry.MainMenu
 end
