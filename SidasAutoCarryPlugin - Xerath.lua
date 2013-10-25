@@ -16,9 +16,10 @@ end
 --[OnTick]--
 function PluginOnTick()
 	if Recall then return end
+	AutoCarry.SkillsCrosshair.range = 2000
 	Checks()
 	wManagement()
-	AutoCarry.SkillsCrosshair.range = 1750
+	SmartKS()
 	
 	if Carry.AutoCarry then FullCombo() end
 	if Carry.MixedMode and Target then 
@@ -72,15 +73,34 @@ function CastQ(Target)
     end
 end
 
+--[Function That Counts Enemies in Range]--
+function CountEnemies(point, range)
+        local ChampCount = 0
+        for j = 1, heroManager.iCount, 1 do
+                local enemyhero = heroManager:getHero(j)
+                if myHero.team ~= enemyhero.team and ValidTarget(enemyhero, rRange+150) then
+                        if GetDistance(enemyhero, point) <= range then
+                                ChampCount = ChampCount + 1
+                        end
+                end
+        end            
+        return ChampCount
+end
+
 --[Casting our Ultimate with MEC]--
 function CastR(Target)
-    if RREADY then 
-        if IsSACReborn then
-            SkillR:ForceCast(Target)
-        else
-			AutoCarry.CastSkillshot(SkillR, Target)
-        end
-    end
+    if RREADY then
+		local ultPos = GetAoESpellPosition(450, Target)
+		if ultPos and GetDistance(ultPos) <= rRange then
+			if CountEnemies(ultPos, 450) > 1 then
+				CastSpell(_R, ultPos.x, ultPos.z)
+			elseif IsSACReborn then
+				SkillR:Cast(Target)
+			else
+				AutoCarry.CastSkillshot(SkillR, Target)
+			end
+		end
+	end
 end
 
 --[Object Detection for W, Recalling, E, R]--
@@ -104,6 +124,12 @@ function PluginOnDeleteObj(obj)
 	if obj.name:find("TeleportHome.troy") then
 		Recall = false
 	end
+end
+
+function Plugin:OnProcessSpell(unit, spell)
+        if unit.isMe and spell.name == "XerathArcaneBarrageWrapper" then
+                rUsed = rUsed + 1
+        end
 end
 
 --[Low Mana Function by Kain]--
@@ -140,8 +166,6 @@ end
 function wManagement()
 	if wActive then
 		qRange, eRange, rRange = 1750, 950, 1600
-		if not (QREADY or EREADY or RREADY) then CastSpell(_W)
-		if not Target then CastSpell(_W) end
 	else
 		qRange,eRange,rRange = 1100, 650, 1100
 	end
@@ -155,7 +179,13 @@ function SmartKS()
 			dfgDmg, hxgDmg, bwcDmg, iDmg  = 0, 0, 0, 0
 			qDmg = getDmg("Q",enemy,myHero)
             eDmg = getDmg("E",enemy,myHero)
-			rDmg = getDmg("R",enemy,myHero)
+			if rUsed == 0 then
+				rDmg = getDmg("R",enemy,myHero)*3
+			elseif rUsed == 1 then
+				rDmg = getDmg("R",enemy,myHero)*2
+			elseif rUsed > 2 then
+				rDmg = getDmg("R",enemy,myHero)
+			end
 			if DFGREADY then dfgDmg = (dfgSlot and getDmg("DFG",enemy,myHero) or 0)	end
             if HXGREADY then hxgDmg = (hxgSlot and getDmg("HXG",enemy,myHero) or 0) end
             if BWCREADY then bwcDmg = (bwcSlot and getDmg("BWC",enemy,myHero) or 0) end
@@ -197,7 +227,7 @@ function SmartKS()
 						if QREADY then CastQ(enemy) end
 				
 				elseif enemy.health <= (qDmg + eDmg + rDmg + itemsDmg) and GetDistance(enemy) <= qRange
-					and QREADY and EREADY and WREADY and RREADY and enemy.health > (qDmg + wDmg) then
+					and QREADY and EREADY and WREADY and RREADY and enemy.health > (qDmg + eDmg) then
 						if DFGREADY then CastSpell(dfgSlot, enemy) end
 						if HXGREADY then CastSpell(hxgSlot, enemy) end
 						if BWCREADY then CastSpell(bwcSlot, enemy) end
@@ -255,6 +285,7 @@ function mainLoad()
 	QREADY, WREADY, EREADY, RREADY = false, false, false, false
 	Menu = AutoCarry.PluginMenu
 	wActive, Recall = false, false
+	rUsed = 0
 	TextList = {"Harass him!!", "Q+E KILL!!", "FULL COMBO KILL!"}
 	KillText = {}
 	waittxt = {} -- prevents UI lags, all credits to Dekaron
