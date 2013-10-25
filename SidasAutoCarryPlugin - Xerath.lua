@@ -1,5 +1,5 @@
 --[[
-	AutoCarry Plugin - Xerath the Magus Ascendant 1.0 by Skeem
+	AutoCarry Plugin - Xerath the Magus Ascendant 0.4 BETA by Skeem
 
 	Changelog :
    1.0 - Initial Release
