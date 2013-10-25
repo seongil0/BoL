@@ -270,7 +270,10 @@ function FullCombo()
 			if WREADY and GetDistance(Target) <= wRange and Menu.useW and (QREADY or EREADY or RREADY) and not wActive then CastSpell(_W) end
 			if EREADY and GetDistance(Target) <= eRange and Menu.useE then CastSpell(_E, Target) end
 			if QREADY and GetDistance(Target) <= qRange and Menu.useQ then CastQ(Target) end
-			if RREADY and GetDistance(Target) <= rRange then CastR(Target) end
+			if RREADY then 
+				if Menu.rKill and Target.health <= rDmg and GetDistance(Target) <= rRange then CastR(Target) 
+				else if not Menu.rKill and GetDistance(Target) <= rRange then CastR(Target) end
+			end
 		end 
 	end
 end
