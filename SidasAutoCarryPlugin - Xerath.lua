@@ -272,7 +272,7 @@ function FullCombo()
 			if QREADY and GetDistance(Target) <= qRange and Menu.useQ then CastQ(Target) end
 			if RREADY then 
 				if Menu.rKill and Target.health <= rDmg and GetDistance(Target) <= rRange then CastR(Target) 
-				else if not Menu.rKill and GetDistance(Target) <= rRange then CastR(Target) end
+				elseif not Menu.rKill and GetDistance(Target) <= rRange then CastR(Target) end
 			end
 		end 
 	end
