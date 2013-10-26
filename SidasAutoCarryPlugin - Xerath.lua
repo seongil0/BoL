@@ -16,14 +16,18 @@ end
 --[OnTick]--
 function PluginOnTick()
 	if Recall then return end
-	AutoCarry.SkillsCrosshair.range = 2000
+	if IsSACReborn then
+		AutoCarry.Crosshair:SetSkillCrosshairRange(1800)
+	else
+		AutoCarry.SkillsCrosshair.range = 1800
+	end
 	Checks()
 	wManagement()
 	SmartKS()
 	
 	if Carry.AutoCarry then FullCombo() end
 	if Carry.MixedMode and Target then 
-		if Menu.qHarass and GetDistance(Target) <= qRange then CastQ(Target) end
+		if Menu.qHarass and not IsMyManaLow() and GetDistance(Target) <= qRange then CastQ(Target) end
 	end
 	
 	if Extras.ZWItems and IsMyHealthLow() and Target and (ZNAREADY or WGTREADY) then CastSpell((wgtSlot or znaSlot)) end
@@ -126,12 +130,6 @@ function PluginOnDeleteObj(obj)
 	end
 end
 
-function Plugin:OnProcessSpell(unit, spell)
-        if unit.isMe and spell.name == "XerathArcaneBarrageWrapper" then
-                rUsed = rUsed + 1
-        end
-end
-
 --[Low Mana Function by Kain]--
 function IsMyManaLow()
     if myHero.mana < (myHero.maxMana * ( Extras.MinMana / 100)) then
@@ -166,6 +164,8 @@ end
 function wManagement()
 	if wActive then
 		qRange, eRange, rRange = 1750, 950, 1600
+		if not Target then CastSpell(_W) end
+		if Target and GetDistance(Target) > qRange then CastSpell(_W) end
 	else
 		qRange,eRange,rRange = 1100, 650, 1100
 	end
@@ -179,13 +179,7 @@ function SmartKS()
 			dfgDmg, hxgDmg, bwcDmg, iDmg  = 0, 0, 0, 0
 			qDmg = getDmg("Q",enemy,myHero)
             eDmg = getDmg("E",enemy,myHero)
-			if rUsed == 0 then
-				rDmg = getDmg("R",enemy,myHero)*3
-			elseif rUsed == 1 then
-				rDmg = getDmg("R",enemy,myHero)*2
-			elseif rUsed > 2 then
-				rDmg = getDmg("R",enemy,myHero)
-			end
+			rDmg = getDmg("R",enemy,myHero)
 			if DFGREADY then dfgDmg = (dfgSlot and getDmg("DFG",enemy,myHero) or 0)	end
             if HXGREADY then hxgDmg = (hxgSlot and getDmg("HXG",enemy,myHero) or 0) end
             if BWCREADY then bwcDmg = (bwcSlot and getDmg("BWC",enemy,myHero) or 0) end
@@ -246,18 +240,17 @@ function SmartKS()
 						if RREADY then CastR(enemy) end
 				
 				end
-				
-				KillText[i] = 1 
-				if enemy.health <= (qDmg + eDmg + itemsDmg) and QREADY and EREADY then
-				KillText[i] = 2
-				end
-				if enemy.health <= (qDmg + eDmg + rDmg + itemsDmg) and QREADY and EREADY and RREADY then
-				KillText[i] = 3
-				end
-				
+								
 				if enemy.health <= iDmg and GetDistance(enemy) <= 600 then
 					if IREADY then CastSpell(ignite, enemy) end
 				end
+			end
+			KillText[i] = 1 
+			if enemy.health <= (qDmg + eDmg + itemsDmg) and QREADY and EREADY then
+			KillText[i] = 2
+			end
+			if enemy.health <= (qDmg + eDmg + rDmg + itemsDmg) and QREADY and EREADY and RREADY then
+			KillText[i] = 3
 			end
 		end
 	end
@@ -294,6 +287,7 @@ function mainLoad()
 	waittxt = {} -- prevents UI lags, all credits to Dekaron
 	for i=1, heroManager.iCount do waittxt[i] = i*3 end -- All credits to Dekaron
 	levelSequence = { 1, 3, 1, 2, 1, 4, 1, 2, 1, 2, 4, 2, 2, 3, 3, 4, 3, 3, }
+	-- This was Copy + Paste from Kain :P
 	if IsSACReborn then
 		SkillQ = AutoCarry.Skills:NewSkill(false, _Q, qRange, "Arcanopulse", AutoCarry.SPELL_LINEAR, 0, false, false, 3.0, 600, 100, false)
 		SkillR = AutoCarry.Skills:NewSkill(false, _R, rRange, "Arcane Barrage", AutoCarry.SPELL_CIRCLE, 0, false, false, 2.0, 250, 450, false)
@@ -333,7 +327,7 @@ end
 function Checks()
 	if myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") then ignite = SUMMONER_1
 	elseif myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") then ignite = SUMMONER_2 end
-	Target = AutoCarry.GetAttackTarget(true)
+	if IsSACReborn then Target = AutoCarry.Crosshair:GetTarget(true) else Target = AutoCarry.GetAttackTarget(true) end
 	dfgSlot, hxgSlot, bwcSlot = GetInventorySlotItem(3128), GetInventorySlotItem(3146), GetInventorySlotItem(3144)
 	brkSlot = GetInventorySlotItem(3092),GetInventorySlotItem(3143),GetInventorySlotItem(3153)
 	znaSlot, wgtSlot = GetInventorySlotItem(3157),GetInventorySlotItem(3090)
