@@ -6,7 +6,6 @@
  ]] --
 
 if myHero.charName ~= "Maokai" then return end
-require "Prodiction"
 
 --[Function When Plugin Loads]--
 function PluginOnLoad()
