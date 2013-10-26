@@ -16,6 +16,7 @@ end
 --[OnTick]--
 function PluginOnTick()
 	if Recall then return end
+	-- Thanks to Kain for Crosshair fix
 	if IsSACReborn then
 		AutoCarry.Crosshair:SetSkillCrosshairRange(1800)
 	else
@@ -274,6 +275,7 @@ end
 
 --[Variables Load]--
 function mainLoad()
+	-- Credits to Kain for telling me how to check if is reborn properly
 	if AutoCarry.Skills then IsSACReborn = true else IsSACReborn = false end
 	if IsSACReborn then AutoCarry.Skills:DisableAll() end
 	Carry = AutoCarry.MainMenu
