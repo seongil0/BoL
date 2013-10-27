@@ -70,10 +70,7 @@ end
 --[Casting our Q into Enemies]--
 function CastQ(Target)
     if QREADY then 
-        if IsSACReborn then
-            SkillQ:Cast(Target)
-        else
-			AutoCarry.CastSkillshot(SkillQ, Target)
+        	AutoCarry.CastSkillshot(SkillQ, Target)
         end
     end
 end
@@ -99,8 +96,6 @@ function CastR(Target)
 		if ultPos and GetDistance(ultPos) <= rRange then
 			if CountEnemies(ultPos, 450) > 1 then
 				CastSpell(_R, ultPos.x, ultPos.z)
-			elseif IsSACReborn then
-				SkillR:Cast(Target)
 			else
 				AutoCarry.CastSkillshot(SkillR, Target)
 			end
@@ -289,14 +284,9 @@ function mainLoad()
 	waittxt = {} -- prevents UI lags, all credits to Dekaron
 	for i=1, heroManager.iCount do waittxt[i] = i*3 end -- All credits to Dekaron
 	levelSequence = { 1, 3, 1, 2, 1, 4, 1, 2, 1, 2, 4, 2, 2, 3, 3, 4, 3, 3, }
-	-- This was Copy + Paste from Kain :P
-	if IsSACReborn then
-		SkillQ = AutoCarry.Skills:NewSkill(false, _Q, qRange, "Arcanopulse", AutoCarry.SPELL_LINEAR, 0, false, false, 3.0, 600, 100, false)
-		SkillR = AutoCarry.Skills:NewSkill(false, _R, rRange, "Arcane Barrage", AutoCarry.SPELL_CIRCLE, 0, false, false, 2.0, 250, 450, false)
-	else
-		SkillQ = {spellKey = _Q, range = qRange, speed = 3.0, delay = 600, width = 100, configName = "arcanopulse", displayName = "Q (Arcanopulse)", enabled = true, skillShot = true, minions = false, reset = false, reqTarget = false }
-		SkillR = {spellKey = _R, range = rRange, speed = 2.0, delay = 250, width = 450, configName = "arcanebarrage", displayName = "R (Arcane Barrage)", enabled = true, skillShot = true, minions = false, reset = false, reqTarget = false }
-	end
+	SkillQ = {spellKey = _Q, range = qRange, speed = 3.0, delay = 600, width = 100, configName = "arcanopulse", displayName = "Q (Arcanopulse)", enabled = true, skillShot = true, minions = false, reset = false, reqTarget = false }
+	SkillR = {spellKey = _R, range = rRange, speed = 2.0, delay = 250, width = 450, configName = "arcanebarrage", displayName = "R (Arcane Barrage)", enabled = true, skillShot = true, minions = false, reset = false, reqTarget = false }
+
 end
 
 --[Main Menu & Extras Menu]--
