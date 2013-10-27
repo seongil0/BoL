@@ -1,6 +1,7 @@
 --[[
-	AutoCarry Plugin - Annie Hastur, the Dark Child 1.1 by Skeem
-
+	AutoCarry Plugin - Annie Hastur, the Dark Child 1.2 by Skeem
+	With Code from Kain
+	Copyright 2013
 	Changelog :
    1.0 - Initial Release
    1.1 - Recoded Should Work Better
@@ -11,6 +12,8 @@
 	   - Added Auto Health Pots / Auto Mana Pots
 	   - Added Auto Zhonyas (Needs Work maybe set at 15% default)
 	   - Added Auto Spell Levels
+   1.2 - Added prodiction to W, R
+	   - W uses MEC
   	]] --
 
 if myHero.charName ~= "Annie" then return end -- Hero Check
@@ -37,7 +40,7 @@ function PluginOnTick()
 		if Menu.sKS then SmartKS() end
 		if Target and Carry.MixedMode then
 			if Menu.qHarass and QREADY and GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
-			if Menu.wHarass and WREADY and GetDistance(Target) <= wRange then CastSpell(_W, Target) end
+			if Menu.wHarass and WREADY and GetDistance(Target) <= wRange then CastW(Target) end
 		end
 		if Extras.ZWItems and IsMyHealthLow() and Target and (ZNAREADY or WGTREADY) then CastSpell((wgtSlot or znaSlot)) end
 		if Extras.aHP and NeedHP() and (HPREADY or FSKREADY) then CastSpell((hpSlot or fskSlot)) end
@@ -69,7 +72,7 @@ function bCombo()
 		end
 		if EREADY and GetDistance(Target) <= wRange then CastSpell(_E) end
 		if QREADY and GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
-		if WREADY and GetDistance(Target) <= wRange then CastSpell(_W, Target) end
+		if WREADY and GetDistance(Target) <= wRange then CastW(Target) end
 	end
 end
 --[/Burst Combo Function]--
@@ -89,16 +92,36 @@ function CountEnemies(point, range)
 end
 
 function CastR(Target)
-    local ultPos = GetAoESpellPosition(450, Target)
-    if ultPos and GetDistance(ultPos) <= rRange then
-		if CountEnemies(ultPos, 450) > 1 then
-			CastSpell(_R, ultPos.x, ultPos.z)
-		elseif GetDistance(Target) <= rRange then
-            CastSpell(_R, Target.x, Target.z)
+	if RREADY then
+	local ultPos = GetAoESpellPosition(450, Target)
+		if ultPos and GetDistance(ultPos) <= rRange then
+			if CountEnemies(ultPos, 450) > 1 then
+				CastSpell(_R, ultPos.x, ultPos.z)
+			elseif IsSACReborn then
+				SkillR:Cast(Target)
+			else
+				AutoCarry.CastSkillshot(SkillR, Target)
+			end
+		end
+	end
+end
+--[Skills that use MEC]--
+
+--[Casts our W Skill]--
+function CastW(Target)
+    if WREADY then 
+	local wPos = GetAoESpellPosition(450, Target)
+		if wPos and GetDistance(wPos) <= wRange then
+			if CountEnemies(wPos, 450) > 1 then
+				CastSpell(_W, wPos.x, wPos.z)
+			elseif IsSACReborn then
+            SkillW:Cast(Target)
+			else
+			AutoCarry.CastSkillshot(SkillW, Target)
+			end
 		end
     end
 end
---[Skills that use MEC]--
 
 
 --[Smart KS Function]--
@@ -121,11 +144,11 @@ function SmartKS()
 					if QREADY then CastSpell(_Q, enemy) end
 				
 				elseif enemy.health <= (wDmg) and GetDistance(enemy) <= wRange and WREADY then
-					if WREADY then CastSpell(_W, enemy) end
+					if WREADY then CastW(enemy) end
 				
 				elseif enemy.health <= (qDmg + wDmg) and GetDistance(enemy) <= wRange and WREADY and QREADY then
 					if QREADY then CastSpell(_Q, enemy) end
-					if WREADY then CastSpell(_W, enemy) end
+					if WREADY then CastW(enemy) end
 				
 				elseif enemy.health <= (qDmg + itemsDmg) and GetDistance(enemy) <= qRange and QREADY then
 					if DFGREADY then CastSpell(dfgSlot, enemy) end
@@ -139,7 +162,7 @@ function SmartKS()
 					if HXGREADY then CastSpell(hxgSlot, enemy) end
 					if BWCREADY then CastSpell(bwcSlot, enemy) end
 					if BRKREADY then CastSpell(brkSlot, enemy) end
-					if WREADY then CastSpell(_W, enemy) end
+					if WREADY then CastW(enemy) end
 				
 				elseif enemy.health <= (qDmg + wDmg + itemsDmg) and GetDistance(enemy) <= wRange
 					and WREADY and QREADY then
@@ -147,7 +170,7 @@ function SmartKS()
 						if HXGREADY then CastSpell(hxgSlot, enemy) end
 						if BWCREADY then CastSpell(bwcSlot, enemy) end
 						if BRKREADY then CastSpell(brkSlot, enemy) end
-						if WREADY and GetDistance(enemy) <= wRange then CastSpell(_W, enemy) end
+						if WREADY and GetDistance(enemy) <= wRange then CastW(enemy) end
 						if QREADY then CastSpell(_Q, enemy) end
 				
 				elseif enemy.health <= (qDmg + wDmg + rDmg + itemsDmg) and GetDistance(enemy) <= qRange
@@ -158,7 +181,7 @@ function SmartKS()
 						if BRKREADY then CastSpell(brkSlot, enemy) end
 						if RREADY and GetDistance(enemy) <= rRange then CastR(enemy) end
 						if QREADY and GetDistance(enemy) <= qRange then CastSpell(_Q, enemy) end
-						if WREADY and GetDistance(enemy) <= wRange then CastSpell(_W, enemy) end
+						if WREADY and GetDistance(enemy) <= wRange then CastW(enemy) end
 						
 				
 				elseif enemy.health <= (rDmg + itemsDmg) and GetDistance(enemy) <= rRange
@@ -267,9 +290,15 @@ function PluginOnDraw()
 end
 
 function loadMain()
+		if AutoCarry.Skills then IsSACReborn = true else IsSACReborn = false end
+		if IsSACReborn then AutoCarry.Skills:DisableAll() end
 		Menu = AutoCarry.PluginMenu
 		Carry = AutoCarry.MainMenu
-        AutoCarry.SkillsCrosshair.range = 625
+        if IsSACReborn then
+		AutoCarry.Crosshair:SetSkillCrosshairRange(630)
+		else
+		AutoCarry.SkillsCrosshair.range = 630
+		end
 		HaveStun, HaveTibbers, Recall = false, false, false
 		HK1, HK2, HK3 = string.byte("Z"), string.byte("K"), string.byte("T")
         qRange, wRange, eRange, rRange = 625, 625, 600, 630
@@ -277,7 +306,14 @@ function loadMain()
 		KillText = {}
 		waittxt = {} -- prevents UI lags, all credits to Dekaron
 		for i=1, heroManager.iCount do waittxt[i] = i*3 end -- All credits to Dekaron
-		levelSequence = { 2, 1, 1, 3, 1, 4, 1, 2, 1, 2, 4, 2, 2, 3, 3, 4, 3, 3, }
+		levelSequence = { nil, 0, 1, 3, 1, 4, 1, 2, 1, 2, 4, 2, 2, 3, 3, 4, 3, 3, }
+		if IsSACReborn then
+		SkillW = AutoCarry.Skills:NewSkill(false, _W, wRange, "Incinerate", AutoCarry.SPELL_CONE, 0, false, false, 1.0, 250, 450, false)
+		SkillR = AutoCarry.Skills:NewSkill(false, _R, rRange, "Infernal Guardian", AutoCarry.SPELL_CIRCLE, 0, false, false, 0, 250, 450, false)
+		else
+		SkillW = {spellKey = _W, range = wRange, speed = 0, delay = 250, width = 450, configName = "Incinerate", displayName = "W (Incinerate)", enabled = true, skillShot = true, minions = false, reset = false, reqTarget = false }
+		SkillR = {spellKey = _R, range = rRange, speed = 0, delay = 250, width = 450, configName = "Infernal Guardian", displayName = "R (Infernal Guardian)", enabled = true, skillShot = true, minions = false, reset = false, reqTarget = false }
+		end
 end
 
  
@@ -314,7 +350,7 @@ end
 function Checks()
 	if myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") then ignite = SUMMONER_1
 	elseif myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") then ignite = SUMMONER_2 end
-	Target = AutoCarry.GetAttackTarget(true)
+	if IsSACReborn then Target = AutoCarry.Crosshair:GetTarget(true) else Target = AutoCarry.GetAttackTarget(true) end
 	dfgSlot, hxgSlot, bwcSlot = GetInventorySlotItem(3128), GetInventorySlotItem(3146), GetInventorySlotItem(3144)
 	brkSlot = GetInventorySlotItem(3092),GetInventorySlotItem(3143),GetInventorySlotItem(3153)
 	znaSlot, wgtSlot = GetInventorySlotItem(3157),GetInventorySlotItem(3090)
