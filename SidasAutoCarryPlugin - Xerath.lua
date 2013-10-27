@@ -1,8 +1,14 @@
 --[[
-	AutoCarry Plugin - Xerath the Magus Ascendant 0.4 BETA by Skeem
+	AutoCarry Plugin - Xerath the Magus Ascendant 1.0 BETA by Skeem
 
 	Changelog :
    1.0 - Initial Release
+   1.1 - A lot of updates MORE STABLE
+       - Full combo changed to E+Q+R*3
+	   - Added Stun Combo default key (T)
+	   - Added Checks to make sure it uses R
+	   - Won't cancel W if you manually cast it
+	   - Added checks for Auto Pots / MP to only use 1 at the time
  ]] --
 
 if myHero.charName ~= "Xerath" then return end
@@ -16,7 +22,6 @@ end
 --[OnTick]--
 function PluginOnTick()
 	if Recall then return end
-	-- Thanks to Kain for Crosshair fix
 	if IsSACReborn then
 		AutoCarry.Crosshair:SetSkillCrosshairRange(1800)
 	else
@@ -27,13 +32,14 @@ function PluginOnTick()
 	SmartKS()
 	
 	if Carry.AutoCarry then FullCombo() end
+	if Menu.sCombo then StunCombo() end
 	if Carry.MixedMode and Target then 
 		if Menu.qHarass and not IsMyManaLow() and GetDistance(Target) <= qRange then CastQ(Target) end
 	end
 	
 	if Extras.ZWItems and IsMyHealthLow() and Target and (ZNAREADY or WGTREADY) then CastSpell((wgtSlot or znaSlot)) end
-	if Extras.aHP and NeedHP() and (HPREADY or FSKREADY) then CastSpell((hpSlot or fskSlot)) end
-	if Extras.aMP and IsMyManaLow() and (MPREADY or FSKREADY) then CastSpell((mpSlot or fskSlot)) end
+	if Extras.aHP and NeedHP() and not (UsingHPot or UsingFlask) and (HPREADY or FSKREADY) then CastSpell((hpSlot or fskSlot)) end
+	if Extras.aMP and IsMyManaLow() and not (UsingMPot or UsingFlask) and(MPREADY or FSKREADY) then CastSpell((mpSlot or fskSlot)) end
 	if Extras.AutoLevelSkills then autoLevelSetSequence(levelSequence) end
 	
 end
@@ -70,7 +76,7 @@ end
 --[Casting our Q into Enemies]--
 function CastQ(Target)
     if QREADY then 
-        	AutoCarry.CastSkillshot(SkillQ, Target)
+			AutoCarry.CastSkillshot(SkillQ, Target)
         end
     end
 end
@@ -80,7 +86,7 @@ function CountEnemies(point, range)
         local ChampCount = 0
         for j = 1, heroManager.iCount, 1 do
                 local enemyhero = heroManager:getHero(j)
-                if myHero.team ~= enemyhero.team and ValidTarget(enemyhero, rRange+150) then
+                if myHero.team ~= enemyhero.team and ValidTarget(enemyhero, rRange) then
                         if GetDistance(enemyhero, point) <= range then
                                 ChampCount = ChampCount + 1
                         end
@@ -95,11 +101,38 @@ function CastR(Target)
 		local ultPos = GetAoESpellPosition(450, Target)
 		if ultPos and GetDistance(ultPos) <= rRange then
 			if CountEnemies(ultPos, 450) > 1 then
-				CastSpell(_R, ultPos.x, ultPos.z)
-			else
-				AutoCarry.CastSkillshot(SkillR, Target)
+				if rUsed == 0 then
+					CastSpell(_R, ultPos.x, ultPos.z)
+				end
+				if rUsed == 1 then
+					CastSpell(_R, ultPos.x, ultPos.z)
+				end
+				if rUsed == 2 then
+					CastSpell(_R, ultPos.x, ultPos.z)
+				end
+			if rUsed == 0 then
+					AutoCarry.CastSkillshot(SkillR, Target)
+				end
+				if rUsed == 1 then
+					AutoCarry.CastSkillshot(SkillR, Target)
+				end
+				if rUsed == 2 then
+					AutoCarry.CastSkillshot(SkillR, Target)
+				end
 			end
 		end
+	end
+end
+
+function InDanger()
+	if (CountEnemyHeroInRange(DangerRange) == 1) and not IsMyHealthLow() then
+		return false
+	elseif (CountEnemyHeroInRange(DangerRange) == 1) and IsMyHealthLow() then
+		return true
+	elseif (CountEnemyHeroInRange(DangerRange) > 1) then
+		return true
+	else
+		return false
 	end
 end
 
@@ -110,9 +143,33 @@ function PluginOnCreateObj(obj)
 			wActive = true
 		end
 	end
+	if obj.name:find("Xerath_Bolt_hit_tar.troy") and Target and GetDistance(Target, obj) <= 70 then
+		HasBolt = true
+		BoltTime = GetTickCount()
+	end
 	if obj.name:find("TeleportHome.troy") then
 		if GetDistance(obj, myHero) <= 70 then
 			Recall = true
+		end
+	end
+	if obj.name:find("Regenerationpotion_itm.troy") then
+		if GetDistance(obj, myHero) <= 70 then
+			UsingHPot = true
+		end
+	end
+	if obj.name:find("ManaPotion_itm.troy") then
+		if GetDistance(obj, myHero) <= 70 then
+			UsingMPot = true
+		end
+	end
+	if obj.name:find("potion_manaheal") then
+		if GetDistance(obj, myHero) <= 70 then
+			UsingFlask = true
+		end
+	end
+	if obj.name:find("Xerath_E_cas.troy") then
+		if GetDistance(obj, myHero) <= 70 then
+			rUsed = rUsed + 1
 		end
 	end
 end
@@ -121,8 +178,23 @@ function PluginOnDeleteObj(obj)
 	if obj.name:find("Xerath_LocusOfPower_beam.troy") then
 		wActive = false
 	end
+	if obj.name:find("Xerath_Bolt_hit_tar.troy") then
+		HasBolt = false
+	end
 	if obj.name:find("TeleportHome.troy") then
 		Recall = false
+	end
+	if obj.name:find("Regenerationpotion_itm.troy") then
+		UsingHPot = false
+	end
+	if obj.name:find("ManaPotion_itm.troy") then
+		UsingMPot = false
+	end
+	if obj.name:find("potion_manaheal") then
+		UsingFlask = false
+	end
+	if obj.name:find("Xerath_E_cas.troy") then
+
 	end
 end
 
@@ -159,9 +231,13 @@ end
 --[Smart W Management]--
 function wManagement()
 	if wActive then
+		if InDanger() then CastSpell(_W) end
 		qRange, eRange, rRange = 1750, 950, 1600
-		if not Target then CastSpell(_W) end
-		if Target and GetDistance(Target) > qRange then CastSpell(_W) end
+		if not wManual then
+			if not Target then CastSpell(_W) end
+			if Target and GetDistance(Target) > qRange then CastSpell(_W) end
+			if not (QREADY or EREADY or RREADY) then CastSpell(_W) end
+		end
 	else
 		qRange,eRange,rRange = 1100, 650, 1100
 	end
@@ -175,7 +251,13 @@ function SmartKS()
 			dfgDmg, hxgDmg, bwcDmg, iDmg  = 0, 0, 0, 0
 			qDmg = getDmg("Q",enemy,myHero)
             eDmg = getDmg("E",enemy,myHero)
-			rDmg = getDmg("R",enemy,myHero)
+			if rUsed == 0 then
+				rDmg = getDmg("R",enemy,myHero)*3
+			elseif rUsed == 1 then
+				rDmg = getDmg("R",enemy,myHero)*2
+			elseif rUsed == 2 then
+				rDmg = getDmg("R",enemy,myHero)
+			end
 			if DFGREADY then dfgDmg = (dfgSlot and getDmg("DFG",enemy,myHero) or 0)	end
             if HXGREADY then hxgDmg = (hxgSlot and getDmg("HXG",enemy,myHero) or 0) end
             if BWCREADY then bwcDmg = (bwcSlot and getDmg("BWC",enemy,myHero) or 0) end
@@ -256,37 +338,58 @@ end
 function FullCombo()
 	if Target then
 		if AutoCarry.MainMenu.AutoCarry then
-			if WREADY and GetDistance(Target) <= wRange and Menu.useW and (QREADY or EREADY or RREADY) and not wActive then CastSpell(_W) end
-			if EREADY and GetDistance(Target) <= eRange and Menu.useE then CastSpell(_E, Target) end
-			if QREADY and GetDistance(Target) <= qRange and Menu.useQ then CastQ(Target) end
+			if GetDistance(Target) > eRange and not wActive then
+				if WREADY and GetDistance(Target) <= 950 and Menu.useW and (QREADY or EREADY or RREADY) then CastSpell(_W) end
+			end
+			if GetDistance(Target) <= eRange then
+				if EREADY and GetDistance(Target) <= eRange and Menu.useE then CastSpell(_E, Target) end
+				if QREADY and GetDistance(Target) <= qRange and HasBolt and Menu.useQ then CastQ(Target) end
+			end
+			if wActive and GetDistance(Target) > eRange then
+				if QREADY and GetDistance(Target) <= qRange and Menu.useQ then CastQ(Target) end
+			end
+			if GetDistance(Target) <= qRange and QREADY and not EREADY then CastQ(Target) end
 			if RREADY then 
-				if Menu.rKill and Target.health <= rDmg and GetDistance(Target) <= rRange then CastR(Target) 
-				elseif not Menu.rKill and GetDistance(Target) <= rRange then CastR(Target) end
+				if Menu.rKill and Target.health <= rDmg and GetDistance(Target) <= rRange then CastR(Target) end
+				if not Menu.rKill and GetDistance(Target) <= rRange then CastR(Target) end
 			end
 		end 
 	end
 end
 
+function StunCombo()
+	if Target then
+		if GetDistance(Target) <= eRange then
+			if EREADY then CastSpell(_E, Target) end
+			if QREADY and HasBolt then CastQ(Target) end
+		end
+	end
+end
+
+function PluginOnWndMsg(msg,key)
+	if key == 87 then wManual = true end
+end
 
 --[Variables Load]--
 function mainLoad()
-	-- Credits to Kain for telling me how to check if is reborn properly
 	if AutoCarry.Skills then IsSACReborn = true else IsSACReborn = false end
 	if IsSACReborn then AutoCarry.Skills:DisableAll() end
 	Carry = AutoCarry.MainMenu
-	qRange,wRange,eRange,rRange = 1100, 1600, 650, 1100
+	qRange,wRange,eRange,rRange,DangerRange = 1100, 1600, 650, 1100, 550
 	QREADY, WREADY, EREADY, RREADY = false, false, false, false
+	HK1, HK2, HK3 = string.byte("Z"), string.byte("K"), string.byte("T")
 	Menu = AutoCarry.PluginMenu
-	wActive, Recall = false, false
-	rUsed = 0
+	UsingHPot, UsingMPot, UsingFlask = false, false, false
+	wActive, wManual, Recall = false, false, false
+	HasBolt, BoltTime, rUsed = false, 0, 0
 	TextList = {"Harass him!!", "Q+E KILL!!", "FULL COMBO KILL!"}
 	KillText = {}
 	waittxt = {} -- prevents UI lags, all credits to Dekaron
 	for i=1, heroManager.iCount do waittxt[i] = i*3 end -- All credits to Dekaron
 	levelSequence = { 1, 3, 1, 2, 1, 4, 1, 2, 1, 2, 4, 2, 2, 3, 3, 4, 3, 3, }
+	-- This was Copy + Paste from Kain :P
 	SkillQ = {spellKey = _Q, range = qRange, speed = 3.0, delay = 600, width = 100, configName = "arcanopulse", displayName = "Q (Arcanopulse)", enabled = true, skillShot = true, minions = false, reset = false, reqTarget = false }
 	SkillR = {spellKey = _R, range = rRange, speed = 2.0, delay = 250, width = 450, configName = "arcanebarrage", displayName = "R (Arcane Barrage)", enabled = true, skillShot = true, minions = false, reset = false, reqTarget = false }
-
 end
 
 --[Main Menu & Extras Menu]--
@@ -296,6 +399,7 @@ function mainMenu()
 	Menu:addParam("useW", "Use Locus of Power (W)", SCRIPT_PARAM_ONOFF, true)
 	Menu:addParam("useE", "Use Mage Chains (E)", SCRIPT_PARAM_ONOFF, true)
 	Menu:addParam("rKill","Only Use R if enemy can die", SCRIPT_PARAM_ONOFF, true)
+	Menu:addParam("sCombo", "Stun Combo (E + Q)", SCRIPT_PARAM_ONKEYDOWN, false, HK3)
 	Menu:addParam("sep2", "-- Mixed Mode Options --", SCRIPT_PARAM_INFO, "")
 	Menu:addParam("qHarass", "Use Arcanopulse (Q)", SCRIPT_PARAM_ONOFF, true)
 	Menu:addParam("sep3", "-- KS Options --", SCRIPT_PARAM_INFO, "")
@@ -320,6 +424,8 @@ function Checks()
 	if myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") then ignite = SUMMONER_1
 	elseif myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") then ignite = SUMMONER_2 end
 	if IsSACReborn then Target = AutoCarry.Crosshair:GetTarget(true) else Target = AutoCarry.GetAttackTarget(true) end
+	if GetTickCount() - BoltTime > 3000 then HasBolt = false end
+	if rUsed >= 3 then rUsed = 0 end
 	dfgSlot, hxgSlot, bwcSlot = GetInventorySlotItem(3128), GetInventorySlotItem(3146), GetInventorySlotItem(3144)
 	brkSlot = GetInventorySlotItem(3092),GetInventorySlotItem(3143),GetInventorySlotItem(3153)
 	znaSlot, wgtSlot = GetInventorySlotItem(3157),GetInventorySlotItem(3090)
@@ -327,7 +433,7 @@ function Checks()
 	QREADY = (myHero:CanUseSpell(_Q) == READY)
 	WREADY = (myHero:CanUseSpell(_W) == READY)
 	EREADY = (myHero:CanUseSpell(_E) == READY)
-	RREADY = (myHero:CanUseSpell(_R) == READY and not HaveTibbers)
+	RREADY = (myHero:CanUseSpell(_R) == READY)
 	DFGREADY = (dfgSlot ~= nil and myHero:CanUseSpell(dfgSlot) == READY)
 	HXGREADY = (hxgSlot ~= nil and myHero:CanUseSpell(hxgSlot) == READY)
 	BWCREADY = (bwcSlot ~= nil and myHero:CanUseSpell(bwcSlot) == READY)
