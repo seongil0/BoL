@@ -14,6 +14,9 @@
 	   - Added Auto Spell Levels
    1.2 - Added prodiction to W, R
 	   - W uses MEC
+   1.2.2 - Fixed bug with qFarm not deactivating
+		 - Fixed W & R.
+		 - Fixed Force Tibbers
   	]] --
 
 if myHero.charName ~= "Annie" then return end -- Hero Check
@@ -34,7 +37,7 @@ function PluginOnTick()
 		
 		if Menu.dAttack and Carry.AutoCarry then AutoCarry.CanAttack = false else AutoCarry.CanAttack = true end
 		if not IsMyManaLow() and Menu.sFarm and Menu.qFarm and not HaveStun and not Carry.AutoCarry then qFarm()
-			elseif not IsMyManaLow() and not Menu.sFarm and qFarm and not Carry.AutoCarry then qFarm() end
+			elseif not IsMyManaLow() and not Menu.sFarm and Menu.qFarm and not Carry.AutoCarry then qFarm() end
 		if Menu.cStun and EREADY and not HaveStun then CastSpell(_E) end
 		if Menu.bCombo and Carry.AutoCarry then bCombo() end
 		if Menu.sKS then SmartKS() end
@@ -65,10 +68,12 @@ function bCombo()
 		if HXGREADY then CastSpell(hxgSlot, Target) end
 		if BWCREADY then CastSpell(bwcSlot, Target) end
 		if BRKREADY then CastSpell(brkSlot, Target) end
-		if Menu.fTibbers then 
-			if GetDistance(Target) <= rRange and not HaveTibbers then CastR(Target) end
-		elseif not Menu.fTibbers then
-			if GetDistance(Target) <= rRange and HaveStun and not HaveTibbers then CastR(Target) end
+		if RREADY then
+			if Menu.fTibbers then 
+				if GetDistance(Target) <= rRange then CastR(Target) end
+			elseif not Menu.fTibbers then
+				if GetDistance(Target) <= rRange and HaveStun then CastR(Target) end
+			end
 		end
 		if EREADY and GetDistance(Target) <= wRange then CastSpell(_E) end
 		if QREADY and GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
@@ -98,7 +103,7 @@ function CastR(Target)
 			if CountEnemies(ultPos, 450) > 1 then
 				CastSpell(_R, ultPos.x, ultPos.z)
 			else
-				AutoCarry.CastSkillshot(SkillR, Target)
+				CastSpell(_R, Target.x, Target.z)
 			end
 		end
 	end
@@ -113,7 +118,7 @@ function CastW(Target)
 			if CountEnemies(wPos, 450) > 1 then
 				CastSpell(_W, wPos.x, wPos.z)
 			else
-			AutoCarry.CastSkillshot(SkillW, Target)
+				CastSpell(_W, Target.x, Target.z)
 			end
 		end
     end
@@ -303,8 +308,6 @@ function loadMain()
 		waittxt = {} -- prevents UI lags, all credits to Dekaron
 		for i=1, heroManager.iCount do waittxt[i] = i*3 end -- All credits to Dekaron
 		levelSequence = { nil, 0, 1, 3, 1, 4, 1, 2, 1, 2, 4, 2, 2, 3, 3, 4, 3, 3, }
-		SkillW = {spellKey = _W, range = wRange, speed = 1.5, delay = 250, width = 450, configName = "Incinerate", displayName = "W (Incinerate)", enabled = true, skillShot = true, minions = false, reset = false, reqTarget = false }
-		SkillR = {spellKey = _R, range = rRange, speed = 2.0, delay = 250, width = 450, configName = "Infernal Guardian", displayName = "R (Infernal Guardian)", enabled = true, skillShot = true, minions = false, reset = false, reqTarget = false }
 end
 
  
