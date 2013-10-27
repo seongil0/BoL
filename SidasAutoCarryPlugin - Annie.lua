@@ -97,8 +97,6 @@ function CastR(Target)
 		if ultPos and GetDistance(ultPos) <= rRange then
 			if CountEnemies(ultPos, 450) > 1 then
 				CastSpell(_R, ultPos.x, ultPos.z)
-			elseif IsSACReborn then
-				SkillR:Cast(Target)
 			else
 				AutoCarry.CastSkillshot(SkillR, Target)
 			end
@@ -114,8 +112,6 @@ function CastW(Target)
 		if wPos and GetDistance(wPos) <= wRange then
 			if CountEnemies(wPos, 450) > 1 then
 				CastSpell(_W, wPos.x, wPos.z)
-			elseif IsSACReborn then
-            SkillW:Cast(Target)
 			else
 			AutoCarry.CastSkillshot(SkillW, Target)
 			end
@@ -307,13 +303,8 @@ function loadMain()
 		waittxt = {} -- prevents UI lags, all credits to Dekaron
 		for i=1, heroManager.iCount do waittxt[i] = i*3 end -- All credits to Dekaron
 		levelSequence = { nil, 0, 1, 3, 1, 4, 1, 2, 1, 2, 4, 2, 2, 3, 3, 4, 3, 3, }
-		if IsSACReborn then
-		SkillW = AutoCarry.Skills:NewSkill(false, _W, wRange, "Incinerate", AutoCarry.SPELL_CONE, 0, false, false, 1.0, 250, 450, false)
-		SkillR = AutoCarry.Skills:NewSkill(false, _R, rRange, "Infernal Guardian", AutoCarry.SPELL_CIRCLE, 0, false, false, 0, 250, 450, false)
-		else
 		SkillW = {spellKey = _W, range = wRange, speed = 0, delay = 250, width = 450, configName = "Incinerate", displayName = "W (Incinerate)", enabled = true, skillShot = true, minions = false, reset = false, reqTarget = false }
 		SkillR = {spellKey = _R, range = rRange, speed = 0, delay = 250, width = 450, configName = "Infernal Guardian", displayName = "R (Infernal Guardian)", enabled = true, skillShot = true, minions = false, reset = false, reqTarget = false }
-		end
 end
 
  
