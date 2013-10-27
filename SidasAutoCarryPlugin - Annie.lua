@@ -303,8 +303,8 @@ function loadMain()
 		waittxt = {} -- prevents UI lags, all credits to Dekaron
 		for i=1, heroManager.iCount do waittxt[i] = i*3 end -- All credits to Dekaron
 		levelSequence = { nil, 0, 1, 3, 1, 4, 1, 2, 1, 2, 4, 2, 2, 3, 3, 4, 3, 3, }
-		SkillW = {spellKey = _W, range = wRange, speed = 0, delay = 250, width = 450, configName = "Incinerate", displayName = "W (Incinerate)", enabled = true, skillShot = true, minions = false, reset = false, reqTarget = false }
-		SkillR = {spellKey = _R, range = rRange, speed = 0, delay = 250, width = 450, configName = "Infernal Guardian", displayName = "R (Infernal Guardian)", enabled = true, skillShot = true, minions = false, reset = false, reqTarget = false }
+		SkillW = {spellKey = _W, range = wRange, speed = 1.5, delay = 250, width = 450, configName = "Incinerate", displayName = "W (Incinerate)", enabled = true, skillShot = true, minions = false, reset = false, reqTarget = false }
+		SkillR = {spellKey = _R, range = rRange, speed = 2.0, delay = 250, width = 450, configName = "Infernal Guardian", displayName = "R (Infernal Guardian)", enabled = true, skillShot = true, minions = false, reset = false, reqTarget = false }
 end
 
  
