@@ -1,6 +1,7 @@
 --[[
 	AutoCarry Plugin - Maokai the Twisted Treant 0.1 by Skeem
-
+	With Code from Kain
+	Copyright 2013
 	Changelog :
    1.0 - Initial Release
  ]] --
@@ -16,7 +17,11 @@ end
 --[OnTick]--
 function PluginOnTick()
 	if Recall then return end
-	AutoCarry.SkillsCrosshair.range = 1300
+	if IsSACReborn then
+		AutoCarry.Crosshair:SetSkillCrosshairRange(1300)
+	else
+		AutoCarry.SkillsCrosshair.range = 1300
+	end
 	Checks()
 	SmartKS()
 	
@@ -27,8 +32,8 @@ function PluginOnTick()
 	end
 	
 	if Extras.ZWItems and IsMyHealthLow() and Target and (ZNAREADY or WGTREADY) then CastSpell((wgtSlot or znaSlot)) end
-	if Extras.aHP and NeedHP() and (HPREADY or FSKREADY) then CastSpell((hpSlot or fskSlot)) end
-	if Extras.aMP and IsMyManaLow() and (MPREADY or FSKREADY) then CastSpell((mpSlot or fskSlot)) end
+	if Extras.aHP and NeedHP() and not (UsingHPot or UsingFlask) and (HPREADY or FSKREADY) then CastSpell((hpSlot or fskSlot)) end
+	if Extras.aMP and IsMyManaLow() and not (UsingMPot or UsingFlask) and(MPREADY or FSKREADY) then CastSpell((mpSlot or fskSlot)) end
 	if Extras.AutoLevelSkills then autoLevelSetSequence(levelSequence) end
 	
 end
@@ -118,24 +123,40 @@ end
 
 --[Object Detection for W, Recalling, E, R]--
 function PluginOnCreateObj(obj)
-	if obj.name:find("Xerath_LocusOfPower_beam.troy") then
-		if GetDistance(obj, myHero) <= 70 then
-			wActive = true
-		end
-	end
 	if obj.name:find("TeleportHome.troy") then
 		if GetDistance(obj, myHero) <= 70 then
 			Recall = true
 		end
 	end
+	if obj.name:find("Regenerationpotion_itm.troy") then
+		if GetDistance(obj, myHero) <= 70 then
+			UsingHPot = true
+		end
+	end
+	if obj.name:find("ManaPotion_itm.troy") then
+		if GetDistance(obj, myHero) <= 70 then
+			UsingMPot = true
+		end
+	end
+	if obj.name:find("potion_manaheal") then
+		if GetDistance(obj, myHero) <= 70 then
+			UsingFlask = true
+		end
+	end
 end
 
 function PluginOnDeleteObj(obj)
-	if obj.name:find("Xerath_LocusOfPower_beam.troy") then
-		wActive = false
-	end
 	if obj.name:find("TeleportHome.troy") then
 		Recall = false
+	end
+	if obj.name:find("Regenerationpotion_itm.troy") then
+		UsingHPot = false
+	end
+	if obj.name:find("ManaPotion_itm.troy") then
+		UsingMPot = false
+	end
+	if obj.name:find("potion_manaheal") then
+		UsingFlask = false
 	end
 end
 
@@ -309,6 +330,7 @@ function mainLoad()
 	QREADY, WREADY, EREADY, RREADY = false, false, false, false
 	Menu = AutoCarry.PluginMenu
 	rActive, Recall = false, false
+	UsingHPot, UsingMPot, UsingFlask = false, false, false
 	TextList = {"Harass him!!", "E+W+Q KILL!!", "FULL COMBO KILL!"}
 	KillText = {}
 	waittxt = {} -- prevents UI lags, all credits to Dekaron
@@ -357,7 +379,7 @@ end
 function Checks()
 	if myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") then ignite = SUMMONER_1
 	elseif myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") then ignite = SUMMONER_2 end
-	Target = AutoCarry.GetAttackTarget(true)
+	if IsSACReborn then Target = AutoCarry.Crosshair:GetTarget(true) else Target = AutoCarry.GetAttackTarget(true) end
 	dfgSlot, hxgSlot, bwcSlot = GetInventorySlotItem(3128), GetInventorySlotItem(3146), GetInventorySlotItem(3144)
 	brkSlot = GetInventorySlotItem(3092),GetInventorySlotItem(3143),GetInventorySlotItem(3153)
 	znaSlot, wgtSlot = GetInventorySlotItem(3157),GetInventorySlotItem(3090)

@@ -1,5 +1,5 @@
 --[[
-	AutoCarry Plugin - Xerath the Magus Ascendant 1.0 BETA by Skeem
+	AutoCarry Plugin - Xerath the Magus Ascendant 1.1 by Skeem
 
 	Changelog :
    1.0 - Initial Release
@@ -76,8 +76,7 @@ end
 --[Casting our Q into Enemies]--
 function CastQ(Target)
     if QREADY then 
-			AutoCarry.CastSkillshot(SkillQ, Target)
-        end
+		AutoCarry.CastSkillshot(SkillQ, Target)
     end
 end
 
