@@ -1,9 +1,11 @@
 --[[
-	AutoCarry Plugin - Jarvan IV the Exemplar of Demacia 1.0 by Skeem
-	With Code from Kain
-	Copyright 2013
+	AutoCarry Plugin - Jarvan IV the Exemplar of Demacia 1.1 by Skeem
+
 	Changelog :
    1.0 - Initial Release
+   1.1 - Fixed ult Canceling
+	   - Fixed Knocked Up Ratio
+	   - Fixed Auto Pots
  ]] --
 
 if myHero.charName ~= "JarvanIV" then return end
@@ -36,7 +38,6 @@ function PluginOnTick()
 	if Extras.aHP and NeedHP() and not (UsingHPot or UsingFlask) and (HPREADY or FSKREADY) then CastSpell((hpSlot or fskSlot)) end
 	if Extras.aMP and IsMyManaLow() and not (UsingMPot or UsingFlask) and(MPREADY or FSKREADY) then CastSpell((mpSlot or fskSlot)) end
 	if Extras.AutoLevelSkills then autoLevelSetSequence(levelSequence) end
-	
 end
 
 --[Drawing our Range/Killable Enemies]--
@@ -69,14 +70,14 @@ end
 function CastQ(Target)
 	if Menu.KnockUp then EnemysInFlag() end
     if QREADY then 
- 		AutoCarry.CastSkillshot(SkillQ, Target)
+		AutoCarry.CastSkillshot(SkillQ, Target)
     end
 end
 
 --[Casting our E into Enemies]--
 function CastE(Target)
     if EREADY then 
-   		AutoCarry.CastSkillshot(SkillE, Target)
+		AutoCarry.CastSkillshot(SkillE, Target)
     end
 end
 
@@ -91,7 +92,7 @@ end
 
 function EnemysInFlag()
 	if Flag and Target then
-		if GetDistance(Flag, Target) <= 250 then
+		if GetDistance(Flag, Target) <= 180 then
 			Target = Flag
 		end
 	end
@@ -100,9 +101,7 @@ end
 --[Object Detection]--
 function PluginOnCreateObj(obj)
 	if obj.name:find("JarvanCataclysm_tar.troy") then
-		if GetDistance(obj, myHero) <= 70 then
-			UltToggled = true
-		end
+		UltToggled = true
 	end
 	if obj.name:find("TeleportHome.troy") then
 		if GetDistance(obj, myHero) <= 70 then
@@ -112,19 +111,16 @@ function PluginOnCreateObj(obj)
 	if obj.name:find("JarvanDemacianStandard_mis.troy") then
 		Flag = obj
 	end
-	if obj.name:find("Regenerationpotion_itm.troy") then
+	if obj.name:find("Global_Item_HealthPotion.troy") then
 		if GetDistance(obj, myHero) <= 70 then
 			UsingHPot = true
+			UsingFlask = true
 		end
 	end
-	if obj.name:find("ManaPotion_itm.troy") then
-		if GetDistance(obj, myHero) <= 70 then
-			UsingMPot = true
-		end
-	end
-	if obj.name:find("potion_manaheal") then
+	if obj.name:find("Global_Item_ManaPotion.troy") then
 		if GetDistance(obj, myHero) <= 70 then
 			UsingFlask = true
+			UsingMPot = true
 		end
 	end
 end
@@ -139,13 +135,12 @@ function PluginOnDeleteObj(obj)
 	if obj.name:find("JarvanCataclysm_tar.troy") then
 		UltToggled = false
 	end
-	if obj.name:find("Regenerationpotion_itm.troy") then
+	if obj.name:find("Global_Item_HealthPotion.troy") then
 		UsingHPot = false
+		UsingFlask = false
 	end
-	if obj.name:find("ManaPotion_itm.troy") then
+	if obj.name:find("Global_Item_ManaPotion.troy") then
 		UsingMPot = false
-	end
-	if obj.name:find("potion_manaheal") then
 		UsingFlask = false
 	end
 end
@@ -269,12 +264,12 @@ function FullCombo()
 	if Target then
 		if AutoCarry.MainMenu.AutoCarry then
 			if GetDistance(Target) <= eRange then CastE(Target) end
-			if GetDistance(Target) <= qRange and not eReady then CastQ(Target) end
+			if GetDistance(Target) <= qRange and not EREADY then CastQ(Target) end
 			if GetDistance(Target) <= wRange then CastSpell(_W) end
-			if Menu.rKill and not UltToggled then
-				if Target.health <= rDmg and GetDistance(Target) <= rRange then CastSpell(_R, Target) end
+			if Menu.rKill then
+				if Target.health <= rDmg and GetDistance(Target) <= rRange and not UltToggled then CastSpell(_R, Target) end
 			else
-				if GetDistance(Target) <= rRange then CastSpell(_R, Target) end
+				if GetDistance(Target) <= rRange and not UltToggled then CastSpell(_R, Target) end
 			end
 		end
 	end
@@ -355,7 +350,7 @@ function Checks()
 	QREADY = (myHero:CanUseSpell(_Q) == READY)
 	WREADY = (myHero:CanUseSpell(_W) == READY)
 	EREADY = (myHero:CanUseSpell(_E) == READY)
-	RREADY = (not UltToggled and myHero:CanUseSpell(_R) == READY)
+	RREADY = (myHero:CanUseSpell(_R) == READY)
 	DFGREADY = (dfgSlot ~= nil and myHero:CanUseSpell(dfgSlot) == READY)
 	HXGREADY = (hxgSlot ~= nil and myHero:CanUseSpell(hxgSlot) == READY)
 	BWCREADY = (bwcSlot ~= nil and myHero:CanUseSpell(bwcSlot) == READY)
