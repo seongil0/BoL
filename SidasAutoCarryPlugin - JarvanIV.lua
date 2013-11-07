@@ -276,7 +276,11 @@ function FullCombo()
 end
 
 function JungleClear()
-	JungleMob = AutoCarry.Jungle:GetAttackableMonster()
+	if IsSACReborn then
+		JungleMob = AutoCarry.Jungle:GetAttackableMonster()
+	else
+		JungleMob = AutoCarry.GetMinionTarget()
+	end
 	if JungleMob and not IsMyManaLow() then
 		if Extras.JungleQ and GetDistance(JungleMob) <= qRange then CastQ(JungleMob) end
 		if Extras.JungleE and GetDistance(JungleMob) <= eRange then CastE(JungleMob) end
