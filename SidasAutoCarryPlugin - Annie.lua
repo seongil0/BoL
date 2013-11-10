@@ -19,7 +19,6 @@
 		 - Fixed Force Tibbers
   	]] --
 
-if myHero.charName ~= "Annie" then return end -- Hero Check
 
 --[ Plugin Loads] --
 function PluginOnLoad()
