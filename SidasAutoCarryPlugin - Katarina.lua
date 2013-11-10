@@ -72,7 +72,7 @@ function Farm()
         local wDmg = getDmg("W",minion,myHero)
 		local eDmg = getDmg("E",minion,myHero)
 		if ValidTarget(minion) then
-			if Menu.qFarm and QREADY and GetDistance(minion) <= qRange and GetDistance(minion) => wRange then
+			if Menu.qFarm and QREADY and GetDistance(minion) <= qRange and GetDistance(minion) >= wRange then
 				if qDmg >= minion.health then CastSpell(_Q, minion) end
 			end
 			if Menu.wFarm and WREADY and GetDistance(minion) <= wRange then
