@@ -198,18 +198,16 @@ function SmartKS()
 						if RREADY then CastR(enemy) end
 				
 				end
-				
-				KillText[i] = 1 
-				if enemy.health <= (qDmg + wDmg + itemsDmg) and QREADY and WREADY then
+			end
+			KillText[i] = 1 
+			if enemy.health <= (qDmg + wDmg + itemsDmg) and QREADY and WREADY then
 				KillText[i] = 2
-				end
-				if enemy.health <= (qDmg + wDmg + rDmg + itemsDmg) and QREADY and WREADY and RREADY then
+			end
+			if enemy.health <= (qDmg + wDmg + rDmg + itemsDmg) and QREADY and WREADY and RREADY then
 				KillText[i] = 3
-				end
-				
-				if enemy.health <= iDmg and GetDistance(enemy) <= 600 then
-					if IREADY then CastSpell(ignite, enemy) end
-				end
+			end
+			if enemy.health <= iDmg and GetDistance(enemy) <= 600 then
+				if IREADY then CastSpell(ignite, enemy) end
 			end
 		end
 	end
