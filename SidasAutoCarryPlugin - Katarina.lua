@@ -16,6 +16,7 @@
        - Added Auto Pots
 	   - Added Auto Zhonyas
 	   - Added Draw Circles of targets that can die
+	   - Added new farming Only uses Q if enemy is not in range of W to farm
   	]] --		
 
 -- Hero Name Check
@@ -71,7 +72,7 @@ function Farm()
         local wDmg = getDmg("W",minion,myHero)
 		local eDmg = getDmg("E",minion,myHero)
 		if ValidTarget(minion) then
-			if Menu.qFarm and QREADY and GetDistance(minion) <= qRange then
+			if Menu.qFarm and QREADY and GetDistance(minion) <= qRange and GetDistance(minion) => wRange then
 				if qDmg >= minion.health then CastSpell(_Q, minion) end
 			end
 			if Menu.wFarm and WREADY and GetDistance(minion) <= wRange then
@@ -126,7 +127,7 @@ function smartKS()
 			qDmg = getDmg("Q",enemy,myHero)
             wDmg = getDmg("W",enemy,myHero)
 			eDmg = getDmg("E",enemy,myHero)
-            rDmg = getDmg("R",enemy,myHero)*9
+            rDmg = getDmg("R",enemy,myHero)*8
 			if DFGREADY then dfgDmg = (dfgSlot and getDmg("DFG",enemy,myHero) or 0)	end
             if HXGREADY then hxgDmg = (hxgSlot and getDmg("HXG",enemy,myHero) or 0) end
             if BWCREADY then bwcDmg = (bwcSlot and getDmg("BWC",enemy,myHero) or 0) end

@@ -17,6 +17,7 @@
    1.2.2 - Fixed bug with qFarm not deactivating
 		 - Fixed W & R.
 		 - Fixed Force Tibbers
+		 - Fixed Script not showing for some users
   	]] --
 
 
