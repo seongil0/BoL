@@ -1,5 +1,5 @@
 ﻿--[[
-	AutoCarry Script - Katarina 1.3 by Skeem
+	AutoCarry Script - Katarina 1.3.1 by Skeem
 		With Code from Kain <3
 
 	Changelog :
@@ -16,7 +16,8 @@
        - Added Auto Pots
 	   - Added Auto Zhonyas
 	   - Added Draw Circles of targets that can die
-	   - Added new farming Only uses Q if enemy is not in range of W to farm
+   1.3.1 - Lul another Ult fix wtfux
+         - Added move to mouse to harass mode
   	]] --		
 
 -- Hero Name Check
@@ -35,7 +36,7 @@ end
 
 --[Plugin OnTick]--
 function PluginOnTick()
-	if isChanneling() then
+	if isChanneling("Spell4") then
 		if IsSACReborn then
 			AutoCarry.MyHero:MovementEnabled(false)
 			AutoCarry.MyHero:AttacksEnabled(false)
@@ -51,7 +52,7 @@ function PluginOnTick()
 			AutoCarry.CanAttack = true
 			AutoCarry.CanMove = true
 		end
-    end
+	end
 	Checks()
 	smartKS()
 	if Menu.AutoLevelSkills then autoLevelSetSequence(levelSequence) end
@@ -72,7 +73,7 @@ function Farm()
         local wDmg = getDmg("W",minion,myHero)
 		local eDmg = getDmg("E",minion,myHero)
 		if ValidTarget(minion) then
-			if Menu.qFarm and QREADY and GetDistance(minion) <= qRange and GetDistance(minion) > wRange then
+			if Menu.qFarm and QREADY and GetDistance(minion) <= qRange then
 				if qDmg >= minion.health then CastSpell(_Q, minion) end
 			end
 			if Menu.wFarm and WREADY and GetDistance(minion) <= wRange then
@@ -89,6 +90,7 @@ end
 
 --[Harass Function]--
 function Harrass()
+	myHero:MoveTo(mousePos.x, mousePos.z)
 	if Target and Menu.hHK then
 		if Menu.hMode == 1 then
 			if GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
@@ -127,7 +129,7 @@ function smartKS()
 			qDmg = getDmg("Q",enemy,myHero)
             wDmg = getDmg("W",enemy,myHero)
 			eDmg = getDmg("E",enemy,myHero)
-            rDmg = getDmg("R",enemy,myHero)*8
+            rDmg = getDmg("R",enemy,myHero)*9
 			if DFGREADY then dfgDmg = (dfgSlot and getDmg("DFG",enemy,myHero) or 0)	end
             if HXGREADY then hxgDmg = (hxgSlot and getDmg("HXG",enemy,myHero) or 0) end
             if BWCREADY then bwcDmg = (bwcSlot and getDmg("BWC",enemy,myHero) or 0) end
@@ -267,8 +269,8 @@ end
 --[/Plugin OnAnimation - Credits: Λnonymous]--
 
 --[Channelling Function - Credits: Λnonymous]--
-function isChanneling()
-        if lastAnimation == "Spell4" then
+function isChanneling(animationName)
+        if lastAnimation == animationName then
                 return true
         else
                 return false
@@ -364,7 +366,7 @@ end
 function mainLoad()
 	qRange, wRange, eRange, rRange = 675, 375, 700, 550
 	QREADY, WREADY, EREADY, RREADY = false, false, false, false
-	lastAnimation = "Run"
+	lastAnimation = nil
 	Menu = AutoCarry.PluginMenu
 	Carry = AutoCarry.MainMenu
 	levelSequence = { 1,3,2,2,2,4,2,1,2,1,4,1,1,3,3,4,3,3 }
