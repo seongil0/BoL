@@ -89,7 +89,7 @@ end
 
 function LaneClear()
 	for _, minion in pairs(AutoCarry.EnemyMinions().objects) do
-		if Carry.LaneClear
+		if Carry.LaneClear then
 			if QREADY and GetDistance(minon) <= qRange then CastSpell(_Q, minion) end
 			if WREADY and GetDistance(minon) <= wRange then CastSpell(_W, minion) end
 			if EREADY and GetDistance(minon) <= eRange then CastSpell(_E, minion) end
