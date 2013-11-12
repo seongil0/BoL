@@ -22,6 +22,8 @@
        - Added toggle to use items with KS
 	   - Jungle Clearing
 	   - New method to stop ult from not channeling
+	   - Tweaked ult damage
+	   - New menu
   	]] --		
 
 -- Hero Name Check
@@ -55,6 +57,7 @@ function PluginOnTick()
 	if Menu.harrass.hHK then Harrass() end
 	if not Menu.farming.mFarm and not Carry.AutoCarry then Farm() end
 	if Menu.jungle.JungleFarm and Carry.LaneClear then JungleClear() end
+	if Menu.jungle.ClearLane and Carry.LaneClear then LaneClear() end
 	
 	if Menu.misc.ZWItems and IsMyHealthLow() and Target and (ZNAREADY or WGTREADY) then CastSpell((wgtSlot or znaSlot)) end
 	if Menu.misc.aHP and NeedHP() and not (UsingHPot or UsingFlask) and (HPREADY or FSKREADY) then CastSpell((hpSlot or fskSlot)) end
@@ -83,6 +86,16 @@ function Farm()
 	end
 end
 --[/Farm Function]--
+
+function LaneClear()
+	for _, minion in pairs(AutoCarry.EnemyMinions().objects) do
+		if Carry.LaneClear
+			if QREADY and GetDistance(minon) <= qRange then CastSpell(_Q, minion) end
+			if WREADY and GetDistance(minon) <= wRange then CastSpell(_W, minion) end
+			if EREADY and GetDistance(minon) <= eRange then CastSpell(_E, minion) end
+		end
+	end
+end
 
 -- Jungle Farming --
 function JungleClear()
@@ -480,6 +493,7 @@ function KatarinaMenu()
 	
 	Menu:addSubMenu("["..myHero.charName.." Auto Carry: Lane Clear]", "jungle")
 		Menu.jungle:addParam("JungleFarm", "Use Skills to Farm Jungle", SCRIPT_PARAM_ONOFF, true)
+		Menu.jungle:addParam("ClearLane", "Use Skills to Clear Lane", SCRIPT_PARAM_ONOFF, true)
 		Menu.jungle:addParam("JungleQ", "Farm with Bouncing Blades (Q)", SCRIPT_PARAM_ONOFF, true)
 		Menu.jungle:addParam("JungleW", "Sinister Steel (W)", SCRIPT_PARAM_ONOFF, true)
 		Menu.jungle:addParam("JungleE", "Farm with Shunpo (E)", SCRIPT_PARAM_ONOFF, true)
