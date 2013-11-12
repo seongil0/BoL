@@ -18,6 +18,10 @@
 	   - Added Draw Circles of targets that can die
    1.3.1 - Lul another Ult fix wtfux
          - Added move to mouse to harass mode
+   1.4 - Recoded most of the script
+       - Added toggle to use items with KS
+	   - Jungle Clearing
+	   - New method to stop ult from not channeling
   	]] --		
 
 -- Hero Name Check
@@ -26,43 +30,35 @@ if myHero.charName ~= "Katarina" then return end
 
 --[Plugin OnLoad]--
 function PluginOnLoad()
-	AutoCarry.SkillsCrosshair.range = 675
-	--> Main Load
-	mainLoad()
-	--> Main Menu
-	mainMenu()
+	Variables()
+	KatarinaMenu()
+	if IsSACReborn then
+        AutoCarry.Crosshair:SetSkillCrosshairRange(675)
+    else
+        AutoCarry.SkillsCrosshair.range = 675
+    end
 end
 --[/Plugin OnLoad]--
 
 --[Plugin OnTick]--
 function PluginOnTick()
-	if isChanneling("Spell4") then
-		if IsSACReborn then
-			AutoCarry.MyHero:MovementEnabled(false)
-			AutoCarry.MyHero:AttacksEnabled(false)
-        else
-			AutoCarry.CanAttack = false
-			AutoCarry.CanMove = false
-		end
-	else
-		if IsSACReborn then
-			AutoCarry.MyHero:MovementEnabled(true)
-			AutoCarry.MyHero:AttacksEnabled(true)
-        else
-			AutoCarry.CanAttack = true
-			AutoCarry.CanMove = true
-		end
-	end
 	Checks()
-	smartKS()
-	if Menu.AutoLevelSkills then autoLevelSetSequence(levelSequence) end
-	if Menu.hHK then Harrass() end
-	if Menu.bCombo and Carry.AutoCarry then bCombo() end
-	if not Menu.mFarm and not Carry.AutoCarry then Farm() end
-	if Menu.wHarrass and Target and GetDistance(Target) <= wRange then CastSpell(_W) end
+	KatarinaChanneling()
+	KillSteal()
+	tick = GetTickCount()
+		
+	if Target ~= nil then
+		if Menu.autocarry.bCombo and Carry.AutoCarry then bCombo() end
+		if Menu.harrass.wHarrass and GetDistance(Target) <= wRange then CastSpell(_W) end
+		if Menu.killsteal.Ignite then AutoIgnite() end
+	end
+	if Menu.harrass.hHK then Harrass() end
+	if not Menu.farming.mFarm and not Carry.AutoCarry then Farm() end
+	if Menu.jungle.JungleFarm and Carry.LaneClear then JungleClear() end
 	
-	if Extras.ZWItems and IsMyHealthLow() and Target and (ZNAREADY or WGTREADY) then CastSpell((wgtSlot or znaSlot)) end
-	if Extras.aHP and NeedHP() and not (UsingHPot or UsingFlask) and (HPREADY or FSKREADY) then CastSpell((hpSlot or fskSlot)) end
+	if Menu.misc.ZWItems and IsMyHealthLow() and Target and (ZNAREADY or WGTREADY) then CastSpell((wgtSlot or znaSlot)) end
+	if Menu.misc.aHP and NeedHP() and not (UsingHPot or UsingFlask) and (HPREADY or FSKREADY) then CastSpell((hpSlot or fskSlot)) end
+	if Menu.misc.AutoLevelSkills then autoLevelSetSequence(levelSequence) end
 end
 --[/Plugin OnTick]--
 
@@ -73,55 +69,80 @@ function Farm()
         local wDmg = getDmg("W",minion,myHero)
 		local eDmg = getDmg("E",minion,myHero)
 		if ValidTarget(minion) then
-			if Menu.qFarm and QREADY and GetDistance(minion) <= qRange then
+			if Menu.farming.qFarm and QREADY and GetDistance(minion) <= qRange then
 				if qDmg >= minion.health then CastSpell(_Q, minion) end
 			end
-			if Menu.wFarm and WREADY and GetDistance(minion) <= wRange then
+			if Menu.farming.wFarm and WREADY and GetDistance(minion) <= wRange then
 				if wDmg >= minion.health then CastSpell(_W) end
 			end
-			if Menu.eFarm and EREADY and GetDistance(minion) <= eRange then
+			if Menu.farming.eFarm and EREADY and GetDistance(minion) <= eRange then
 				if eDmg >= minion.health then CastSpell(_E, minion) end
 			end
-		end
-		
+		end									
+		break			
 	end
 end
 --[/Farm Function]--
 
---[Harass Function]--
+-- Jungle Farming --
+function JungleClear()
+	if IsSACReborn then
+		JungleMob = AutoCarry.Jungle:GetAttackableMonster()
+	else
+		JungleMob = AutoCarry.GetMinionTarget()
+	end
+	if JungleMob ~= nil then
+		if Menu.jungle.JungleQ and GetDistance(JungleMob) <= qRange then CastSpell(_Q, JungleMob) end
+		if Menu.jungle.JungleW and GetDistance(JungleMob) <= wRange then CastSpell(_W) end
+		if Menu.jungle.JungleE and GetDistance(JungleMob) <= eRange then CastSpell(_E, JungleMob) end
+	end
+end
+
+-- Harrass Function --
 function Harrass()
-	myHero:MoveTo(mousePos.x, mousePos.z)
-	if Target and Menu.hHK then
-		if Menu.hMode == 1 then
+	if Menu.harrass.mTmH then myHero:MoveTo(mousePos.x, mousePos.z) end
+	if Target ~= nil then
+		if Menu.harrass.hMode == 1 then
 			if GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
 			if GetDistance(Target) <= eRange then CastSpell(_E, Target) end
 			if GetDistance(Target) <= wRange then CastSpell(_W, Target) end
 		end
-		if Menu.hMode == 2 then
+		if Menu.harrass.hMode == 2 then
 			if GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
 			if GetDistance(Target) <= wRange then CastSpell(_W, Target) end
 		end
 	end
 end
---[/Harass Function]--
+----------- END OF HARRASS FUNCTION ------------
 
 --[Burst Combo Function]--
 function bCombo()
-	if Target then
+	if Menu.autocarry.bItems then
 		if DFGREADY then CastSpell(dfgSlot, Target) end
 		if HXGREADY then CastSpell(hxgSlot, Target) end
 		if BWCREADY then CastSpell(bwcSlot, Target) end
 		if BRKREADY then CastSpell(brkSlot, Target) end
-		if GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
-		if GetDistance(Target) <= eRange then CastSpell(_E, Target) end
-		if GetDistance(Target) <= wRange then CastSpell(_W) end
-		if not QREADY and not EREADY and GetDistance(Target) <= rRange then CastSpell(_R) end
+	end
+	if GetDistance(Target) <= qRange and QREADY then CastSpell(_Q, Target) end
+	if GetDistance(Target) <= eRange and EREADY then CastSpell(_E, Target) end
+	if GetDistance(Target) <= wRange and WREADY then CastSpell(_W) end
+	if not ultActive and not QREADY and not EREADY and RREADY and GetDistance(Target) <= rRange then
+		CastSpell(_R) 
+		timeult = GetTickCount()+250
 	end
 end
 --[/Burst Combo Function]--
 
---[Smart KS Function]--
-function smartKS()
+-- Auto Ignite Function --
+function AutoIgnite()
+	if not enemy then enemy = Target end
+	if enemy.health <= iDmg and GetDistance(enemy) <= 600 then
+		if IREADY then CastSpell(ignite, enemy) end
+	end
+end
+
+-- KillSteal Function --
+function KillSteal()
 	 for i=1, heroManager.iCount do
 	 local enemy = heroManager:GetHero(i)
 		if ValidTarget(enemy) then
@@ -140,7 +161,13 @@ function smartKS()
 			--if Menu.debug then PrintChat("Total Items Dmg: "..itemsDmg.." Target: "..enemy.name) end
 			--if Menu.debug then PrintChat("rDmg"..rDmg) end	
 			------- DEBUG --------
-			if Menu.sKS then
+			if Menu.killsteal.KillSteal then
+				if not Menu.killsteal.KSItems then
+					DFGREADY = false
+					HXGREADY = false
+					BWCREADY = false
+					BRKREADY = false
+				end
 				if enemy.health <= (qDmg) and GetDistance(enemy) <= qRange and QREADY then
 					if QREADY then CastSpell(_Q, enemy) end
 				end
@@ -259,43 +286,79 @@ function smartKS()
 		end
 	end
 end
---[/Smart KS Function]--
+------------- END OF KILLSTEAL FUNCTION -------------------
 
---[Plugin OnAnimation - Credits: Λnonymous]--
+-- Animation & Channeling Functions --
 function PluginOnAnimation(unit, animationName)
-        -- Set lastAnimation = Last Animation used
-        if unit.isMe and lastAnimation ~= animationName then lastAnimation = animationName end
+    if unit.isMe and lastAnimation ~= animationName then lastAnimation = animationName end
 end
---[/Plugin OnAnimation - Credits: Λnonymous]--
 
---[Channelling Function - Credits: Λnonymous]--
 function isChanneling(animationName)
-        if lastAnimation == animationName then
-                return true
+    if lastAnimation == animationName then
+        return true
+    else
+        return false
+    end
+end
+
+function KatarinaChanneling()
+	ultActive = false
+	if GetTickCount() <= timeult then ultActive = true end
+	if isChanneling("Spell4") then
+		if IsSACReborn then
+			AutoCarry.MyHero:MovementEnabled(false)
+			AutoCarry.MyHero:AttacksEnabled(false)
+			RREADY = false
         else
-                return false
-        end
+			AutoCarry.CanAttack = false
+			AutoCarry.CanMove = false
+			RREADY = false
+		end
+	else
+		if IsSACReborn then
+			AutoCarry.MyHero:MovementEnabled(true)
+			AutoCarry.MyHero:AttacksEnabled(true)
+        else
+			AutoCarry.CanAttack = true
+			AutoCarry.CanMove = true
+		end
+	end
 end
---[/Channelling Function]--
 
+------------- END OF ANIMATION & CHANELING ------------------
+
+
+-- Low Health for Auto Pots & Zhonyas --
 function IsMyHealthLow()
-	if myHero.health < (myHero.maxHealth * ( Extras.ZWHealth / 100)) then
-		return true
-	else
-		return false
-	end
-end
---[Health Pots Function]--
-function NeedHP()
-	if myHero.health < (myHero.maxHealth * ( Extras.HPHealth / 100)) then
+	if myHero.health < (myHero.maxHealth * ( Menu.misc.ZWHealth / 100)) then
 		return true
 	else
 		return false
 	end
 end
 
+function NeedHP()
+	if myHero.health < (myHero.maxHealth * ( Menu.misc.HPHealth / 100)) then
+		return true
+	else
+		return false
+	end
+end
+------------ END OF LOW HEATH FOR AUTOPOTS & ZHONYAS ----------------
+
+-- Object Handling Functions --
 function PluginOnCreateObj(obj)
 	if obj ~= nil then
+		if (obj.name:find("katarina_deathLotus_mis.troy") or obj.name:find("katarina_deathLotus_tar.troy")) then
+			if GetDistance(obj, myHero) <= 70 then
+				timeult = GetTickCount()+250
+			end
+		end
+		if (obj.name:find("katarina_deathlotus_success.troy") or obj.name:find("Katarina_deathLotus_empty.troy")) then
+			if GetDistance(obj, myHero) <= 70 then
+				timeult = 0
+			end
+		end
 		if obj.name:find("TeleportHome.troy") then
 			if GetDistance(obj, myHero) <= 70 then
 				Recall = true
@@ -329,22 +392,35 @@ function PluginOnDeleteObj(obj)
 		UsingFlask = false
 	end
 end
+------------ END OF OBJECT HANDLING FUNCTIONS -----------------
+
+-- FPS Improvement Function by Kain <3 --
+function IsTickReady(tickFrequency)
+	-- Improves FPS
+	if tick ~= nil and math.fmod(tick, tickFrequency) == 0 then
+		return true
+	else
+		return false
+	end
+end
+----------- END OF FPS IMPROVEMENT FUNCTION ----------
+
 
 --[Plugin OnDraw]--
 function PluginOnDraw()
 	--> Ranges
-	if not Menu.mDraw and not myHero.dead then
-		if QREADY and Menu.qDraw then 
+	if not Menu.drawing.mDraw and not myHero.dead then
+		if QREADY and Menu.drawing.qDraw then 
 			DrawCircle(myHero.x, myHero.y, myHero.z, qRange, 0xB20000)
 		end
-		if WREADY and Menu.wDraw then
+		if WREADY and Menu.drawing.wDraw then
 			DrawCircle(myHero.x, myHero.y, myHero.z, wRange, 0x20B2AA)
 		end
-		if EREADY and Menu.eDraw then
+		if EREADY and Menu.drawing.eDraw then
 			DrawCircle(myHero.x, myHero.y, myHero.z, eRange, 0x800080)
 		end
 	end
-	if Menu.cDraw then
+	if Menu.drawing.cDraw then
 		for i=1, heroManager.iCount do
 			local Unit = heroManager:GetHero(i)
 			if ValidTarget(Unit) then
@@ -362,54 +438,72 @@ function PluginOnDraw()
 end
 --[/Plugin OnDraw]--
 
---[Function mainLoad]--
-function mainLoad()
+
+-- Variables --
+function Variables()
 	qRange, wRange, eRange, rRange = 675, 375, 700, 550
 	QREADY, WREADY, EREADY, RREADY = false, false, false, false
-	lastAnimation = nil
-	Menu = AutoCarry.PluginMenu
 	Carry = AutoCarry.MainMenu
+	lastAnimation = nil
+	tick = nil
 	levelSequence = { 1,3,2,2,2,4,2,1,2,1,4,1,1,3,3,4,3,3 }
-	TextList = {"Harass him!!", "Q+E KILL!!", "FULL COMBO KILL!"}
+	TextList = {"Harass him!!", "Q+W+E KILL!!", "FULL COMBO KILL!"}
 	KillText = {}
 	waittxt = {} -- prevents UI lags, all credits to Dekaron
 	UsingHPot = false
+	ultActive = false
+	timeult = 0
 	for i=1, heroManager.iCount do waittxt[i] = i*3 end -- All credits to Dekaron
 	if AutoCarry.Skills then IsSACReborn = true else IsSACReborn = false end
 end
---[/Function mainLoad]--
+------------------ END OF VARIABLES --------------------
 
---[Main Menu Function]--
-function mainMenu()
-	Menu:addParam("sep", "-- Combo Options --", SCRIPT_PARAM_INFO, "")
-	Menu:addParam("bCombo", "Burst With AutoCarry", SCRIPT_PARAM_ONOFF, true)
-	Menu:addParam("sKS", "Use Smart KS Combos", SCRIPT_PARAM_ONOFF, true)
-	Menu:addParam("sep1", "-- Harrass Options --", SCRIPT_PARAM_INFO, "")
-	Menu:addParam("hMode", "Harrass Mode",SCRIPT_PARAM_SLICE, 1, 1, 2, 0)
-	Menu:addParam("hHK", "Harrass Hotkey", SCRIPT_PARAM_ONKEYDOWN, false, 84)
-	Menu:addParam("wHarrass", "Always Sinister Steel (W)", SCRIPT_PARAM_ONOFF, true)
-	Menu:addParam("sep2", "-- Farm Options --", SCRIPT_PARAM_INFO, "")
-	Menu:addParam("mFarm", "Disable Farming", SCRIPT_PARAM_ONKEYTOGGLE, false, 67)
-	Menu:addParam("qFarm", "Farm with Bouncing Blades (Q)", SCRIPT_PARAM_ONOFF, true)
-	Menu:addParam("wFarm", "Sinister Steel (W)", SCRIPT_PARAM_ONOFF, true)
-	Menu:addParam("eFarm", "Farm with Shunpo (E)", SCRIPT_PARAM_ONOFF, false)
-	Menu:addParam("sep3", "-- Draw Options --", SCRIPT_PARAM_INFO, "")
-	Menu:addParam("mDraw", "Disable All Ranges Drawing", SCRIPT_PARAM_ONOFF, false)
-	Menu:addParam("cDraw", "Draw Enemy Text", SCRIPT_PARAM_ONOFF, true)
-	Menu:addParam("qDraw", "Draw Bouncing Blades (Q) Range", SCRIPT_PARAM_ONOFF, true)
-	Menu:addParam("wDraw", "Draw Sinister Steel (W) Range", SCRIPT_PARAM_ONOFF, true)
-	Menu:addParam("eDraw", "Draw Shunpo (E) Range", SCRIPT_PARAM_ONOFF, true)
-	Menu:addParam("AutoLevelSkills", "Auto Level Skills (Requires Reload)", SCRIPT_PARAM_ONOFF, true)
-	Extras = scriptConfig("Sida's Auto Carry Plugin: "..myHero.charName..": Extras", myHero.charName)
-	Extras:addParam("sep6", "-- Misc --", SCRIPT_PARAM_INFO, "")
-	Extras:addParam("ZWItems", "Auto Zhonyas/Wooglets", SCRIPT_PARAM_ONOFF, true)
-	Extras:addParam("ZWHealth", "Min Health % for Zhonyas/Wooglets", SCRIPT_PARAM_SLICE, 15, 0, 100, -1)
-	Extras:addParam("aHP", "Auto Health Pots", SCRIPT_PARAM_ONOFF, true)
-	Extras:addParam("HPHealth", "Min % for Health Pots", SCRIPT_PARAM_SLICE, 50, 0, 100, -1)
-	----------- DEBUG ----------
-	--Menu:addParam("debug", "Debugging Prints", SCRIPT_PARAM_ONKEYDOWN, false, 88)
+-- Katarina Main Menu --
+function KatarinaMenu()
+	Menu = AutoCarry.PluginMenu
+	
+	Menu:addSubMenu("["..myHero.charName.." Auto Carry: Auto Carry]", "autocarry")
+		Menu.autocarry:addParam("bCombo", "Burst With AutoCarry", SCRIPT_PARAM_ONOFF, true)
+		Menu.autocarry:addParam("bItems", "Use Items with Burst", SCRIPT_PARAM_ONOFF, true)
+	
+	Menu:addSubMenu("["..myHero.charName.." Auto Carry: Harass]", "harrass")
+		Menu.harrass:addParam("hMode", "Harass Mode",SCRIPT_PARAM_SLICE, 1, 1, 2, 0)
+		Menu.harrass:addParam("hHK", "Harass Hotkey", SCRIPT_PARAM_ONKEYDOWN, false, 84)
+		Menu.harrass:addParam("wHarrass", "Always Sinister Steel (W)", SCRIPT_PARAM_ONOFF, true)
+		Menu.harrass:addParam("mTmH", "Move To Mouse", SCRIPT_PARAM_ONOFF, true)
+	
+	Menu:addSubMenu("["..myHero.charName.." Auto Carry: Farming]", "farming")
+		Menu.farming:addParam("mFarm", "Disable Farming", SCRIPT_PARAM_ONKEYTOGGLE, false, 67)
+		Menu.farming:addParam("qFarm", "Farm with Bouncing Blades (Q)", SCRIPT_PARAM_ONOFF, true)
+		Menu.farming:addParam("wFarm", "Sinister Steel (W)", SCRIPT_PARAM_ONOFF, true)
+		Menu.farming:addParam("eFarm", "Farm with Shunpo (E)", SCRIPT_PARAM_ONOFF, false)
+	
+	Menu:addSubMenu("["..myHero.charName.." Auto Carry: Lane Clear]", "jungle")
+		Menu.jungle:addParam("JungleFarm", "Use Skills to Farm Jungle", SCRIPT_PARAM_ONOFF, true)
+		Menu.jungle:addParam("JungleQ", "Farm with Bouncing Blades (Q)", SCRIPT_PARAM_ONOFF, true)
+		Menu.jungle:addParam("JungleW", "Sinister Steel (W)", SCRIPT_PARAM_ONOFF, true)
+		Menu.jungle:addParam("JungleE", "Farm with Shunpo (E)", SCRIPT_PARAM_ONOFF, true)
+		
+	Menu:addSubMenu("["..myHero.charName.." Auto Carry: Kill Steal]", "killsteal")
+		Menu.killsteal:addParam("KillSteal", "Use Smart Kill Steal", SCRIPT_PARAM_ONOFF, true)
+		Menu.killsteal:addParam("Ignite", "Auto Ignite", SCRIPT_PARAM_ONOFF, true)
+		Menu.killsteal:addParam("KSItems", "Use Items with Auto KS", SCRIPT_PARAM_ONOFF, true)
+	
+	Menu:addSubMenu("["..myHero.charName.." Auto Carry: Drawing]", "drawing")	
+		Menu.drawing:addParam("mDraw", "Disable All Ranges Drawing", SCRIPT_PARAM_ONOFF, false)
+		Menu.drawing:addParam("cDraw", "Draw Enemy Text", SCRIPT_PARAM_ONOFF, true)
+		Menu.drawing:addParam("qDraw", "Draw Bouncing Blades (Q) Range", SCRIPT_PARAM_ONOFF, true)
+		Menu.drawing:addParam("wDraw", "Draw Sinister Steel (W) Range", SCRIPT_PARAM_ONOFF, true)
+		Menu.drawing:addParam("eDraw", "Draw Shunpo (E) Range", SCRIPT_PARAM_ONOFF, true)
+	
+	Menu:addSubMenu("["..myHero.charName.." Auto Carry: Misc]", "misc")
+		Menu.misc:addParam("ZWItems", "Auto Zhonyas/Wooglets", SCRIPT_PARAM_ONOFF, true)
+		Menu.misc:addParam("ZWHealth", "Min Health % for Zhonyas/Wooglets", SCRIPT_PARAM_SLICE, 15, 0, 100, -1)
+		Menu.misc:addParam("aHP", "Auto Health Pots", SCRIPT_PARAM_ONOFF, true)
+		Menu.misc:addParam("HPHealth", "Min % for Health Pots", SCRIPT_PARAM_SLICE, 50, 0, 100, -1)
+		Menu.misc:addParam("AutoLevelSkills", "Auto Level Skills (Requires Reload)", SCRIPT_PARAM_ONOFF, true)
 end
---[/Main Menu Function]--
+------------- END OF KATARINA MENU ------------------------
 
 --[Cooldown Checks]--
 function Checks()
