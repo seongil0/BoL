@@ -29,6 +29,8 @@
 		 - ult range fixes so it doesn't keep spinning if no enemies are around
 		 - Added some permashows
    1.4.4 - Added Ward Jump default hotkey is G
+         - More checks for ult logic
+		 - Cleaned up the Checks() Function
   	]] --		
 
 -- Hero Name Check
