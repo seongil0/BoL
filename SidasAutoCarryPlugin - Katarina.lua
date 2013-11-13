@@ -22,6 +22,13 @@
        - Added toggle to use items with KS
 	   - Jungle Clearing
 	   - New method to stop ult from not channeling
+	   - New Menu
+	   - Lane Clear
+   1.4.1 - Added packet block ult movement
+   1.4.2 - Some draw text fixes
+		 - ult range fixes so it doesn't keep spinning if no enemies are around
+		 - Added some permashows
+   1.4.4 - Added Ward Jump default hotkey is G
   	]] --		
 
 -- Hero Name Check
@@ -46,7 +53,7 @@ function PluginOnTick()
 	KatarinaChanneling()
 	KillSteal()
 	tick = GetTickCount()
-		
+	
 	if Target ~= nil then
 		if Menu.autocarry.bCombo and Carry.AutoCarry then bCombo() end
 		if Menu.harrass.wHarrass and GetDistance(Target) <= wRange then CastSpell(_W) end
@@ -57,6 +64,7 @@ function PluginOnTick()
 	if Menu.jungle.JungleFarm and Carry.LaneClear then JungleClear() end
 	if Menu.jungle.ClearLane and Carry.LaneClear then LaneClear() end
 	
+	if Menu.misc.WardJump then WardJump() end
 	if Menu.misc.ZWItems and IsMyHealthLow() and Target and (ZNAREADY or WGTREADY) then CastSpell((wgtSlot or znaSlot)) end
 	if Menu.misc.aHP and NeedHP() and not (UsingHPot or UsingFlask) and (HPREADY or FSKREADY) then CastSpell((hpSlot or fskSlot)) end
 	if Menu.misc.AutoLevelSkills then autoLevelSetSequence(levelSequence) end
@@ -143,6 +151,33 @@ function bCombo()
 	end
 end
 --[/Burst Combo Function]--
+
+-- Ward Jumping for bosses --
+function WardJump()
+	myHero:MoveTo(mousePos.x, mousePos.z)
+	if EREADY then
+		if next(Wards) ~= nil then
+			for i, obj in pairs(Wards) do 
+				if obj.valid then
+					if GetDistance(obj) <= eRange then
+						CastSpell(_E, obj)
+					else
+						if RSTREADY then CastSpell(rstSlot, mousePos.x, mousePos.z) end
+						if SSREADY then CastSpell(ssSlot, mousePos.x, mousePos.z) end
+						if SWREADY and not SSREADY then CastSpell(swSlot, mousePos.x, mousePos.z) end
+						if VWREADY and not SWREADY then CastSpell(vwSlot, mousePos.x, mousePos.z) end
+					end
+				end
+			end
+		else
+			if RSTREADY then CastSpell(rstSlot, mousePos.x, mousePos.z) end
+			if SSREADY then CastSpell(ssSlot, mousePos.x, mousePos.z) end
+			if SWREADY and not SSREADY then CastSpell(swSlot, mousePos.x, mousePos.z) end
+			if VWREADY and not SWREADY then CastSpell(vwSlot, mousePos.x, mousePos.z) end
+		end
+	end
+end
+--- END OF WARD JUMPING FUR BOSSES --
 
 -- Auto Ignite Function --
 function AutoIgnite()
@@ -265,7 +300,7 @@ function KillSteal()
 						if WREADY and GetDistance(enemy) <= wRange then CastSpell(_W, enemy) end
 				end
 				if enemy.health <= (qDmg + eDmg + wDmg + rDmg + itemsDmg) and GetDistance(enemy) <= qRange
-					and QREADY and EREADY and WREADY and RREADY and enemy.health > (qDmg + eDmg + wDmg) then
+					and QREADY and EREADY and WREADY and not ultActive and RREADY and enemy.health > (qDmg + eDmg + wDmg) then
 						if DFGREADY then CastSpell(dfgSlot, enemy) end
 						if HXGREADY then CastSpell(hxgSlot, enemy) end
 						if BWCREADY then CastSpell(bwcSlot, enemy) end
@@ -273,25 +308,31 @@ function KillSteal()
 						if QREADY then CastSpell(_Q, enemy) end
 						if EREADY then CastSpell(_E, enemy) end
 						if WREADY and GetDistance(enemy) <= wRange then CastSpell(_W, enemy) end
-						if RREADY and not QREADY and not EREADY then CastSpell(_R) end
+						if RREADY and not QREADY and not EREADY then 
+							CastSpell(_R)
+							timeult = GetTickCount()+250 
+						end
 				end
 				if enemy.health <= (rDmg + itemsDmg) and GetDistance(enemy) <= rRange
-					and not QREADY and not EREADY and RREADY then
+					and not QREADY and not EREADY and RREADY and not ultActive then
 						if DFGREADY then CastSpell(dfgSlot, enemy) end
 						if HXGREADY then CastSpell(hxgSlot, enemy) end
 						if BWCREADY then CastSpell(bwcSlot, enemy) end
 						if BRKREADY then CastSpell(brkSlot, enemy) end
-						if RREADY then CastSpell(_R) end
+						if RREADY then 
+							CastSpell(_R)
+							timeult = GetTickCount()+250
+						end
 				end
 				if enemy.health <= iDmg and GetDistance(enemy) <= 600 then
 					if IREADY then CastSpell(ignite, enemy) end
 				end
 			end
 			KillText[i] = 1 
-			if enemy.health <= (qDmg + eDmg + wDmg + itemsDmg) and QREADY and WREADY and EREADY then
+			if enemy.health <= (qDmg + eDmg + wDmg + itemsDmg) then
 			KillText[i] = 2
 			end
-			if enemy.health <= (qDmg + eDmg + wDmg + rDmg + itemsDmg) and QREADY and WREADY and EREADY and RREADY then
+			if enemy.health <= (qDmg + eDmg + wDmg + rDmg + itemsDmg) and enemy.health >= (qDmg + eDmg + wDmg + itemsDmg) then
 			KillText[i] = 3
 			end
 		end
@@ -341,10 +382,12 @@ end
 -- Packet Send thanks for the idea pqmailer <3 --
 function PluginOnSendPacket(p)
 	if isChanneling("Spell4") then
-		local packet = Packet(p)
-		if packet:get('name') == 'S_MOVE' then
-			if packet:get('sourceNetworkId') == myHero.networkID then
-				packet:block()
+		if Target ~= nil and GetDistance(Target) <= rRange then
+			local packet = Packet(p)
+			if packet:get('name') == 'S_MOVE' then
+				if packet:get('sourceNetworkId') == myHero.networkID then
+					packet:block()
+				end
 			end
 		end
 	end
@@ -382,11 +425,6 @@ function PluginOnCreateObj(obj)
 				timeult = 0
 			end
 		end
-		if obj.name:find("TeleportHome.troy") then
-			if GetDistance(obj, myHero) <= 70 then
-				Recall = true
-			end
-		end
 		if obj.name:find("Global_Item_HealthPotion.troy") then
 			if GetDistance(obj, myHero) <= 70 then
 				UsingHPot = true
@@ -397,6 +435,11 @@ function PluginOnCreateObj(obj)
 			if GetDistance(obj, myHero) <= 70 then
 				UsingFlask = true
 				UsingMPot = true
+			end
+		end
+		if obj.name:find("SightWard") or obj.name:find("VisionWard") then
+			if GetDistance(obj, myHero) <= eRange then
+				table.insert(Wards, obj)
 			end
 		end
 	end
@@ -466,17 +509,20 @@ end
 function Variables()
 	qRange, wRange, eRange, rRange = 675, 375, 700, 550
 	QREADY, WREADY, EREADY, RREADY = false, false, false, false
+	HPREADY, MPREADY, FSKREADY = false, false, false
+	RSTREADY, SSREADY, SWREADY, VWREADY = false, false, false
 	Carry = AutoCarry.MainMenu
 	lastAnimation = nil
 	tick = nil
 	levelSequence = { 1,3,2,2,2,4,2,1,2,1,4,1,1,3,3,4,3,3 }
 	TextList = {"Harass him!!", "Q+W+E KILL!!", "FULL COMBO KILL!"}
 	KillText = {}
+	Wards = {}
 	waittxt = {} -- prevents UI lags, all credits to Dekaron
 	UsingHPot = false
 	ultActive = false
 	timeult = 0
-	for i=1, heroManager.iCount do waittxt[i] = i*3 end -- All credits to Dekaron
+	for i=1, heroManager.iCount do waittxt[i] = i*3 end
 	if AutoCarry.Skills then IsSACReborn = true else IsSACReborn = false end
 end
 ------------------ END OF VARIABLES --------------------
@@ -494,25 +540,27 @@ function KatarinaMenu()
 		Menu.harrass:addParam("hHK", "Harass Hotkey", SCRIPT_PARAM_ONKEYDOWN, false, 84)
 		Menu.harrass:addParam("wHarrass", "Always Sinister Steel (W)", SCRIPT_PARAM_ONOFF, true)
 		Menu.harrass:addParam("mTmH", "Move To Mouse", SCRIPT_PARAM_ONOFF, true)
+		
 	
 	Menu:addSubMenu("["..myHero.charName.." Auto Carry: Farming]", "farming")
 		Menu.farming:addParam("mFarm", "Disable Farming", SCRIPT_PARAM_ONKEYTOGGLE, false, 67)
 		Menu.farming:addParam("qFarm", "Farm with Bouncing Blades (Q)", SCRIPT_PARAM_ONOFF, true)
 		Menu.farming:addParam("wFarm", "Sinister Steel (W)", SCRIPT_PARAM_ONOFF, true)
 		Menu.farming:addParam("eFarm", "Farm with Shunpo (E)", SCRIPT_PARAM_ONOFF, false)
-	
+		
+		
 	Menu:addSubMenu("["..myHero.charName.." Auto Carry: Lane Clear]", "jungle")
 		Menu.jungle:addParam("JungleFarm", "Use Skills to Farm Jungle", SCRIPT_PARAM_ONOFF, true)
 		Menu.jungle:addParam("ClearLane", "Use Skills to Clear Lane", SCRIPT_PARAM_ONOFF, true)
 		Menu.jungle:addParam("JungleQ", "Farm with Bouncing Blades (Q)", SCRIPT_PARAM_ONOFF, true)
 		Menu.jungle:addParam("JungleW", "Sinister Steel (W)", SCRIPT_PARAM_ONOFF, true)
-		Menu.jungle:addParam("JungleE", "Farm with Shunpo (E)", SCRIPT_PARAM_ONOFF, true)
+		
 		
 	Menu:addSubMenu("["..myHero.charName.." Auto Carry: Kill Steal]", "killsteal")
 		Menu.killsteal:addParam("KillSteal", "Use Smart Kill Steal", SCRIPT_PARAM_ONOFF, true)
 		Menu.killsteal:addParam("Ignite", "Auto Ignite", SCRIPT_PARAM_ONOFF, true)
 		Menu.killsteal:addParam("KSItems", "Use Items with Auto KS", SCRIPT_PARAM_ONOFF, true)
-	
+			
 	Menu:addSubMenu("["..myHero.charName.." Auto Carry: Drawing]", "drawing")	
 		Menu.drawing:addParam("mDraw", "Disable All Ranges Drawing", SCRIPT_PARAM_ONOFF, false)
 		Menu.drawing:addParam("cDraw", "Draw Enemy Text", SCRIPT_PARAM_ONOFF, true)
@@ -521,6 +569,7 @@ function KatarinaMenu()
 		Menu.drawing:addParam("eDraw", "Draw Shunpo (E) Range", SCRIPT_PARAM_ONOFF, true)
 	
 	Menu:addSubMenu("["..myHero.charName.." Auto Carry: Misc]", "misc")
+		Menu.misc:addParam("WardJump", "Ward Jump Hotkey", SCRIPT_PARAM_ONKEYDOWN, false, 71)
 		Menu.misc:addParam("ZWItems", "Auto Zhonyas/Wooglets", SCRIPT_PARAM_ONOFF, true)
 		Menu.misc:addParam("ZWHealth", "Min Health % for Zhonyas/Wooglets", SCRIPT_PARAM_SLICE, 15, 0, 100, -1)
 		Menu.misc:addParam("aHP", "Auto Health Pots", SCRIPT_PARAM_ONOFF, true)
@@ -531,26 +580,55 @@ end
 
 --[Cooldown Checks]--
 function Checks()
-	if myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") then ignite = SUMMONER_1
-	elseif myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") then ignite = SUMMONER_2 end
-	if IsSACReborn then Target = AutoCarry.Crosshair:GetTarget(true) else Target = AutoCarry.GetAttackTarget(true) end
-	dfgSlot, hxgSlot, bwcSlot = GetInventorySlotItem(3128), GetInventorySlotItem(3146), GetInventorySlotItem(3144)
-	brkSlot = GetInventorySlotItem(3092),GetInventorySlotItem(3143),GetInventorySlotItem(3153)
-	znaSlot, wgtSlot = GetInventorySlotItem(3157),GetInventorySlotItem(3090)
-	hpSlot, mpSlot, fskSlot = GetInventorySlotItem(2003),GetInventorySlotItem(2004),GetInventorySlotItem(2041)
+	if myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") then
+		ignite = SUMMONER_1
+	elseif myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") then
+		ignite = SUMMONER_2
+	end
+	if IsSACReborn then
+		Target = AutoCarry.Crosshair:GetTarget(true)
+	else 
+		Target = AutoCarry.GetAttackTarget(true) 
+	end
+	
+	-- Slots for Items / Pots / Wards --
+	rstSlot, ssSlot, swSlot, vwSlot =    GetInventorySlotItem(2045),
+									     GetInventorySlotItem(2049),
+									     GetInventorySlotItem(2044),
+									     GetInventorySlotItem(2043)
+	dfgSlot, hxgSlot, bwcSlot, brkSlot = GetInventorySlotItem(3128),
+										 GetInventorySlotItem(3146),
+										 GetInventorySlotItem(3144),
+										 GetInventorySlotItem(3153)
+	hpSlot, mpSlot, fskSlot =            GetInventorySlotItem(2003),
+							             GetInventorySlotItem(2004),
+							             GetInventorySlotItem(2041)
+	znaSlot, wgtSlot =                   GetInventorySlotItem(3157),
+	                                     GetInventorySlotItem(3090)
+	-- Spells --									 
 	QREADY = (myHero:CanUseSpell(_Q) == READY)
 	WREADY = (myHero:CanUseSpell(_W) == READY)
 	EREADY = (myHero:CanUseSpell(_E) == READY)
 	RREADY = (myHero:CanUseSpell(_R) == READY)
+	IREADY = (ignite ~= nil and myHero:CanUseSpell(ignite) == READY)
+	
+	-- Items --
 	DFGREADY = (dfgSlot ~= nil and myHero:CanUseSpell(dfgSlot) == READY)
 	HXGREADY = (hxgSlot ~= nil and myHero:CanUseSpell(hxgSlot) == READY)
 	BWCREADY = (bwcSlot ~= nil and myHero:CanUseSpell(bwcSlot) == READY)
 	BRKREADY = (brkSlot ~= nil and myHero:CanUseSpell(brkSlot) == READY)
 	ZNAREADY = (znaSlot ~= nil and myHero:CanUseSpell(znaSlot) == READY)
 	WGTREADY = (wgtSlot ~= nil and myHero:CanUseSpell(wgtSlot) == READY)
-	IREADY = (ignite ~= nil and myHero:CanUseSpell(ignite) == READY)
+	
+	-- Pots --
 	HPREADY = (hpSlot ~= nil and myHero:CanUseSpell(hpSlot) == READY)
 	MPREADY =(mpSlot ~= nil and myHero:CanUseSpell(mpSlot) == READY)
 	FSKREADY = (fskSlot ~= nil and myHero:CanUseSpell(fskSlot) == READY)
+	
+	-- Wards --
+	RSTREADY = (rstSlot ~= nil and myHero:CanUseSpell(rstSlot) == READY)
+	SSREADY = (ssSlot ~= nil and myHero:CanUseSpell(ssSlot) == READY)
+	SWREADY = (swSlot ~= nil and myHero:CanUseSpell(swSlot) == READY)
+	VWREADY = (vwSlot ~= nil and myHero:CanUseSpell(vwSlot) == READY)
 end
 --[/Cooldown Checks]--
