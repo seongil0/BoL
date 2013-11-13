@@ -22,8 +22,6 @@
        - Added toggle to use items with KS
 	   - Jungle Clearing
 	   - New method to stop ult from not channeling
-	   - Tweaked ult damage
-	   - New menu
   	]] --		
 
 -- Hero Name Check
@@ -87,16 +85,6 @@ function Farm()
 end
 --[/Farm Function]--
 
-function LaneClear()
-	for _, minion in pairs(AutoCarry.EnemyMinions().objects) do
-		if Carry.LaneClear then
-			if QREADY and GetDistance(minon) <= qRange then CastSpell(_Q, minion) end
-			if WREADY and GetDistance(minon) <= wRange then CastSpell(_W, minion) end
-			if EREADY and GetDistance(minon) <= eRange then CastSpell(_E, minion) end
-		end
-	end
-end
-
 -- Jungle Farming --
 function JungleClear()
 	if IsSACReborn then
@@ -108,6 +96,16 @@ function JungleClear()
 		if Menu.jungle.JungleQ and GetDistance(JungleMob) <= qRange then CastSpell(_Q, JungleMob) end
 		if Menu.jungle.JungleW and GetDistance(JungleMob) <= wRange then CastSpell(_W) end
 		if Menu.jungle.JungleE and GetDistance(JungleMob) <= eRange then CastSpell(_E, JungleMob) end
+	end
+end
+
+function LaneClear()
+	for _, minion in pairs(AutoCarry.EnemyMinions().objects) do
+		if Carry.LaneClear and ValidTarget(minion) then
+			if QREADY and GetDistance(minion) <= qRange then CastSpell(_Q, minion) end
+			if WREADY and GetDistance(minion) <= wRange then CastSpell(_W) end
+			if EREADY and GetDistance(minion) <= eRange then CastSpell(_E, minion) end
+		end
 	end
 end
 
@@ -340,6 +338,18 @@ end
 
 ------------- END OF ANIMATION & CHANELING ------------------
 
+-- Packet Send thanks for the idea pqmailer <3 --
+function PluginOnSendPacket(p)
+	if isChanneling("Spell4") then
+		local packet = Packet(p)
+		if packet:get('name') == 'S_MOVE' then
+			if packet:get('sourceNetworkId') == myHero.networkID then
+				packet:block()
+			end
+		end
+	end
+end
+--------- END OF PACKET SEND ---------------------
 
 -- Low Health for Auto Pots & Zhonyas --
 function IsMyHealthLow()
