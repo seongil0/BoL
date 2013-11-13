@@ -7,9 +7,11 @@
 	 Features
 	 - Uses Health Pots (1 at the time with % in menu)
 	 - Uses Mana Pots (1 at the time with % in menu)
+	 - Recalling Checks to not waste pots if backing
 	
 	 Changelog:
 	 0.1 : Beta Release
+	 0.2 : Added Recalling check
 	 
 	 TODO:
 	 - Add flask
@@ -32,13 +34,15 @@ function OnLoad()
 		ConsumablesHelper:addParam("PercentofMana", "Minimum Mana %", SCRIPT_PARAM_SLICE, 50, 0, 100, -1)
 		PrintChat("Consumables Helper by Skeem Loaded!")
 		
-	UsingHealthPot, UsingManaPot, UsingFlask = false, false, false
+	UsingHealthPot, UsingManaPot, UsingFlask, Recalling = false, false, false, false
 	
 	
 end
 
 function OnTick()
-
+	if Recalling then -- Recalling check to waste pots if we're backing
+		return 
+	end
 	HealthPotSlot = GetInventorySlotItem(2003)
 	ManaPotSlot = GetInventorySlotItem(2004)
 	FlaskSlot = GetInventorySlotItem(2041)
@@ -55,6 +59,11 @@ end
 
 function OnCreateObj(obj)
 	if obj ~= nil then
+		if obj.name:find("TeleportHome.troy") then
+			if GetDistance(obj, myHero) <= 70 then
+				Recalling = true
+			end
+		end
 		if obj.name:find("Global_Item_HealthPotion.troy") then
 			if GetDistance(obj, myHero) <= 70 then
 				UsingHealthPot = true
@@ -73,7 +82,7 @@ end
 function OnDeleteObj(obj)
 	if obj ~= nil then
 		if obj.name:find("TeleportHome.troy") then
-			Recall = false
+			Recalling = false
 		end
 		if obj.name:find("Global_Item_HealthPotion.troy") then
 			UsingHealthPot = false
