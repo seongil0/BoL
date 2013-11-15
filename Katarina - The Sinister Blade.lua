@@ -128,7 +128,11 @@ function Harrass()
 		if KatarinaMenu.harrass.hMode == 1 then
 			if GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
 			if GetDistance(Target) <= eRange then CastSpell(_E, Target) end
-			if GetDistance(Target) <= wRange then CastSpell(_W, Target) end
+			if KatarinaMenu.harrass.DelayW then
+				if GetDistance(Target) <= wRange and not QREADY then CastSpell(_W, Target) end
+			else
+				if GetDistance(Target) <= wRange then CastSpell(_W, Target) end
+			end
 		end
 		if KatarinaMenu.harrass.hMode == 2 then
 			if GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
@@ -140,6 +144,7 @@ end
 
 --[Burst Combo Function]--
 function FullCombo()
+	if timeult == 0 then ultActive = false end
 	if not isChanneling("Spell4") and not ultActive then
 		 iOW:Orbwalk(mousePos, Target)
 	end		
@@ -152,7 +157,11 @@ function FullCombo()
 		end
 		if GetDistance(Target) <= qRange and QREADY then CastSpell(_Q, Target) end
 		if GetDistance(Target) <= eRange and EREADY then CastSpell(_E, Target) end
-		if GetDistance(Target) <= wRange and WREADY then CastSpell(_W) end
+		if KatarinaMenu.autocarry.DelayW then
+			if GetDistance(Target) <= wRange and not QREADY then CastSpell(_W, Target) end
+		else
+			if GetDistance(Target) <= wRange then CastSpell(_W, Target) end
+		end
 		if not isChanneling("Spell4") and not QREADY and not EREADY and RREADY and GetDistance(Target) <= rRange then
 			CastSpell(_R) 
 			timeult = GetTickCount()+250
@@ -406,6 +415,12 @@ function OnCreateObj(obj)
 end
 
 function OnDeleteObj(obj)
+	if (obj.name:find("katarina_deathlotus_success.troy") or obj.name:find("Katarina_deathLotus_empty.troy")) then
+		ultActive = false
+	end
+	if (obj.name:find("katarina_deathLotus_mis.troy") or obj.name:find("katarina_deathLotus_tar.troy")) then
+		ultActive = false
+	end
 	if obj.name:find("TeleportHome.troy") then
 		Recall = false
 	end
@@ -494,10 +509,12 @@ function KatarinaMenu()
 	
 	KatarinaMenu:addSubMenu("["..myHero.charName.." - Combo Settings]", "autocarry")
 		KatarinaMenu.autocarry:addParam("FullCombo", "Full Combo Key (X)", SCRIPT_PARAM_ONKEYDOWN, false, 88)
+		KatarinaMenu.autocarry:addParam("DelayW", "DelayW", SCRIPT_PARAM_ONOFF, false)
 		KatarinaMenu.autocarry:addParam("bItems", "Use Items with Burst", SCRIPT_PARAM_ONOFF, true)
 		KatarinaMenu.autocarry:permaShow("FullCombo") 
 	
 	KatarinaMenu:addSubMenu("["..myHero.charName.." - Harass Settings]", "harrass")
+		KatarinaMenu.harrass:addParam("DelayW", "Delay W", SCRIPT_PARAM_ONOFF, true)
 		KatarinaMenu.harrass:addParam("hMode", "Harass Mode",SCRIPT_PARAM_SLICE, 1, 1, 2, 0)
 		KatarinaMenu.harrass:addParam("hHK", "Harass Hotkey (T)", SCRIPT_PARAM_ONKEYDOWN, false, 84)
 		KatarinaMenu.harrass:addParam("wHarrass", "Always Sinister Steel (W)", SCRIPT_PARAM_ONOFF, true)
@@ -607,5 +624,6 @@ function Checks()
 	
 	-- Checks if Ult is Active: by eXtragoZ --
 	if GetTickCount() <= timeult then ultActive = true end
+	if QREADY and WREADY and EREADY and not Target then ultActive = false end
 end
 --[/Cooldown Checks]--
