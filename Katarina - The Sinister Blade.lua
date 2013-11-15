@@ -32,6 +32,9 @@
          - Requires iSAC library for orbwalking
 		 - Revamped code a little
 		 - Deleted ult usage from auto KS for now
+   1.5.2 - Fixed Skills not casting ult
+         - Fixed enemy chasing ult
+		 - Added delay W to both harass & full combo with toggle in menu
   	]] --		
 
 -- Hero Name Check
@@ -45,7 +48,7 @@ require "iSAC"
 function OnLoad()
 	Variables()
 	KatarinaMenu()
-	PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 1.5 Loaded!! <<</font>")
+	PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 1.5.2 Loaded!! <<</font>")
 end
 --[/Plugin OnLoad]--
 
