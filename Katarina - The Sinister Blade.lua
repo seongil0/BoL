@@ -1,5 +1,5 @@
 --[[
-	AutoCarry Script - Katarina 1.5 by Skeem
+	AutoCarry Script - Katarina 1.6 by Skeem
 		With Code from Kain <3
 
 	Changelog :
@@ -33,8 +33,12 @@
 		 - Revamped code a little
 		 - Deleted ult usage from auto KS for now
    1.5.2 - Fixed Skills not casting ult
-         - Fixed enemy chasing ult
+         - Fixed enemy chasing bug
 		 - Added delay W to both harass & full combo with toggle in menu
+   1.6   - Fixed Jungle Clear
+		 - Added Toggle to Stop ult if enemies can die from other spells
+		 - Fixed Ward Jump
+		 - Improved Farm a bit
   	]] --		
 
 -- Hero Name Check
@@ -48,7 +52,7 @@ require "iSAC"
 function OnLoad()
 	Variables()
 	KatarinaMenu()
-	PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 1.5.2 Loaded!! <<</font>")
+	PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 1.6 Loaded!! <<</font>")
 end
 --[/Plugin OnLoad]--
 
@@ -68,8 +72,11 @@ function OnTick()
 	if KatarinaMenu.autocarry.FullCombo then FullCombo() end
 	if KatarinaMenu.harrass.hHK then Harrass() end
 	if not KatarinaMenu.farming.mFarm and not KatarinaMenu.autocarry.FullCombo then Farm() end
-	--if KatarinaMenu.jungle.JungleFarm and not KatarinaMenu.autocarry.Fullcombo  then JungleClear() end
-	if KatarinaMenu.jungle.ClearKey and not KatarinaMenu.autocarry.Fullcombo then LaneClear() end
+	if KatarinaMenu.jungle.ClearKey and not KatarinaMenu.autocarry.Fullcombo then
+		MoveToMouse()
+		LaneClear()
+		JungleClear() 
+	end
 	
 	if KatarinaMenu.misc.WardJump then WardJump() end
 	if KatarinaMenu.misc.ZWItems and IsMyHealthLow() and Target and (ZNAREADY or WGTREADY) then CastSpell((wgtSlot or znaSlot)) end
@@ -85,7 +92,7 @@ function Farm()
         local wDmg = getDmg("W",minion,myHero)
 		local eDmg = getDmg("E",minion,myHero)
 		if ValidTarget(minion) then
-			if KatarinaMenu.farming.qFarm and QREADY and GetDistance(minion) <= qRange then
+			if KatarinaMenu.farming.qFarm and QREADY and GetDistance(minion) <= qRange and GetDistance(minion) >= wRange then
 				if qDmg >= minion.health then CastSpell(_Q, minion) end
 			end
 			if KatarinaMenu.farming.wFarm and WREADY and GetDistance(minion) <= wRange then
@@ -101,18 +108,15 @@ end
 --[/Farm Function]--
 
 -- Jungle Farming --
---[[function JungleClear()
-	if IsSACReborn then
-		JungleMob = AutoCarry.Jungle:GetAttackableMonster()
-	else
-		JungleMob = AutoCarry.GetMinionTarget()
-	end
+function JungleClear()
+	JungleMob = GetJungleMob()
 	if JungleMob ~= nil then
 		if KatarinaMenu.jungle.JungleQ and GetDistance(JungleMob) <= qRange then CastSpell(_Q, JungleMob) end
 		if KatarinaMenu.jungle.JungleW and GetDistance(JungleMob) <= wRange then CastSpell(_W) end
 		if KatarinaMenu.jungle.JungleE and GetDistance(JungleMob) <= eRange then CastSpell(_E, JungleMob) end
+		if GetDistance(JungleMob) <= AARange then myHero:Attack(JungleMob) end
 	end
-end]]--
+end
 
 function LaneClear()
 	for _, minion in pairs(enemyMinions.objects) do
@@ -173,28 +177,38 @@ function FullCombo()
 end
 --[/Burst Combo Function]--
 
+-- by Klokje --
+function getMousePos(range)
+    local temprange = range or 600
+    local MyPos = Vector(myHero.x, myHero.y, myHero.z)
+    local MousePos = Vector(mousePos.x, mousePos.y, mousePos.z)
+
+    return MyPos - (MyPos - MousePos):normalized() * 600
+end
+
 -- Ward Jumping for bosses --
 function WardJump()
 	MoveToMouse()
 	if EREADY then
+		WardPos = GetDistance(mousePos) <= 600 and mousePos or getMousePos()
 		if next(Wards) ~= nil then
 			for i, obj in pairs(Wards) do 
 				if obj.valid then
 					if GetDistance(obj) <= eRange then
 						CastSpell(_E, obj)
 					else
-						if RSTREADY then CastSpell(rstSlot, mousePos.x, mousePos.z) end
-						if SSREADY then CastSpell(ssSlot, mousePos.x, mousePos.z) end
-						if SWREADY and not SSREADY then CastSpell(swSlot, mousePos.x, mousePos.z) end
-						if VWREADY and not SWREADY then CastSpell(vwSlot, mousePos.x, mousePos.z) end
+						if RSTREADY then CastSpell(rstSlot, WardPos.x, WardPos.z) end
+						if SSREADY then CastSpell(ssSlot, WardPos.x, WardPos.z) end
+						if SWREADY and not SSREADY then CastSpell(swSlot, WardPos.x, WardPos.z) end
+						if VWREADY and not SWREADY then CastSpell(vwSlot, WardPos.x, WardPos.z) end
 					end
 				end
 			end
 		else
-			if RSTREADY then CastSpell(rstSlot, mousePos.x, mousePos.z) end
-			if SSREADY then CastSpell(ssSlot, mousePos.x, mousePos.z) end
-			if SWREADY and not SSREADY then CastSpell(swSlot, mousePos.x, mousePos.z) end
-			if VWREADY and not SWREADY then CastSpell(vwSlot, mousePos.x, mousePos.z) end
+			if RSTREADY then CastSpell(rstSlot, WardPos.x, WardPos.z) end
+			if SSREADY then CastSpell(ssSlot, WardPos.x, WardPos.z) end
+			if SWREADY and not SSREADY then CastSpell(swSlot, WardPos.x, WardPos.z) end
+			if VWREADY and not SWREADY then CastSpell(vwSlot, WardPos.x, WardPos.z) end
 		end
 	end
 end
@@ -352,12 +366,28 @@ end
 
 -- Packet Send thanks for the idea pqmailer <3 --
 function OnSendPacket(p)
-	if isChanneling("Spell4") or ultActive then
-		if Target ~= nil and GetDistance(Target) <= rRange then
-			local packet = Packet(p)
-			if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' then
-				if packet:get('sourceNetworkId') == myHero.networkID then
-					packet:block()
+	if KatarinaMenu.autocarry.StopUlt then
+		if isChanneling("Spell4") or ultActive then
+			if Target ~= nil and GetDistance(Target) <= rRange then
+				if not (QREADY and WREADY and EREADY) and Target.health > (qDmg + wDmg + eDmg) then
+					local packet = Packet(p)
+					if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' then
+						if packet:get('sourceNetworkId') == myHero.networkID then
+							packet:block()
+						end
+					end
+				end
+			end
+		end
+	end
+	if not KatarinaMenu.autocarry.StopUlt then
+		if isChanneling("Spell4") or ultActive then
+			if Target ~= nil and GetDistance(Target) <= rRange then
+				local packet = Packet(p)
+				if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' then
+					if packet:get('sourceNetworkId') == myHero.networkID then
+						packet:block()
+					end
 				end
 			end
 		end
@@ -414,6 +444,11 @@ function OnCreateObj(obj)
 				table.insert(Wards, obj)
 			end
 		end
+		if FocusJungleNames[obj.name] then
+                table.insert(JungleFocusMobs, obj)
+        elseif JungleMobNames[obj.name] then
+                table.insert(JungleMobs, obj)
+        end
 	end
 end
 
@@ -435,8 +470,28 @@ function OnDeleteObj(obj)
 		UsingMPot = false
 		UsingFlask = false
 	end
+	for i, Mob in pairs(JungleMobs) do
+		if obj.name == Mob.name then
+			table.remove(JungleMobs, i)
+        end
+    end
+    for i, Mob in pairs(JungleFocusMobs) do
+        if obj.name == Mob.name then
+            table.remove(JungleFocusMobs, i)
+        end
+    end
 end
 ------------ END OF OBJECT HANDLING FUNCTIONS -----------------
+
+-- by Apple --
+function GetJungleMob()
+        for _, Mob in pairs(JungleFocusMobs) do
+                if ValidTarget(Mob, eRange) then return Mob end
+        end
+        for _, Mob in pairs(JungleMobs) do
+                if ValidTarget(Mob, eRange) then return Mob end
+        end
+end
 
 function OnProcessSpell(unit, spell)
 	if unit.isMe and spell.name == "KatarinaR" then
@@ -503,6 +558,58 @@ function Variables()
 	iOW:addAA("attack")
 	for i=1, heroManager.iCount do waittxt[i] = i*3 end
 	enemyMinions = minionManager(MINION_ENEMY, eRange, player, MINION_SORT_HEALTH_ASC)
+	JungleMobs = {}
+	JungleFocusMobs = {}
+
+	-- Stolen from Apple who Stole it from Sida --
+	JungleMobNames = { -- List stolen from SAC Revamped. Sorry, Sida!
+        ["wolf8.1.1"] = true,
+        ["wolf8.1.2"] = true,
+        ["YoungLizard7.1.2"] = true,
+        ["YoungLizard7.1.3"] = true,
+        ["LesserWraith9.1.1"] = true,
+        ["LesserWraith9.1.2"] = true,
+        ["LesserWraith9.1.4"] = true,
+        ["YoungLizard10.1.2"] = true,
+        ["YoungLizard10.1.3"] = true,
+        ["SmallGolem11.1.1"] = true,
+        ["wolf2.1.1"] = true,
+        ["wolf2.1.2"] = true,
+        ["YoungLizard1.1.2"] = true,
+        ["YoungLizard1.1.3"] = true,
+        ["LesserWraith3.1.1"] = true,
+        ["LesserWraith3.1.2"] = true,
+        ["LesserWraith3.1.4"] = true,
+        ["YoungLizard4.1.2"] = true,
+        ["YoungLizard4.1.3"] = true,
+        ["SmallGolem5.1.1"] = true,
+}
+
+	FocusJungleNames = {
+        ["Dragon6.1.1"] = true,
+        ["Worm12.1.1"] = true,
+        ["GiantWolf8.1.3"] = true,
+        ["AncientGolem7.1.1"] = true,
+        ["Wraith9.1.3"] = true,
+        ["LizardElder10.1.1"] = true,
+        ["Golem11.1.2"] = true,
+        ["GiantWolf2.1.3"] = true,
+        ["AncientGolem1.1.1"] = true,
+        ["Wraith3.1.3"] = true,
+        ["LizardElder4.1.1"] = true,
+        ["Golem5.1.2"] = true,
+}
+
+	for i = 0, objManager.maxObjects do
+		local object = objManager:getObject(i)
+		if object ~= nil then
+			if FocusJungleNames[object.name] then
+				table.insert(JungleFocusMobs, object)
+			elseif JungleMobNames[object.name] then
+				table.insert(JungleMobs, object)
+			end
+		end
+	end
 end
 ------------------ END OF VARIABLES --------------------
 
@@ -512,6 +619,7 @@ function KatarinaMenu()
 	
 	KatarinaMenu:addSubMenu("["..myHero.charName.." - Combo Settings]", "autocarry")
 		KatarinaMenu.autocarry:addParam("FullCombo", "Full Combo Key (X)", SCRIPT_PARAM_ONKEYDOWN, false, 88)
+		KatarinaMenu.autocarry:addParam("StopUlt", "Stop Ult if enemy can Die", SCRIPT_PARAM_ONOFF, false)
 		KatarinaMenu.autocarry:addParam("DelayW", "DelayW", SCRIPT_PARAM_ONOFF, false)
 		KatarinaMenu.autocarry:addParam("bItems", "Use Items with Burst", SCRIPT_PARAM_ONOFF, true)
 		KatarinaMenu.autocarry:permaShow("FullCombo") 
@@ -539,6 +647,7 @@ function KatarinaMenu()
 		KatarinaMenu.jungle:addParam("ClearLane", "Use Skills to Clear Lane", SCRIPT_PARAM_ONOFF, true)
 		KatarinaMenu.jungle:addParam("JungleQ", "Farm with Bouncing Blades (Q)", SCRIPT_PARAM_ONOFF, true)
 		KatarinaMenu.jungle:addParam("JungleW", "Sinister Steel (W)", SCRIPT_PARAM_ONOFF, true)
+		KatarinaMenu.jungle:addParam("JungleE", "Use Shunpo (E)", SCRIPT_PARAM_ONOFF, true)
 		
 		
 	KatarinaMenu:addSubMenu("["..myHero.charName.." - KillSteal Settings]", "killsteal")
@@ -621,6 +730,15 @@ function Checks()
 	SSREADY = (ssSlot ~= nil and myHero:CanUseSpell(ssSlot) == READY)
 	SWREADY = (swSlot ~= nil and myHero:CanUseSpell(swSlot) == READY)
 	VWREADY = (vwSlot ~= nil and myHero:CanUseSpell(vwSlot) == READY)
+	
+	-- Updates Wards that die --
+	if next(Wards)~=nil then
+		for i, obj in pairs(Wards) do
+			if not obj.valid then
+				table.remove(Wards, i)
+			end
+		end
+	end
 	
 	-- Updates Minions --
 	enemyMinions:update()
