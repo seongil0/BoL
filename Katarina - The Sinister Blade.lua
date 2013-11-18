@@ -41,6 +41,7 @@
 		 - Improved Farm a bit
    1.6.1 - Added Blackfire Tourch in combo
          - Fixed ult stop when enemies can die
+   1.6.2 - Fixed Blackfire torch error
   	]] --		
 
 -- Hero Name Check
@@ -54,7 +55,7 @@ require "iSAC"
 function OnLoad()
 	Variables()
 	KatarinaMenu()
-	PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 1.6 Loaded!! <<</font>")
+	PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 1.6.2 Loaded!! <<</font>")
 end
 --[/Plugin OnLoad]--
 
@@ -230,7 +231,7 @@ function KillSteal()
 	 for i=1, heroManager.iCount do
 	 local enemy = heroManager:GetHero(i)
 		if ValidTarget(enemy) then
-			dfgDmg, hxgDmg, bwcDmg, iDmg  = 0, 0, 0, 0
+			dfgDmg, hxgDmg, bwcDmg, iDmg,bftDmg  = 0, 0, 0, 0, 0
 			qDmg = getDmg("Q",enemy,myHero)
             wDmg = getDmg("W",enemy,myHero)
 			eDmg = getDmg("E",enemy,myHero)
@@ -252,6 +253,7 @@ function KillSteal()
 					HXGREADY = false
 					BWCREADY = false
 					BRKREADY = false
+					BFTREADY = false
 				end
 				if enemy.health <= (qDmg) and GetDistance(enemy) <= qRange and QREADY then
 					if QREADY then CastSpell(_Q, enemy) end
