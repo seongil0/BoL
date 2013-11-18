@@ -39,6 +39,8 @@
 		 - Added Toggle to Stop ult if enemies can die from other spells
 		 - Fixed Ward Jump
 		 - Improved Farm a bit
+   1.6.1 - Added Blackfire Tourch in combo
+         - Fixed ult stop when enemies can die
   	]] --		
 
 -- Hero Name Check
@@ -158,6 +160,7 @@ function FullCombo()
 	if Target ~= nil then
 		if KatarinaMenu.autocarry.bItems then
 			if DFGREADY then CastSpell(dfgSlot, Target) end
+			if BFTREADY then CastSpell(bftSlot, Target) end
 			if HXGREADY then CastSpell(hxgSlot, Target) end
 			if BWCREADY then CastSpell(bwcSlot, Target) end
 			if BRKREADY then CastSpell(brkSlot, Target) end
@@ -233,11 +236,12 @@ function KillSteal()
 			eDmg = getDmg("E",enemy,myHero)
             rDmg = getDmg("R",enemy,myHero)*8
 			if DFGREADY then dfgDmg = (dfgSlot and getDmg("DFG",enemy,myHero) or 0)	end
+			if BFTREADY then bftdmg = (bftSlot and getDmg("BFT",enemy,myHero) or 0) end
             if HXGREADY then hxgDmg = (hxgSlot and getDmg("HXG",enemy,myHero) or 0) end
             if BWCREADY then bwcDmg = (bwcSlot and getDmg("BWC",enemy,myHero) or 0) end
             if IREADY then iDmg = (ignite and getDmg("IGNITE",enemy,myHero) or 0) end
             onspellDmg = (liandrysSlot and getDmg("LIANDRYS",enemy,myHero) or 0)+(blackfireSlot and getDmg("BLACKFIRE",enemy,myHero) or 0)
-            itemsDmg = dfgDmg + hxgDmg + bwcDmg + iDmg + onspellDmg
+            itemsDmg = dfgDmg + bftDmg + hxgDmg + bwcDmg + iDmg + onspellDmg
 			------- DEBUG --------
 			--if KatarinaMenu.debug then PrintChat("Total Items Dmg: "..itemsDmg.." Target: "..enemy.name) end
 			--if KatarinaMenu.debug then PrintChat("rDmg"..rDmg) end	
@@ -371,7 +375,7 @@ function OnSendPacket(p)
 			if Target ~= nil and GetDistance(Target) <= rRange then
 				if not (QREADY and WREADY and EREADY) and Target.health > (qDmg + wDmg + eDmg) then
 					local packet = Packet(p)
-					if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' then
+					if packet:get('name') == 'S_MOVE' then
 						if packet:get('sourceNetworkId') == myHero.networkID then
 							packet:block()
 						end
@@ -703,8 +707,9 @@ function Checks()
 	hpSlot, mpSlot, fskSlot =            GetInventorySlotItem(2003),
 							             GetInventorySlotItem(2004),
 							             GetInventorySlotItem(2041)
-	znaSlot, wgtSlot =                   GetInventorySlotItem(3157),
-	                                     GetInventorySlotItem(3090)
+	znaSlot, wgtSlot, bftSlot =          GetInventorySlotItem(3157),
+	                                     GetInventorySlotItem(3090),
+										 GetInventorySlotItem(3188)
 	-- Spells --									 
 	QREADY = (myHero:CanUseSpell(_Q) == READY)
 	WREADY = (myHero:CanUseSpell(_W) == READY)
@@ -719,6 +724,7 @@ function Checks()
 	BRKREADY = (brkSlot ~= nil and myHero:CanUseSpell(brkSlot) == READY)
 	ZNAREADY = (znaSlot ~= nil and myHero:CanUseSpell(znaSlot) == READY)
 	WGTREADY = (wgtSlot ~= nil and myHero:CanUseSpell(wgtSlot) == READY)
+	BFTREADY = (bftSlot ~= nil and myHero:CanUseSpell(bftSlot) == READY)
 	
 	-- Pots --
 	HPREADY = (hpSlot ~= nil and myHero:CanUseSpell(hpSlot) == READY)
