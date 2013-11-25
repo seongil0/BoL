@@ -55,7 +55,8 @@
 			- Everyone at the KKK crew who tested this script and gave awesome suggestions!
 			
 		Changelog:
-			1.0 - First Release!
+			1.0   - First Release!
+			1.0.1 - Small Prodiction fix
 	
 	]]--
 
@@ -100,7 +101,7 @@ function Variables()
 	qName, wName, eName, rName = "Decrepify", "Nevermove", "Torment", "Ravenous Flock"
 	qReady, wReady, eReady, rReady = false, false, false, false
 	if VIP_USER then
-		wSpeed, wDelay, wWidth = 200, 0.700, 250
+		wSpeed, wDelay, wWidth = 20, 0.700, 250
 		wPos = nil
 		Prodict = ProdictManager.GetInstance()
 		ProdictW = Prodict:AddProdictionObject(_W, wRange, wSpeed, wDelay, wWidth, myHero)
