@@ -57,6 +57,7 @@
 		Changelog:
 			1.0   - First Release!
 			1.0.1 - Small Prodiction fix
+			1.0.2 - Typo Fix, Prodiction Fix
 	
 	]]--
 
@@ -101,7 +102,7 @@ function Variables()
 	qName, wName, eName, rName = "Decrepify", "Nevermove", "Torment", "Ravenous Flock"
 	qReady, wReady, eReady, rReady = false, false, false, false
 	if VIP_USER then
-		wSpeed, wDelay, wWidth = 20, 0.700, 250
+		wSpeed, wDelay, wWidth = math.huge, 1.0, 250
 		wPos = nil
 		Prodict = ProdictManager.GetInstance()
 		ProdictW = Prodict:AddProdictionObject(_W, wRange, wSpeed, wDelay, wWidth, myHero)
@@ -181,7 +182,7 @@ function SwainMenu()
 		SwainMenu.combo:addParam("comboKey", "Full Combo Key (X)", SCRIPT_PARAM_ONKEYDOWN, false, 88)
 		SwainMenu.combo:addParam("comboW", "Use "..wName.." (W)", SCRIPT_PARAM_ONOFF, true)
 		SwainMenu.combo:addParam("comboItems", "Use Items with Burst", SCRIPT_PARAM_ONOFF, true)
-		SwainMenu.combo:addParam("comboOrbwalk", "OrbWalk on Harass", SCRIPT_PARAM_ONOFF, true)
+		SwainMenu.combo:addParam("comboOrbwalk", "OrbWalk on Combo", SCRIPT_PARAM_ONOFF, true)
 		SwainMenu.combo:permaShow("comboKey") 
 	
 	SwainMenu:addSubMenu("["..myHero.charName.." - Ult Settings]", "ult")
@@ -265,7 +266,9 @@ function CastW(enemy)
 	end
 	if Target ~= nil then
 		if VIP_USER then
-			CastSpell(_W, wPos.x, wPos.z)
+			if wPos ~= nil then
+				CastSpell(_W, wPos.x, wPos.z)
+			end
 		else
 			CastSpell(_W, enemy)
 		end
@@ -585,6 +588,7 @@ end
 -- Function OnDraw --
 function OnDraw()
 	--> Ranges
+	if wPos ~= nil then DrawCircle(wPos.x, wPos.y, wPos.z, wWidth, 0x00B200) end
 	if not SwainMenu.drawing.mDraw and not myHero.dead then
 		if qReady and SwainMenu.drawing.qDraw then 
 			DrawCircle(myHero.x, myHero.y, myHero.z, qRange, 0x00B200)
