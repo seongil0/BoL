@@ -222,7 +222,7 @@ function FullCombo()
 		end
 	end
 	if Target ~= nil then
-		if Khazixmenu.combo.comboItems then UseItems(Target) end
+		if KhazixMenu.combo.comboItems then UseItems(Target) end
 		if not MuramanaIsActive() and GetDistance(Target) <= wRange then MuramanaOn() end
 		if qReady and GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
 		if wReady and GetDistance(Target) <= wRange then CastW(Target) end
