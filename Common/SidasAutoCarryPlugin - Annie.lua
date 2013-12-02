@@ -1,5 +1,5 @@
 --[[
-	AutoCarry Plugin - Annie Hastur, the Dark Child 1.2 by Skeem
+	AutoCarry Plugin - Annie Hastur, the Dark Child 1.3 by Skeem
 	With Code from Kain
 	Copyright 2013
 	Changelog :
@@ -18,6 +18,9 @@
 		 - Fixed W & R.
 		 - Fixed Force Tibbers
 		 - Fixed Script not showing for some users
+	1.3  - Fixed W Usage (added new cone function)
+	     - Fixed recalling bug
+		 - Fixed Auto Pots
   	]] --
 
 
@@ -34,6 +37,7 @@ function PluginOnTick()
 		if Recall then return end -- If we're recalling then won't run any combos
 		Checks()
 		SmartKS()
+		UseConsumables()
 		
 		if Menu.dAttack and Carry.AutoCarry then AutoCarry.CanAttack = false else AutoCarry.CanAttack = true end
 		if not IsMyManaLow() and Menu.sFarm and Menu.qFarm and not HaveStun and not Carry.AutoCarry then qFarm()
@@ -45,9 +49,6 @@ function PluginOnTick()
 			if Menu.qHarass and QREADY and GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
 			if Menu.wHarass and WREADY and GetDistance(Target) <= wRange then CastW(Target) end
 		end
-		if Extras.ZWItems and IsMyHealthLow() and Target and (ZNAREADY or WGTREADY) then CastSpell((wgtSlot or znaSlot)) end
-		if Extras.aHP and NeedHP() and (HPREADY or FSKREADY) then CastSpell((hpSlot or fskSlot)) end
-		if Extras.aMP and IsMyManaLow() and (MPREADY or FSKREADY) then CastSpell((mpSlot or fskSlot)) end
 		if Extras.AutoLevelSkills then autoLevelSetSequence(levelSequence) end
 end
 --[/OnTick]--
@@ -113,19 +114,17 @@ end
 --[Skills that use MEC]--
 
 --[Casts our W Skill]--
-function CastW(Target)
+function CastW(enemy)
+	if not enemy and ValidTarget(Target) then
+		enemy = Target
+	end
     if WREADY then 
-	local wPos = GetAoESpellPosition(450, Target)
-		if wPos and GetDistance(wPos) <= wRange then
-			if CountEnemies(wPos, 450) > 1 then
-				CastSpell(_W, wPos.x, wPos.z)
-			elseif IsSACReborn then
-				SkillW:Cast(Target)
-			else
-				CastSpell(_W, Target.x, Target.z)
-			end
+		if IsSACReborn then
+			SkillW:Cast(enemy)
+		else
+			CastSpell(_W, enemy.x, enemy.z)
 		end
-    end
+	end
 end
 
 
@@ -214,6 +213,19 @@ function SmartKS()
 end
 --[/Smart KS Function]--
 
+function UseConsumables()
+	if not InFountain() and not Recalling and Target ~= nil then
+		if Extras.aHP and myHero.health < (myHero.maxHealth * (Extras.HPHealth / 100))
+			and not (usingHPot or usingFlask) and (hpReady or fskReady)	then
+				CastSpell((hpSlot or fskSlot)) 
+		end
+		if Extras.aMP and myHero.mana < (myHero.maxMana * (Extras.MinMana / 100))
+			and not (usingMPot or usingFlask) and (mpReady or fskReady) then
+				CastSpell((mpSlot or fskSlot))
+		end
+	end
+end		
+
 --[Low Mana Function by Kain]--
 function IsMyManaLow()
     if myHero.mana < (myHero.maxMana * ( Extras.MinMana / 100)) then
@@ -250,6 +262,18 @@ function PluginOnCreateObj(obj)
         if obj.name == "BearFire_foot.troy" then HaveTibbers = true end
 		if obj.name == "TeleportHome.troy" then Recall = true end
 	end
+	if obj.name:find("Global_Item_HealthPotion.troy") then
+			if GetDistance(obj, myHero) <= 70 then
+				usingHPot = true
+				usingFlask = true
+			end
+		end
+		if obj.name:find("Global_Item_ManaPotion.troy") then
+			if GetDistance(obj, myHero) <= 70 then
+				usingFlask = true
+				usingMPot = true
+			end
+	end
 end
  
 function PluginOnDeleteObj(obj)
@@ -258,10 +282,39 @@ function PluginOnDeleteObj(obj)
         if obj.name == "BearFire_foot.troy" then HaveTibbers = false end
 		if obj.name == "TeleportHome.troy" then Recall = false end
 	end
-
+	if obj.name:find("Global_Item_HealthPotion.troy") then
+		if GetDistance(obj) <= 70 then
+			usingHPot = false
+			usingFlask = false
+		end
+	end
+	if obj.name:find("Global_Item_ManaPotion.troy") then
+		if GetDistance(obj) <= 70 then
+			usingMPot = false
+			usingFlask = false
+		end
+	end
 end
 --[/Object Detection]--
 
+-- Recalling Functions --
+function OnRecall(hero, channelTimeInMs)
+	if hero.networkID == player.networkID then
+		Recalling = true
+	end
+end
+
+function OnAbortRecall(hero)
+	if hero.networkID == player.networkID then
+		Recalling = false
+	end
+end
+
+function OnFinishRecall(hero)
+	if hero.networkID == player.networkID then
+		Recalling = false
+	end
+end
 
 function PluginOnDraw()
 	--> Ranges
@@ -303,15 +356,16 @@ function loadMain()
 		AutoCarry.SkillsCrosshair.range = 630
 		end
 		HaveStun, HaveTibbers, Recall = false, false, false
+		hpReady, mpReady, fskReady = false, false, false
 		HK1, HK2, HK3 = string.byte("Z"), string.byte("K"), string.byte("T")
-        qRange, wRange, eRange, rRange = 625, 625, 600, 630
+        qRange, wRange, eRange, rRange = 625, 620, 600, 630
 		TextList = {"Harass him!!", "Q+W KILL!!", "FULL COMBO KILL!"}
 		KillText = {}
 		waittxt = {} -- prevents UI lags, all credits to Dekaron
 		for i=1, heroManager.iCount do waittxt[i] = i*3 end -- All credits to Dekaron
 		levelSequence = { nil, 0, 1, 3, 1, 4, 1, 2, 1, 2, 4, 2, 2, 3, 3, 4, 3, 3, }
 		if IsSACReborn then
-		SkillW = AutoCarry.Skills:NewSkill(false, _W, wRange, "Incinerate", AutoCarry.SPELL_CONE, 0, false, false, 1.0, 250, 450, false)
+		SkillW = AutoCarry.Skills:NewSkill(false, _W, wRange, "Incinerate", AutoCarry.SPELL_CONE, 0, false, false, 1.5, 650, 45, false)
 		SkillR = AutoCarry.Skills:NewSkill(false, _R, rRange, "Infernal Guardian", AutoCarry.SPELL_CIRCLE, 0, false, false, 1.5, 250, 450, false)
 		end
 end
@@ -365,9 +419,9 @@ function Checks()
 	ZNAREADY = (znaSlot ~= nil and myHero:CanUseSpell(znaSlot) == READY)
 	WGTREADY = (wgtSlot ~= nil and myHero:CanUseSpell(wgtSlot) == READY)
 	IREADY = (ignite ~= nil and myHero:CanUseSpell(ignite) == READY)
-	HPREADY = (hpSlot ~= nil and myHero:CanUseSpell(hpSlot) == READY)
-	MPREADY =(mpSlot ~= nil and myHero:CanUseSpell(mpSlot) == READY)
-	FSKREADY = (fskSlot ~= nil and myHero:CanUseSpell(fskSlot) == READY)
+	hpReady = (hpSlot ~= nil and myHero:CanUseSpell(hpSlot) == READY)
+	mpReady =(mpSlot ~= nil and myHero:CanUseSpell(mpSlot) == READY)
+	fskReady = (fskSlot ~= nil and myHero:CanUseSpell(fskSlot) == READY)
 end
 
 
