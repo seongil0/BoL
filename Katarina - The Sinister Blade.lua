@@ -414,7 +414,7 @@ function KillSteal()
 						wardJump(wPos.x, wPos.z)
 						if QREADY then CastQ(enemy) end
 					end
-					if enemy.health <= (qDmg + wDmg + itemsDmg) and GetDistance(enemy) >= eRange and GetDistace(enemy) <= (wRange + eRange) then
+					if enemy.health <= (qDmg + wDmg + itemsDmg) and GetDistance(enemy) >= eRange and GetDistance(enemy) <= (wRange + eRange) then
 						local mPos = Vector(myHero.x, myHero.y, myHero.z)
 						local ePos = Vector(enemy.x, enemy.y, Target.z)
 						local wPos =  mPos - (mPos - ePos):normalized() * eRange
