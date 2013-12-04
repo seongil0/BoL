@@ -1,5 +1,5 @@
 --[[
-	[Script] Swain - The Darkin Blade 1.1 by Skeem
+	[Script] Aatrox - The Darkin Blade 1.1.1 by Skeem
 	
 		Features:
 			- Prodiction for VIPs, NonVIP prediction
@@ -40,8 +40,9 @@
 			- Everyone at the KKK crew who tested this script and gave awesome suggestions!
 			
 		Changelog:
-			1.0 - First Release!
-			1.1 - Updated Everything!! no longer autocarry script
+			1.0   - First Release!
+			1.1   - Updated Everything!! no longer autocarry script
+			1.1.1 - Added item usage
 	
 	]]--
 
@@ -57,7 +58,7 @@ end
 function OnLoad()
 	Variables()
 	AatroxMenu()
-	PrintChat("<font color='#0000FF'> >> Aatrox - The Darkin Blade 1.1 Loaded!! <<</font>")
+	PrintChat("<font color='#0000FF'> >> Aatrox - The Darkin Blade 1.1.1 Loaded!! <<</font>")
 end
 
 -- OnTick function --
@@ -226,6 +227,9 @@ function FullCombo()
 		end
 	end
 	if Target ~= nil then
+		if AAtroxMenu.combo.comboItems then
+			UseItems(Target)
+		end
 		if AatroxMenu.combo.comboW then
 			if not wActive() and wReady and myHero.health > (myHero.maxHealth * ( AatroxMenu.combo.comboWHealth / 100)) then
 				CastSpell(_W)
@@ -325,6 +329,19 @@ function CastE(enemy)
 		else
 			CastSpell(_E, enemy.x, enemy.z)
 		end
+	end
+end
+
+function UseItems(enemy)
+	if not enemy then
+		enemy = Target
+	end
+	if Target ~= nil then
+		if hxgReady and GetDistance(enemy) <= 600 then CastSpell(hxgSlot, enemy) end
+		if bwcReady and GetDistance(enemy) <= 450 then CastSpell(bwcSlot, enemy) end
+		if brkReady and GetDistance(enemy) <= 450 then CastSpell(brkSlot, enemy) end
+		if tmtReady and GetDistance(enemy) <= 185 then CastSpell(tmtSlot) end
+		if hdrReady and GetDistance(enemy) <= 185 then CastSpell(hdrSlot) end
 	end
 end
 
