@@ -1,5 +1,5 @@
 --[[
-	[Script] Swain - The Master Tactician 1.0.3 by Skeem
+	[Script] Swain - The Master Tactician 1.1 by Skeem
 	
 		Features:
 			- Prodiction for VIPs, NonVIP prediction
@@ -62,6 +62,9 @@
 						- if enemy in eRange combo will be EQWR
 						- if enemy outside of eRange and inside wRange it'll be WEQR
 				  - Fixed auto ult disable
+			1.1   - More auto ult fixes
+			      - Removed wPos drawing
+				  - Some prodiction tweaks
 	
 	]]--
 
@@ -76,7 +79,7 @@ end
 function OnLoad()
 	Variables()
 	SwainMenu()
-	PrintChat("<font color='#00FF00'> >> Swain - The Master Tactician 1.0.3 Loaded!! <<</font>")
+	PrintChat("<font color='#00FF00'> >> Swain - The Master Tactician 1.1 Loaded!! <<</font>")
 end
 
 -- Tick Function --
@@ -106,7 +109,7 @@ function Variables()
 	qName, wName, eName, rName = "Decrepify", "Nevermove", "Torment", "Ravenous Flock"
 	qReady, wReady, eReady, rReady = false, false, false, false
 	if VIP_USER then
-		wSpeed, wDelay, wWidth = math.huge, 1.0, 250
+		wSpeed, wDelay, wWidth = math.huge, 0.5, 250
 		wPos = nil
 		Prodict = ProdictManager.GetInstance()
 		ProdictW = Prodict:AddProdictionObject(_W, wRange, wSpeed, wDelay, wWidth, myHero)
@@ -389,6 +392,7 @@ end
 
 -- Functions to Handle our Ult --
 function UltManagement()
+	if not rReady then return end
 	if SwainMenu.ult.HealWithUlt then
 		Minions = GetRMinions()
 		JungleMinions = GetJungleMob()
@@ -600,7 +604,6 @@ end
 -- Function OnDraw --
 function OnDraw()
 	--> Ranges
-	if wPos ~= nil then DrawCircle(wPos.x, wPos.y, wPos.z, wWidth, 0x00B200) end
 	if not SwainMenu.drawing.mDraw and not myHero.dead then
 		if qReady and SwainMenu.drawing.qDraw then 
 			DrawCircle(myHero.x, myHero.y, myHero.z, qRange, 0x00B200)
@@ -662,6 +665,13 @@ function OnProcessSpell(object,spell)
 			lastAttackCD = spell.animationTime*1000
         end
     end
+	if object == myHero and spell.name == "SwainMetamorphism" then
+		if  usingUlt then
+			usingUlt = false
+		else
+			usingUlt = true
+		end
+	end
 end
 
 function OnAnimation(unit,animationName)
