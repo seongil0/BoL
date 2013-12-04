@@ -3,24 +3,25 @@
 	With Code from Kain
 	Copyright 2013
 	Changelog :
-   1.0 - Initial Release
-   1.1 - Recoded Should Work Better
-	   - Fixed Auto Ignite
-	   - Fixed bug with ultimate
-	   - Fixed MEC no library required now
-	   - Added Draw Text now draws if target can die from combo
-	   - Added Auto Health Pots / Auto Mana Pots
-	   - Added Auto Zhonyas (Needs Work maybe set at 15% default)
-	   - Added Auto Spell Levels
-   1.2 - Added prodiction to W, R
-	   - W uses MEC
-   1.2.2 - Fixed bug with qFarm not deactivating
-		 - Fixed W & R.
-		 - Fixed Force Tibbers
-		 - Fixed Script not showing for some users
-	1.3  - Fixed W Usage (added new cone function)
-	     - Fixed recalling bug
-		 - Fixed Auto Pots
+   1.0    - Initial Release
+   1.1    - Recoded Should Work Better
+	      - Fixed Auto Ignite
+	      - Fixed bug with ultimate
+	      - Fixed MEC no library required now
+	      - Added Draw Text now draws if target can die from combo
+	      - Added Auto Health Pots / Auto Mana Pots
+	      - Added Auto Zhonyas (Needs Work maybe set at 15% default)
+	      - Added Auto Spell Levels
+   1.2    - Added prodiction to W, R
+	      - W uses MEC
+   1.2.2  - Fixed bug with qFarm not deactivating
+		  - Fixed W & R.
+		  - Fixed Force Tibbers
+		  - Fixed Script not showing for some users
+	1.3   - Fixed W Usage (added new cone function)
+	      - Fixed recalling bug
+		  - Fixed Auto Pots
+	1.3.1 - Changed castR to vadash's
   	]] --
 
 
@@ -99,18 +100,16 @@ end
 
 function CastR(Target)
 	if RREADY then
-	local ultPos = GetAoESpellPosition(450, Target)
+	local ultPos = GetAoESpellPosition(450, Target, 250)
 		if ultPos and GetDistance(ultPos) <= rRange then
 			if CountEnemies(ultPos, 450) > 1 then
 				CastSpell(_R, ultPos.x, ultPos.z)
-			elseif IsSACReborn then
+			elseif IsSACReborn and TS_GetPriority(Target) <= 2 then
 				SkillR:Cast(Target)
-			else
-				CastSpell(_R, Target.x, Target.z)
 			end
 		end
 	end
-end
+end 
 --[Skills that use MEC]--
 
 --[Casts our W Skill]--
