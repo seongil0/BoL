@@ -109,7 +109,7 @@ function Variables()
 	qName, wName, eName, rName = "Decrepify", "Nevermove", "Torment", "Ravenous Flock"
 	qReady, wReady, eReady, rReady = false, false, false, false
 	if VIP_USER then
-		wSpeed, wDelay, wWidth = math.huge, 0.5, 250
+		wSpeed, wDelay, wWidth = math.huge, 1.0, 250
 		wPos = nil
 		Prodict = ProdictManager.GetInstance()
 		ProdictW = Prodict:AddProdictionObject(_W, wRange, wSpeed, wDelay, wWidth, myHero)
