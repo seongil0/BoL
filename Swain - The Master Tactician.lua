@@ -1,5 +1,5 @@
 --[[
-	[Script] Swain - The Master Tactician 1.0 by Skeem
+	[Script] Swain - The Master Tactician 1.0.3 by Skeem
 	
 		Features:
 			- Prodiction for VIPs, NonVIP prediction
@@ -58,6 +58,10 @@
 			1.0   - First Release!
 			1.0.1 - Small Prodiction fix
 			1.0.2 - Typo Fix, Prodiction Fix
+			1.0.3 - Changed combo a little:
+						- if enemy in eRange combo will be EQWR
+						- if enemy outside of eRange and inside wRange it'll be WEQR
+				  - Fixed auto ult disable
 	
 	]]--
 
@@ -72,7 +76,7 @@ end
 function OnLoad()
 	Variables()
 	SwainMenu()
-	PrintChat("<font color='#00FF00'> >> Swain - The Master Tactician 1.0 Loaded!! <<</font>")
+	PrintChat("<font color='#00FF00'> >> Swain - The Master Tactician 1.0.3 Loaded!! <<</font>")
 end
 
 -- Tick Function --
@@ -252,10 +256,13 @@ function FullCombo()
 		end
 	end
 	if Target ~= nil then
-		if SwainMenu.combo.comboW and wReady and GetDistance(Target) <= wRange then CastW(Target) end
 		if eReady and GetDistance(Target) <= eRange then CastSpell(_E, Target) end
 		if qReady and GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
-		if rReady and GetDistance(Target) <= rRange and not usingUlt then CastSpell(_R) end
+		if SwainMenu.combo.comboW and wReady and GetDistance(Target) <= wRange then CastW(Target) end
+		if rReady and GetDistance(Target) <= rRange and not usingUlt then
+			CastSpell(_R)
+			rManual = false
+		end
 	end
 end
 
@@ -391,21 +398,25 @@ function UltManagement()
 			   myHero.health < (myHero.maxHealth * (SwainMenu.ult.MinUltHealth / 100))
 			    and (Minions ~= nil or JungleMinions ~= nil or Target ~= nil) then
 					CastSpell(_R)
+					rManual = false
 			end
 		elseif usingUlt and not rManual then
 			if myHero.mana < (myHero.maxMana * (SwainMenu.ult.MinUltMana / 100)) then
 				if not SwainMenu.combo.comboKey then
-					CastSpell(_R) 
+					CastSpell(_R)
+					rManual = false
 				end
 			end
 			if myHero.health >= (myHero.maxHealth * (SwainMenu.ult.MinUltHealth / 100)) then
 				if not SwainMenu.combo.comboKey then 
 					CastSpell(_R)
+					rManual = false
 				end
 			end
 			if myHero.mana < (myHero.maxMana * (SwainMenu.ult.MinUltMana / 100)) then
 				if Target ~= nil and Target.health >= (qDmg + wDmg + eDmg + rDmg) then
 					CastSpell(_R)
+					rManual = false
 				end
 			end
 		end
@@ -414,6 +425,7 @@ function UltManagement()
 		if not SwainMenu.ult.HealWithUlt then
 			if not Target then 
 				CastSpell(_R)
+				rManual = false
 			end
 		end
 	end
