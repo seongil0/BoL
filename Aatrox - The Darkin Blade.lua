@@ -227,7 +227,7 @@ function FullCombo()
 		end
 	end
 	if Target ~= nil then
-		if AAtroxMenu.combo.comboItems then
+		if AatroxMenu.combo.comboItems then
 			UseItems(Target)
 		end
 		if AatroxMenu.combo.comboW then
