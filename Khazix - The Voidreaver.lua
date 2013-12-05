@@ -309,7 +309,8 @@ function CastW(enemy)
 				end
 			end
 		else
-			CastSpell(_W, enemy)
+			local wCol = GetMinionCollision(enemy, wWidth)
+			if not wCol then CastSpell(_W, enemy.x, enemy.z) end
 		end
 	end
 end
