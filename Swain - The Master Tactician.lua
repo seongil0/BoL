@@ -1,5 +1,5 @@
 --[[
-	[Script] Swain - The Master Tactician 1.1 by Skeem
+	[Script] Swain - The Master Tactician 1.1.1 by Skeem
 	
 		Features:
 			- Prodiction for VIPs, NonVIP prediction
@@ -65,6 +65,7 @@
 			1.1   - More auto ult fixes
 			      - Removed wPos drawing
 				  - Some prodiction tweaks
+			1.1.1 - Fixed auto ult
 	
 	]]--
 
@@ -79,7 +80,7 @@ end
 function OnLoad()
 	Variables()
 	SwainMenu()
-	PrintChat("<font color='#00FF00'> >> Swain - The Master Tactician 1.1 Loaded!! <<</font>")
+	PrintChat("<font color='#00FF00'> >> Swain - The Master Tactician 1.1.1 Loaded!! <<</font>")
 end
 
 -- Tick Function --
@@ -109,7 +110,7 @@ function Variables()
 	qName, wName, eName, rName = "Decrepify", "Nevermove", "Torment", "Ravenous Flock"
 	qReady, wReady, eReady, rReady = false, false, false, false
 	if VIP_USER then
-		wSpeed, wDelay, wWidth = math.huge, 1.0, 250
+		wSpeed, wDelay, wWidth = math.huge, 0.5, 250
 		wPos = nil
 		Prodict = ProdictManager.GetInstance()
 		ProdictW = Prodict:AddProdictionObject(_W, wRange, wSpeed, wDelay, wWidth, myHero)
@@ -127,6 +128,7 @@ function Variables()
 	lastWindUpTime = 0
 	JungleMobs = {}
 	JungleFocusMobs = {}
+	debugMode = false
 
 	-- Stolen from Apple who Stole it from Sida --
 	JungleMobNames = { -- List stolen from SAC Revamped. Sorry, Sida!
@@ -265,6 +267,7 @@ function FullCombo()
 		if rReady and GetDistance(Target) <= rRange and not usingUlt then
 			CastSpell(_R)
 			rManual = false
+			if debugMode then PrintChat ("Debug 269") end
 		end
 	end
 end
@@ -403,24 +406,28 @@ function UltManagement()
 			    and (Minions ~= nil or JungleMinions ~= nil or Target ~= nil) then
 					CastSpell(_R)
 					rManual = false
+					if debugMode then PrintChat("Debug 408") end
 			end
 		elseif usingUlt and not rManual then
 			if myHero.mana < (myHero.maxMana * (SwainMenu.ult.MinUltMana / 100)) then
 				if not SwainMenu.combo.comboKey then
 					CastSpell(_R)
 					rManual = false
+					if debugMode then PrintChat("Debug 415") end
 				end
 			end
 			if myHero.health >= (myHero.maxHealth * (SwainMenu.ult.MinUltHealth / 100)) then
 				if not SwainMenu.combo.comboKey then 
 					CastSpell(_R)
 					rManual = false
+					if debugMode then PrintChat("Debug 422") end
 				end
 			end
 			if myHero.mana < (myHero.maxMana * (SwainMenu.ult.MinUltMana / 100)) then
-				if Target ~= nil and Target.health >= (qDmg + wDmg + eDmg + rDmg) then
+				if Target ~= nil and Target.health >= (qDmg + wDmg + eDmg + (rDmg*4)) then
 					CastSpell(_R)
 					rManual = false
+					if debugMode then PrintChat("Debug 429") end
 				end
 			end
 		end
@@ -430,6 +437,7 @@ function UltManagement()
 			if not Target then 
 				CastSpell(_R)
 				rManual = false
+				if debugMode then PrintChat("Debug 439") end
 			end
 		end
 	end
