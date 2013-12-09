@@ -1,5 +1,5 @@
 --[[
-	[Script] Swain - The Master Tactician 1.1.1 by Skeem
+	[Script] Swain - The Master Tactician 1.2 by Skeem
 	
 		Features:
 			- Prodiction for VIPs, NonVIP prediction
@@ -66,6 +66,8 @@
 			      - Removed wPos drawing
 				  - Some prodiction tweaks
 			1.1.1 - Fixed auto ult
+			1.2   - Added AoE W
+			      - Prodiction tweaks
 	
 	]]--
 
@@ -80,7 +82,7 @@ end
 function OnLoad()
 	Variables()
 	SwainMenu()
-	PrintChat("<font color='#00FF00'> >> Swain - The Master Tactician 1.1.1 Loaded!! <<</font>")
+	PrintChat("<font color='#00FF00'> >> Swain - The Master Tactician 1.2 Loaded!! <<</font>")
 end
 
 -- Tick Function --
@@ -110,7 +112,7 @@ function Variables()
 	qName, wName, eName, rName = "Decrepify", "Nevermove", "Torment", "Ravenous Flock"
 	qReady, wReady, eReady, rReady = false, false, false, false
 	if VIP_USER then
-		wSpeed, wDelay, wWidth = math.huge, 0.5, 250
+		wSpeed, wDelay, wWidth = math.huge, .7, 200
 		wPos = nil
 		Prodict = ProdictManager.GetInstance()
 		ProdictW = Prodict:AddProdictionObject(_W, wRange, wSpeed, wDelay, wWidth, myHero)
@@ -128,7 +130,7 @@ function Variables()
 	lastWindUpTime = 0
 	JungleMobs = {}
 	JungleFocusMobs = {}
-	debugMode = false
+	debugMode = true
 
 	-- Stolen from Apple who Stole it from Sida --
 	JungleMobNames = { -- List stolen from SAC Revamped. Sorry, Sida!
@@ -279,8 +281,21 @@ function CastW(enemy)
 	end
 	if Target ~= nil then
 		if VIP_USER then
-			if wPos ~= nil then
-				CastSpell(_W, wPos.x, wPos.z)
+			local wAoEPos = GetAoESpellPosition(250, enemy, 250)
+			if wAoEPos and GetDistance(wAoEPos) <= wRange then
+				if CountEnemies(wAoEPos, 250) > 1 then
+					CastSpell(_W, wAoEPos.x, wAoEPos.z)
+					if debugMode then PrintChat("AoE W") end
+				elseif CountEnemies(wAoEPos, 250) < 2 then
+					if wPos ~= nil then
+						CastSpell(_W, wPos.x, wPos.z)
+						if debugMode then PrintChat("W Normal ELSE") end
+					end
+				end
+			elseif wPos ~= nil then
+					CastSpell(_W, wPos.x, wPos.z)
+					if debugMode then PrintChat("W Normal")
+				end
 			end
 		else
 			CastSpell(_W, enemy)
@@ -441,6 +456,20 @@ function UltManagement()
 			end
 		end
 	end
+end
+
+-- Count Enemies --
+function CountEnemies(point, range)
+	local ChampCount = 0
+    for j = 1, heroManager.iCount, 1 do
+        local enemyhero = heroManager:getHero(j)
+        if myHero.team ~= enemyhero.team and ValidTarget(enemyhero, rRange+150) then
+            if GetDistance(enemyhero, point) <= range then
+                ChampCount = ChampCount + 1
+            end
+        end
+    end            
+    return ChampCount
 end
 
 -- Minions for Ult --
