@@ -130,7 +130,7 @@ function Variables()
 	lastWindUpTime = 0
 	JungleMobs = {}
 	JungleFocusMobs = {}
-	debugMode = true
+	debugMode = false
 
 	-- Stolen from Apple who Stole it from Sida --
 	JungleMobNames = { -- List stolen from SAC Revamped. Sorry, Sida!
