@@ -1,5 +1,5 @@
 --[[
-	AutoCarry Script - Katarina 1.7.1 by Skeem
+	AutoCarry Script - Katarina 1.8 by Skeem
 		With Code from Kain <3
 
 	Changelog :
@@ -49,6 +49,8 @@
    1.7.1 - Fixed ward jump (doesn't jump to wards that are in oposite way of mouse)
          - Fixed Combo
 		 - some fixes for auto ward save
+   1.8   - Added Trinkets for Ward Jump
+         - Improved KS a little, removed unnecessary code
 
   	]] --		
 
@@ -59,7 +61,7 @@ if myHero.charName ~= "Katarina" then return end
 function OnLoad()
 	Variables()
 	KatarinaMenu()
-	PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 1.7.1 Loaded!! <<</font>")
+	PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 1.8 Loaded!! <<</font>")
 end
 --[/Plugin OnLoad]--
 
@@ -206,11 +208,14 @@ function wardJump(x, y)
 			for i, obj in pairs(Wards) do 
 				if obj.valid then
 					MousePos = getMousePos()
-					if GetDistance(obj, MousePos) <= 300 then
+					if GetDistance(obj, MousePos) <= 400 then
 						CastSpell(_E, obj)
 					else
 						if GetTickCount()-lastwardused >= 2000 then
-							if RSTREADY then
+							if TRKREADY then
+								CastSpell(ITEM_7, x, y)
+								lastwardused = GetTickCount()
+							elseif RSTREADY then
 								CastSpell(rstSlot, x, y)
 								lastwardused = GetTickCount()
 							elseif SSREADY then 
@@ -229,7 +234,10 @@ function wardJump(x, y)
 			end
 		else
 			if GetTickCount()-lastwardused >= 2000 then
-				if RSTREADY then
+				if TRKREADY then
+					CastSpell(ITEM_7, x, y)
+					lastwardused = GetTickCount()
+				elseif RSTREADY then
 					CastSpell(rstSlot, x, y)
 					lastwardused = GetTickCount()
 				elseif SSREADY then 
@@ -292,13 +300,6 @@ function KillSteal()
 				end
 			end
 			if KatarinaMenu.killsteal.KillSteal then
-				if not KatarinaMenu.killsteal.KSItems then
-					DFGREADY = false
-					HXGREADY = false
-					BWCREADY = false
-					BRKREADY = false
-					BFTREADY = false
-				end
 				if enemy.health <= (qDmg) and GetDistance(enemy) <= qRange and QREADY then
 					if QREADY then CastSpell(_Q, enemy) end
 				end
@@ -324,65 +325,6 @@ function KillSteal()
 					if QREADY then CastSpell(_Q, enemy) end
 					if EREADY then CastSpell(_E, enemy) end
 					if WREADY then CastSpell(_W, enemy) end
-				end
-				if enemy.health <= (qDmg + itemsDmg) and GetDistance(enemy) <= qRange and QREADY then
-					if DFGREADY then CastSpell(dfgSlot, enemy) end
-					if HXGREADY then CastSpell(hxgSlot, enemy) end
-					if BWCREADY then CastSpell(bwcSlot, enemy) end
-					if BRKREADY then CastSpell(brkSlot, enemy) end
-					if QREADY then CastSpell(_Q, enemy) end
-				end
-				if enemy.health <= (wDmg + itemsDmg) and GetDistance(enemy) <= wRange and WREADY then
-					if DFGREADY then CastSpell(dfgSlot, enemy) end
-					if HXGREADY then CastSpell(hxgSlot, enemy) end
-					if BWCREADY then CastSpell(bwcSlot, enemy) end
-					if BRKREADY then CastSpell(brkSlot, enemy) end
-					if WREADY then CastSpell(_W, enemy) end
-				end
-				if enemy.health <= (eDmg + itemsDmg) and GetDistance(enemy) <= eRange and EREADY then
-					if DFGREADY then CastSpell(dfgSlot, enemy) end
-					if HXGREADY then CastSpell(hxgSlot, enemy) end
-					if BWCREADY then CastSpell(bwcSlot, enemy) end
-					if BRKREADY then CastSpell(brkSlot, enemy) end
-					if EREADY then CastSpell(_E, enemy) end
-				end
-				if enemy.health <= (qDmg + wDmg + itemsDmg) and GetDistance(enemy) <= wRange
-					and WREADY and QREADY then
-						if DFGREADY then CastSpell(dfgSlot, enemy) end
-						if HXGREADY then CastSpell(hxgSlot, enemy) end
-						if BWCREADY then CastSpell(bwcSlot, enemy) end
-						if BRKREADY then CastSpell(brkSlot, enemy) end
-						if WREADY and GetDistance(enemy) <= wRange then CastSpell(_W, enemy) end
-						if QREADY then CastSpell(_Q, enemy) end
-				end
-				if enemy.health <= (qDmg + eDmg + itemsDmg) and GetDistance(enemy) <= qRange
-					and EREADY and QREADY then
-						if DFGREADY then CastSpell(dfgSlot, enemy) end
-						if HXGREADY then CastSpell(hxgSlot, enemy) end
-						if BWCREADY then CastSpell(bwcSlot, enemy) end
-						if BRKREADY then CastSpell(brkSlot, enemy) end
-						if QREADY then CastSpell(_Q, enemy) end
-						if EREADY then CastSpell(_E, enemy) end
-				end
-				if enemy.health <= (wDmg + eDmg + itemsDmg) and GetDistance(enemy) <= eRange
-					and EREADY and WREADY then
-						if DFGREADY then CastSpell(dfgSlot, enemy) end
-						if HXGREADY then CastSpell(hxgSlot, enemy) end
-						if BWCREADY then CastSpell(bwcSlot, enemy) end
-						if BRKREADY then CastSpell(brkSlot, enemy) end
-						if ROREADY and GetDistance(enemy) <= 500 then CastSpell(roSlot) end
-						if WREADY and GetDistance(enemy) <= wRange then CastSpell(_W, enemy) end
-						if EREADY then CastSpell(_E, enemy) end
-				end
-				if enemy.health <= (qDmg + eDmg + wDmg + itemsDmg) and GetDistance(enemy) <= eRange
-					and QREADY and EREADY and WREADY then
-						if DFGREADY then CastSpell(dfgSlot, enemy) end
-						if HXGREADY then CastSpell(hxgSlot, enemy) end
-						if BWCREADY then CastSpell(bwcSlot, enemy) end
-						if BRKREADY then CastSpell(brkSlot, enemy) end
-						if QREADY then CastSpell(_Q, enemy) end
-						if EREADY then CastSpell(_E, enemy) end
-						if WREADY and GetDistance(enemy) <= wRange then CastSpell(_W, enemy) end
 				end
 				if enemy.health <= iDmg and GetDistance(enemy) <= 600 then
 					if IREADY then CastSpell(ignite, enemy) end
@@ -510,7 +452,7 @@ function OnCreateObj(obj)
 				UsingMPot = true
 			end
 		end
-		if obj.name:find("SightWard") or obj.name:find("VisionWard") then
+		if obj.name:find("Global_Trinket_Yellow.troy") or obj.name:find("SightWard") or obj.name:find("VisionWard") then
 			if GetDistance(obj, myHero) <= eRange then
 				table.insert(Wards, obj)
 			end
@@ -579,6 +521,7 @@ end
 --[Plugin OnDraw]--
 function OnDraw()
 	--> Ranges
+	if trinkward ~= nil then DrawCircle(trinkward.x, trinkward.y, trinkward.z, 80, 0x800080) end
 	if not KatarinaMenu.drawing.mDraw and not myHero.dead then
 		if QREADY and KatarinaMenu.drawing.qDraw then 
 			DrawCircle(myHero.x, myHero.y, myHero.z, qRange, 0xB20000)
@@ -628,6 +571,7 @@ function Variables()
 	Wards = {}
 	waittxt = {} -- prevents UI lags, all credits to Dekaron
 	UsingHPot = false
+	trinkward = nil
 	timeult, ultActive = 0, false
 	for i=1, heroManager.iCount do waittxt[i] = i*3 end
 	enemyMinions = minionManager(MINION_ENEMY, eRange, player, MINION_SORT_HEALTH_ASC)
@@ -763,7 +707,6 @@ function KatarinaMenu()
 		KatarinaMenu.killsteal:addParam("KillSteal", "Use Smart Kill Steal", SCRIPT_PARAM_ONOFF, true)
 		KatarinaMenu.killsteal:addParam("wardKS", "Use Wards to KS", SCRIPT_PARAM_ONOFF, true)
 		KatarinaMenu.killsteal:addParam("Ignite", "Auto Ignite", SCRIPT_PARAM_ONOFF, true)
-		KatarinaMenu.killsteal:addParam("KSItems", "Use Items with Auto KS", SCRIPT_PARAM_ONOFF, true)
 		KatarinaMenu.killsteal:permaShow("KillSteal") 
 			
 	KatarinaMenu:addSubMenu("["..myHero.charName.." - Drawing Settings]", "drawing")	
@@ -843,6 +786,7 @@ function Checks()
 	SSREADY = (ssSlot ~= nil and myHero:CanUseSpell(ssSlot) == READY)
 	SWREADY = (swSlot ~= nil and myHero:CanUseSpell(swSlot) == READY)
 	VWREADY = (vwSlot ~= nil and myHero:CanUseSpell(vwSlot) == READY)
+	TRKREADY = myHero:CanUseSpell(ITEM_7) == READY
 	
 	-- Updates Wards that die --
 	if next(Wards)~=nil then
