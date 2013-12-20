@@ -219,7 +219,7 @@ function wardJump(x, y)
 				if obj.valid then
 					MousePos = getMousePos()
 					if GetDistance(obj, MousePos) <= 400 then
-						CastE(obj)
+						CastSpell(_E, obj)
 					else
 						if GetTickCount()-lastwardused >= 2000 then
 							if TRKREADY then
@@ -272,7 +272,11 @@ function CastQ(enemy)
 		enemy = Target
 	end
 	if ValidTarget(enemy) then 
-		Packet("S_CAST", {spellId = _Q, targetNetworkId = enemy.networkID}):send()
+		if VIP_USER then
+			Packet("S_CAST", {spellId = _Q, targetNetworkId = enemy.networkID}):send()
+		else
+			CastSpell(_Q, enemy)
+		end
 	end
 end
 
@@ -281,7 +285,11 @@ function CastE(enemy)
 		enemy = Target
 	end
 	if ValidTarget(enemy) then 
-		Packet("S_CAST", {spellId = _E, targetNetworkId = enemy.networkID}):send()
+		if VIP_USER then
+			Packet("S_CAST", {spellId = _E, targetNetworkId = enemy.networkID}):send()
+		else
+			CastSpell(_E, enemy)
+		end
 	end
 end
 
