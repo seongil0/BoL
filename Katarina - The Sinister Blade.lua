@@ -51,6 +51,10 @@
 		 - some fixes for auto ward save
    1.8   - Added Trinkets for Ward Jump
          - Improved KS a little, removed unnecessary code
+   1.8.3 - Attempt to fix some errors
+         - Reworked combo a little should be smoother now
+         - Added togge for orbwalking in combo as requested
+         - Casting wards should work a little better as well
 
   	]] --		
 
@@ -61,7 +65,7 @@ if myHero.charName ~= "Katarina" then return end
 function OnLoad()
 	Variables()
 	KatarinaMenu()
-	PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 1.8 Loaded!! <<</font>")
+	PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 1.8.3 Loaded!! <<</font>")
 end
 --[/Plugin OnLoad]--
 
@@ -163,10 +167,12 @@ end
 function FullCombo()
 	if timeult == 0 then ultActive = false end
 	if not isChanneling("Spell4") and not ultActive then
-		if Target ~= nil then
-			OrbWalking(Target)
-		else
-			moveToCursor()
+		if KatarinaMenu.autocarry.comboOrbwalk then
+			if Target ~= nil then
+				OrbWalking(Target)
+			else
+				moveToCursor()
+			end
 		end
 	end		
 	if Target ~= nil then
@@ -177,8 +183,8 @@ function FullCombo()
 			if BWCREADY then CastSpell(bwcSlot, Target) end
 			if BRKREADY then CastSpell(brkSlot, Target) end
 		end
-		if GetDistance(Target) <= qRange and QREADY then CastSpell(_Q, Target) end
-		if GetDistance(Target) <= eRange and EREADY then CastSpell(_E, Target) end
+		if GetDistance(Target) <= qRange and QREADY then CastQ(Target) end
+		if GetDistance(Target) <= eRange and EREADY then CastE(Target) end
 		if KatarinaMenu.autocarry.DelayW then
 			if GetDistance(Target) <= wRange and not QREADY then CastSpell(_W, Target) end
 		else
@@ -201,6 +207,10 @@ function getMousePos(range)
     return MyPos - (MyPos - MousePos):normalized() * 600
 end
 
+function wardReady()
+	return TRKREADY or RSTREADY or SSREADY or SWREADY or VWREADY
+end
+
 -- Ward Jumping for bosses --
 function wardJump(x, y)
 	if EREADY then
@@ -209,7 +219,7 @@ function wardJump(x, y)
 				if obj.valid then
 					MousePos = getMousePos()
 					if GetDistance(obj, MousePos) <= 400 then
-						CastSpell(_E, obj)
+						CastE(obj)
 					else
 						if GetTickCount()-lastwardused >= 2000 then
 							if TRKREADY then
@@ -256,6 +266,25 @@ function wardJump(x, y)
 end
 --- END OF WARD JUMPING FUR BOSSES --
 
+
+function CastQ(enemy)
+	if not enemy then
+		enemy = Target
+	end
+	if ValidTarget(enemy) then 
+		Packet("S_CAST", {spellId = _Q, targetNetworkId = enemy.networkID}):send()
+	end
+end
+
+function CastE(enemy)
+	if not enemy then
+		enemy = Target
+	end
+	if ValidTarget(enemy) then 
+		Packet("S_CAST", {spellId = _E, targetNetworkId = enemy.networkID}):send()
+	end
+end
+
 -- Auto Ignite Function --
 function AutoIgnite()
 	if not enemy then enemy = Target end
@@ -270,10 +299,10 @@ function KillSteal()
 	 local enemy = heroManager:GetHero(i)
 		if ValidTarget(enemy) then
 			dfgDmg, hxgDmg, bwcDmg, iDmg,bftDmg  = 0, 0, 0, 0, 0
-			qDmg = getDmg("Q",enemy,myHero)
-            wDmg = getDmg("W",enemy,myHero)
-			eDmg = getDmg("E",enemy,myHero)
-            rDmg = getDmg("R",enemy,myHero)*8
+			qDmg = (QREADY and getDmg("Q",enemy,myHero) or 0)
+            wDmg = (WREADY and getDmg("W",enemy,myHero) or 0)
+			eDmg = (EREADY and getDmg("E",enemy,myHero) or 0)
+            rDmg = (RREADY and getDmg("R",enemy,myHero)*8 or 0)
 			if DFGREADY then dfgDmg = (dfgSlot and getDmg("DFG",enemy,myHero) or 0)	end
 			if BFTREADY then bftdmg = (bftSlot and getDmg("BFT",enemy,myHero) or 0) end
             if HXGREADY then hxgDmg = (hxgSlot and getDmg("HXG",enemy,myHero) or 0) end
@@ -288,42 +317,39 @@ function KillSteal()
 			if KatarinaMenu.misc.wardSave then
 				if enemy.health > (qDmg + wDmg + eDmg + rDmg) then
 					if GetDistance(enemy) < 600 and NeedHP() then
-						gameState = GetGame()
-						if gameState.map.shortName ~= "howlingAbyss" then
-							local fountain = GetFountain()
-							local mPos = Vector(myHero.x, myHero.y, myHero.z)
-							local fPos = Vector(fountain.x, fountain.y, fountain.z)
-							local mfPos =  mPos - (mPos - fPos):normalized() * 600
-							wardJump(mfPos.x, mfPos.z)
-						end
+						local fountain = GetFountain()
+						local mPos = Vector(myHero.x, myHero.y, myHero.z)
+						local fPos = Vector(fountain.x, fountain.y, fountain.z)
+						local mfPos =  mPos - (mPos - fPos):normalized() * 600
+						wardJump(mfPos.x, mfPos.z)
 					end
 				end
 			end
 			if KatarinaMenu.killsteal.KillSteal then
 				if enemy.health <= (qDmg) and GetDistance(enemy) <= qRange and QREADY then
-					if QREADY then CastSpell(_Q, enemy) end
+					if QREADY then CastQ(enemy) end
 				end
 				if enemy.health <= (wDmg) and GetDistance(enemy) <= wRange and WREADY then
 					if WREADY then CastSpell(_W, enemy) end
 				end
 				if enemy.health <= (eDmg) and GetDistance(enemy) <= eRange and EREADY then
-					if EREADY then CastSpell(_E, enemy) end
+					if EREADY then CastE(enemy) end
 				end
 				if enemy.health <= (qDmg + wDmg) and GetDistance(enemy) <= wRange and WREADY and QREADY then
-					if QREADY then CastSpell(_Q, enemy) end
+					if QREADY then CastQ(enemy) end
 					if WREADY then CastSpell(_W, enemy) end
 				end
 				if enemy.health <= (qDmg + eDmg) and GetDistance(enemy) <= eRange and QREADY and EREADY then
-					if QREADY then CastSpell(_Q, enemy) end
-					if EREADY then CastSpell(_E, enemy) end
+					if QREADY then CastQ(enemy) end
+					if EREADY then CastE(enemy) end
 				end
 				if enemy.health <= (wDmg + eDmg) and GetDistance(enemy) <= wRange and WREADY and EREADY then
-					if EREADY then CastSpell(_E, enemy) end
+					if EREADY then CastE(enemy) end
 					if WREADY then CastSpell(_W, enemy) end
 				end
 				if enemy.health <= (qDmg + eDmg + wDmg) and GetDistance(enemy) <= eRange and EREADY and QREADY and WREADY then
-					if QREADY then CastSpell(_Q, enemy) end
-					if EREADY then CastSpell(_E, enemy) end
+					if QREADY then CastQ(enemy) end
+					if EREADY then CastE(enemy) end
 					if WREADY then CastSpell(_W, enemy) end
 				end
 				if enemy.health <= iDmg and GetDistance(enemy) <= 600 then
@@ -331,22 +357,22 @@ function KillSteal()
 				end
 			end
 			if KatarinaMenu.killsteal.wardKS then 
-				if enemy.health <= (qDmg) and GetDistance(enemy) >= eRange and GetDistance(enemy) <= (qRange + eRange) then
-					if QREADY then
+				if enemy.health <= (qDmg) and GetDistance(enemy) >= eRange and GetDistance(enemy) <= (qRange + eRange - 100) then
+					if QREADY and EREADY and wardReady() then
 						local mPos = Vector(myHero.x, myHero.y, myHero.z)
 						local ePos = Vector(enemy.x, enemy.y, Target.z)
 						local wPos =  mPos - (mPos - ePos):normalized() * eRange
 						wardJump(wPos.x, wPos.z)
-						CastSpell(_Q, enemy)
+						if QREADY then CastQ(enemy) end
 					end
 				end
-				if enemy.health <= (qDmg + wDmg + itemsDmg) and GetDistance(enemy) >= eRange and GetDistance(enemy) <= (wRange + eRange) then
-					if QREADY and WREADY then
+				if enemy.health <= (qDmg + wDmg + itemsDmg) and GetDistance(enemy) >= eRange and GetDistance(enemy) <= (wRange + eRange - 100) then
+					if QREADY and WREADY and EREADY and wardReady() then
 						local mPos = Vector(myHero.x, myHero.y, myHero.z)
 						local ePos = Vector(enemy.x, enemy.y, Target.z)
 						local wPos =  mPos - (mPos - ePos):normalized() * eRange
 						wardJump(wPos.x, wPos.z)
-						CastSpell(_Q, enemy)
+						if QREADY then CastQ(enemy) end
 						if GetDistance(enemy) <= wRange then CastSpell(_W) end
 					end
 				end
@@ -675,6 +701,7 @@ function KatarinaMenu()
 		KatarinaMenu.autocarry:addParam("StopUlt", "Stop Ult if enemy can Die", SCRIPT_PARAM_ONOFF, false)
 		KatarinaMenu.autocarry:addParam("DelayW", "DelayW", SCRIPT_PARAM_ONOFF, false)
 		KatarinaMenu.autocarry:addParam("bItems", "Use Items with Burst", SCRIPT_PARAM_ONOFF, true)
+		KatarinaMenu.autocarry:addParam("comboOrbwalk", "Orbwalk in Combo", SCRIPT_PARAM_ONOFF, true)
 		KatarinaMenu.autocarry:permaShow("FullCombo") 
 	
 	KatarinaMenu:addSubMenu("["..myHero.charName.." - Harass Settings]", "harrass")
