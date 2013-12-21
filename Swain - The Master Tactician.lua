@@ -68,6 +68,7 @@
 			1.1.1 - Fixed auto ult
 			1.2   - Added AoE W
 			      - Prodiction tweaks
+			1.2.1 - Added own tweaks to prediction
 	
 	]]--
 
@@ -82,7 +83,7 @@ end
 function OnLoad()
 	Variables()
 	SwainMenu()
-	PrintChat("<font color='#00FF00'> >> Swain - The Master Tactician 1.2 Loaded!! <<</font>")
+	PrintChat("<font color='#00FF00'> >> Swain - The Master Tactician 1.2.1 Loaded!! <<</font>")
 end
 
 -- Tick Function --
@@ -112,7 +113,7 @@ function Variables()
 	qName, wName, eName, rName = "Decrepify", "Nevermove", "Torment", "Ravenous Flock"
 	qReady, wReady, eReady, rReady = false, false, false, false
 	if VIP_USER then
-		wSpeed, wDelay, wWidth = math.huge, .7, 200
+		wSpeed, wDelay, wWidth = math.huge, .85, 250
 		wPos = nil
 		Prodict = ProdictManager.GetInstance()
 		ProdictW = Prodict:AddProdictionObject(_W, wRange, wSpeed, wDelay, wWidth, myHero)
@@ -293,12 +294,13 @@ function CastW(enemy)
 					end
 				end
 			elseif wPos ~= nil then
+				if GetDistance(enemy, wPos) <= (wWidth - 100) then
 					CastSpell(_W, wPos.x, wPos.z)
-					if debugMode then PrintChat("W Normal")
+					if debugMode then PrintChat("W Normal") end
 				end
 			end
 		else
-			CastSpell(_W, enemy)
+			CastSpell(_W, enemy.x, enemy.z)
 		end
 	end
 end
