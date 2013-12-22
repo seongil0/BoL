@@ -55,6 +55,7 @@
          - Reworked combo a little should be smoother now
          - Added togge for orbwalking in combo as requested
          - Casting wards should work a little better as well
+   1.8.4 - Fixed bugsplat
 
   	]] --		
 
@@ -65,7 +66,7 @@ if myHero.charName ~= "Katarina" then return end
 function OnLoad()
 	Variables()
 	KatarinaMenu()
-	PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 1.8.3 Loaded!! <<</font>")
+	PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 1.8.4 Loaded!! <<</font>")
 end
 --[/Plugin OnLoad]--
 
@@ -398,7 +399,7 @@ end
 ------------- END OF KILLSTEAL FUNCTION -------------------
 
 -- Animation & Channeling Functions --
-function PluginOnAnimation(unit, animationName)
+function OnAnimation(unit, animationName)
     if unit.isMe and lastAnimation ~= animationName then lastAnimation = animationName end
 end
 
