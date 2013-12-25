@@ -1,4 +1,4 @@
---[[ Kha'zix - The Voidreaver by Skeem 1.0
+--[[ Kha'zix - The Voidreaver by Skeem 1.1
 	
 	Features:
 			- Prodiction for VIPs, NonVIP prediction
@@ -40,7 +40,12 @@
 			- Everyone at the KKK crew who tested this script and gave awesome suggestions!
 			
 		Changelog:
-			1.0 - First Release!	
+			1.0 - First Release!
+			1.1 - Added ult usage:
+			        - Always ult toggle (Always ults in combo)
+			        - Smart Ult (Only ults if enemy can die from ult passive + skills)
+			        - Fixed jumping at random minions..
+			        - Fixed W for non VIPS
   ]]--
   
 -- Name Check --  
@@ -55,7 +60,7 @@ end
 function OnLoad()
 	Variables()
 	KhazixMenu()
-	PrintChat("<font color='#0000FF'> >> Kha'zix - The Voidreaver 1.0 Loaded!! <<</font>")
+	PrintChat("<font color='#0000FF'> >> Kha'zix - The Voidreaver 1.1 Loaded!! <<</font>")
 end
 
 -- Tick Function --
@@ -93,7 +98,7 @@ function Variables()
 		ProdictE = Prodict:AddProdictionObject(_E, eRange, eSpeed, eDelay, eWidth, myHero)
 	end
 	hpReady, mpReady, fskReady, Recalling = false, false, false, false
-	TextList = {"Harass him!!", "Q+W+E KILL!!", "x2Q+W+E KILL!"}
+	TextList = {"Harass him!!", "Q+W+E KILL!!", "x2Q+W+E KILL!", "ult+Q+W+E KILL!"}
 	KillText = {}
 	waittxt = {} -- prevents UI lags, all credits to Dekaron
 	usingHPot, usingMPot, usingUlt, rManual = false, false, false, false
@@ -167,6 +172,8 @@ function KhazixMenu()
 		KhazixMenu.combo:addParam("comboKey", "Full Combo Key (X)", SCRIPT_PARAM_ONKEYDOWN, false, 88)
 		KhazixMenu.combo:addParam("comboERange", ""..eName.." Min Range", SCRIPT_PARAM_SLICE, 400, 0, eRange, -2)
 		KhazixMenu.combo:addParam("comboItems", "Use Items with Burst", SCRIPT_PARAM_ONOFF, true)
+		KhazixMenu.combo:addParam("comboAlwaysUlt", "Always Ult in Combo", SCRIPT_PARAM_ONOFF, false)
+		KhazixMenu.combo:addParam("comboSmartUlt", "Use Ult on Killable enemies", SCRIPT_PARAM_ONOFF, true)
 		KhazixMenu.combo:addParam("comboOrbwalk", "OrbWalk on Combo", SCRIPT_PARAM_ONOFF, true)
 		KhazixMenu.combo:permaShow("comboKey") 
 	
@@ -221,8 +228,20 @@ function FullCombo()
 			moveToCursor()
 		end
 	end
-	if Target ~= nil then
+	if ValidTarget(Target) then
 		if KhazixMenu.combo.comboItems then UseItems(Target) end
+		if KhazixMenu.combo.comboAlwaysUlt then
+			if rReady and GetDistance(Target) <= eRange + 200 then 
+				if eReady then CastSpell(_R) end
+			end
+		end
+		if KhazixMenu.combo.comboSmartUlt then
+			if Target.health <= ((qDmg*2) + pDmg + wDmg + eDmg + itemsDmg) and Target.health > (qDmg + wDmg + eDmg) then
+				if rReady and GetDistance(Target) <= eRange + 200 then
+					if eReady then CastSpell(_R) end
+				end
+			end
+		end
 		if not MuramanaIsActive() and GetDistance(Target) <= wRange then MuramanaOn() end
 		if qReady and GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
 		if wReady and GetDistance(Target) <= wRange then CastW(Target) end
@@ -301,7 +320,7 @@ function CastW(enemy)
 	if not enemy then 
 		enemy = Target 
 	end
-	if Target ~= nil then
+	if ValidTarget(enemy) then
 		if VIP_USER then
 			if wPos ~= nil then
 				if not CollisionW:GetMinionCollision(wPos, myHero) then
@@ -309,8 +328,10 @@ function CastW(enemy)
 				end
 			end
 		else
-			local wCol = GetMinionCollision(enemy, wWidth)
-			if not wCol then CastSpell(_W, enemy.x, enemy.z) end
+			local wCol = GetMinionCollision(myHero, enemy, wWidth, enemyMinions)
+			if not wCol then 
+				CastSpell(_W, enemy.x, enemy.z)
+			end
 		end
 	end
 end
@@ -319,7 +340,7 @@ function CastE(enemy)
 	if not enemy then
 		enemy = Target
 	end
-	if Target ~= nil then
+	if ValidTarget(enemy) then
 		if VIP_USER then
 			if ePos ~= nil then
 				CastSpell(_E, ePos.x, ePos.z)
@@ -334,7 +355,7 @@ function UseItems(enemy)
 	if not enemy then
 		enemy = Target
 	end
-	if Target ~= nil then
+	if ValidTarget(enemy) then
 		if hxgReady and GetDistance(enemy) <= 600 then CastSpell(hxgSlot, enemy) end
 		if bwcReady and GetDistance(enemy) <= 450 then CastSpell(bwcSlot, enemy) end
 		if brkReady and GetDistance(enemy) <= 450 then CastSpell(brkSlot, enemy) end
@@ -345,7 +366,7 @@ end
 
 -- KillSteal function --
 function KillSteal()
-	if Target ~= nil then
+	if ValidTarget(Target) then
 		if qReady and Target.health <= qDmg and GetDistance(Target) <= qRange then 
 			CastSpell(_Q, Target)
 		elseif eReady and Target.health <= eDmg and GetDistance(Target) <= eRange then
@@ -399,7 +420,8 @@ function DamageCalculation()
 		if ValidTarget(enemy) then
 			dfgDmg, hxgDmg, bwcDmg, iDmg  = 0, 0, 0, 0
 			qDmg, wDmg, eDmg = 0, 0, 0
-			aDmg = getDmg("AD",enemy,myHero)
+			aDmg = getDmg("AD", enemy, myHero)
+			pDmg = getDmg("P", enemy, myHero)
 			if qReady then qDmg = getDmg("Q",enemy,myHero) + aDmg end
             if wReady then wDmg = getDmg("W",enemy,myHero) end
 			if eReady then eDmg = getDmg("E",enemy,myHero) end
@@ -414,6 +436,8 @@ function DamageCalculation()
 				KillText[i] = 2
 			elseif enemy.health <= ((qDmg*2) + eDmg + wDmg + itemsDmg) then
 				KillText[i] = 3
+			elseif enemy.health <= ((qDmg*2) + pDmg + wDmg + eDmg + itemsDmg) then
+				KillText[i] = 4
 			end
 		end
 	end
@@ -603,7 +627,7 @@ function Checks()
 							             GetInventorySlotItem(2041)
 	znaSlot, wgtSlot =                   GetInventorySlotItem(3157),
 	                                     GetInventorySlotItem(3090)
-	tmtSlot, hdrSlot = 					 GetInventorySlotItem(3077)
+	tmtSlot, hdrSlot = 					 GetInventorySlotItem(3077),
 										 GetInventorySlotItem(3074)
 	
 	-- Spells --									 
