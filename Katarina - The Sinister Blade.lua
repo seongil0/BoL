@@ -110,7 +110,7 @@ function Farm()
         local wDmg = getDmg("W",minion,myHero)
 		local eDmg = getDmg("E",minion,myHero)
 		if ValidTarget(minion) then
-			if KatarinaMenu.farming.qFarm and QREADY and GetDistance(minion) <= qRange then
+			 if KatarinaMenu.farming.qFarm and QREADY and GetDistance(minion) <= qRange and GetDistance(minion) >= wRange then
 				if qDmg >= minion.health then CastSpell(_Q, minion) end
 			end
 			if KatarinaMenu.farming.wFarm and WREADY and GetDistance(minion) <= wRange then
@@ -151,17 +151,17 @@ function Harrass()
 	if KatarinaMenu.harrass.mTmH then MoveToMouse() end
 	if Target ~= nil then
 		if KatarinaMenu.harrass.hMode == 1 then
-			if GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
+			if GetDistance(Target) <= qRange then CastQ(Target) end
 			if KatarinaMenu.harrass.DelayW then
-				if GetDistance(Target) <= eRange and not QREADY then CastSpell(_E, Target) end
+				if GetDistance(Target) <= eRange and not QREADY then CasE(Target) end
 				if GetDistance(Target) <= wRange and not QREADY then CastSpell(_W, Target) end
 			else
-				if GetDistance(Target) <= eRange then CastSpell(_E, Target) end
+				if GetDistance(Target) <= eRange then CastE(Target) end
 				if GetDistance(Target) <= wRange then CastSpell(_W, Target) end
 			end
 		end
 		if KatarinaMenu.harrass.hMode == 2 then
-			if GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
+			if GetDistance(Target) <= qRange then CastQ(Target) end
 			if GetDistance(Target) <= wRange then CastSpell(_W, Target) end
 		end
 	end
