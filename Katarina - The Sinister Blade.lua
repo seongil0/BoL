@@ -1,5 +1,5 @@
 --[[
-	AutoCarry Script - Katarina 1.8 by Skeem
+	AutoCarry Script - Katarina 1.8.7 by Skeem
 		With Code from Kain <3
 
 	Changelog :
@@ -57,6 +57,8 @@
          - Casting wards should work a little better as well
    1.8.4 - Fixed bugsplat
    1.8.5 - Fixed Draw Errors
+   1.8.7 - Fixed W Delay changed name to Proc Q Mark
+         - Fixed text errors added Q mark to calculations
 
   	]] --		
 
@@ -67,7 +69,7 @@ if myHero.charName ~= "Katarina" then return end
 function OnLoad()
 	Variables()
 	KatarinaMenu()
-	PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 1.8.5 Loaded!! <<</font>")
+	PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 1.8.7 Loaded!! <<</font>")
 end
 --[/Plugin OnLoad]--
 
@@ -108,7 +110,7 @@ function Farm()
         local wDmg = getDmg("W",minion,myHero)
 		local eDmg = getDmg("E",minion,myHero)
 		if ValidTarget(minion) then
-			if KatarinaMenu.farming.qFarm and QREADY and GetDistance(minion) <= qRange and GetDistance(minion) >= wRange then
+			if KatarinaMenu.farming.qFarm and QREADY and GetDistance(minion) <= qRange then
 				if qDmg >= minion.health then CastSpell(_Q, minion) end
 			end
 			if KatarinaMenu.farming.wFarm and WREADY and GetDistance(minion) <= wRange then
@@ -150,10 +152,11 @@ function Harrass()
 	if Target ~= nil then
 		if KatarinaMenu.harrass.hMode == 1 then
 			if GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
-			if GetDistance(Target) <= eRange then CastSpell(_E, Target) end
 			if KatarinaMenu.harrass.DelayW then
+				if GetDistance(Target) <= eRange and not QREADY then CastSpell(_E, Target) end
 				if GetDistance(Target) <= wRange and not QREADY then CastSpell(_W, Target) end
 			else
+				if GetDistance(Target) <= eRange then CastSpell(_E, Target) end
 				if GetDistance(Target) <= wRange then CastSpell(_W, Target) end
 			end
 		end
@@ -186,10 +189,11 @@ function FullCombo()
 			if BRKREADY then CastSpell(brkSlot, Target) end
 		end
 		if GetDistance(Target) <= qRange and QREADY then CastQ(Target) end
-		if GetDistance(Target) <= eRange and EREADY then CastE(Target) end
 		if KatarinaMenu.autocarry.DelayW then
+			if GetDistance(Target) <= eRange and not QREADY then CastE(Target) end
 			if GetDistance(Target) <= wRange and not QREADY then CastSpell(_W, Target) end
 		else
+			if GetDistance(Target) <= eRange then CastE(Target) end
 			if GetDistance(Target) <= wRange then CastSpell(_W, Target) end
 		end
 		if not isChanneling("Spell4") and not QREADY and not EREADY and RREADY and GetDistance(Target) <= rRange then
@@ -308,11 +312,12 @@ function KillSteal()
 	 for i=1, heroManager.iCount do
 	 local enemy = heroManager:GetHero(i)
 		if ValidTarget(enemy) then
-			dfgDmg, hxgDmg, bwcDmg, iDmg,bftDmg  = 0, 0, 0, 0, 0
+			dfgDmg, hxgDmg, bwcDmg, iDmg, bftDmg = 0, 0, 0, 0, 0
+			pDmg = (QREADY and getDmg("Q", enemy, myHero, 2) or 0)
 			qDmg = (QREADY and getDmg("Q",enemy,myHero) or 0)
             wDmg = (WREADY and getDmg("W",enemy,myHero) or 0)
 			eDmg = (EREADY and getDmg("E",enemy,myHero) or 0)
-            rDmg = (RREADY and getDmg("R",enemy,myHero)*8 or 0)
+            rDmg = getDmg("R",enemy,myHero)*12
 			if DFGREADY then dfgDmg = (dfgSlot and getDmg("DFG",enemy,myHero) or 0)	end
 			if BFTREADY then bftdmg = (bftSlot and getDmg("BFT",enemy,myHero) or 0) end
             if HXGREADY then hxgDmg = (hxgSlot and getDmg("HXG",enemy,myHero) or 0) end
@@ -322,7 +327,7 @@ function KillSteal()
             itemsDmg = dfgDmg + bftDmg + hxgDmg + bwcDmg + iDmg + onspellDmg
 			------- DEBUG --------
 			--if KatarinaMenu.debug then PrintChat("Total Items Dmg: "..itemsDmg.." Target: "..enemy.name) end
-			--if KatarinaMenu.debug then PrintChat("rDmg"..rDmg) end	
+			--PrintChat("rDmg"..rDmg.." qDmg"..qDmg.." wDmg"..wDmg.." eDmg"..eDmg.." pDmg"..pDmg)
 			------- DEBUG --------
 			if KatarinaMenu.misc.wardSave then
 				if enemy.health > (qDmg + wDmg + eDmg + rDmg) then
@@ -388,9 +393,9 @@ function KillSteal()
 				end
 			end
 				KillText[i] = 1 
-			if enemy.health <= (qDmg + eDmg + wDmg + itemsDmg) then
+			if enemy.health <= (pDmg + qDmg + eDmg + wDmg + itemsDmg) then
 				KillText[i] = 2
-			elseif enemy.health <= (qDmg + eDmg + wDmg + rDmg + itemsDmg) then
+			elseif enemy.health <= (pDmg + qDmg + eDmg + wDmg + rDmg + itemsDmg) then
 				KillText[i] = 3
 			end
 		end
@@ -708,13 +713,13 @@ function KatarinaMenu()
 	KatarinaMenu:addSubMenu("["..myHero.charName.." - Combo Settings]", "autocarry")
 		KatarinaMenu.autocarry:addParam("FullCombo", "Full Combo Key (X)", SCRIPT_PARAM_ONKEYDOWN, false, 88)
 		KatarinaMenu.autocarry:addParam("StopUlt", "Stop Ult if enemy can Die", SCRIPT_PARAM_ONOFF, false)
-		KatarinaMenu.autocarry:addParam("DelayW", "DelayW", SCRIPT_PARAM_ONOFF, false)
+		KatarinaMenu.autocarry:addParam("DelayW", "Proc Q Mark", SCRIPT_PARAM_ONOFF, false)
 		KatarinaMenu.autocarry:addParam("bItems", "Use Items with Burst", SCRIPT_PARAM_ONOFF, true)
 		KatarinaMenu.autocarry:addParam("comboOrbwalk", "Orbwalk in Combo", SCRIPT_PARAM_ONOFF, true)
 		KatarinaMenu.autocarry:permaShow("FullCombo") 
 	
 	KatarinaMenu:addSubMenu("["..myHero.charName.." - Harass Settings]", "harrass")
-		KatarinaMenu.harrass:addParam("DelayW", "Delay W", SCRIPT_PARAM_ONOFF, true)
+		KatarinaMenu.harrass:addParam("DelayW", "Proc Q Mark", SCRIPT_PARAM_ONOFF, true)
 		KatarinaMenu.harrass:addParam("hMode", "Harass Mode",SCRIPT_PARAM_SLICE, 1, 1, 2, 0)
 		KatarinaMenu.harrass:addParam("hHK", "Harass Hotkey (T)", SCRIPT_PARAM_ONKEYDOWN, false, 84)
 		KatarinaMenu.harrass:addParam("wHarrass", "Always Sinister Steel (W)", SCRIPT_PARAM_ONOFF, true)
@@ -762,7 +767,7 @@ function KatarinaMenu()
 		KatarinaMenu.misc:addParam("AutoLevelSkills", "Auto Level Skills (Requires Reload)", SCRIPT_PARAM_ONOFF, true)
 		KatarinaMenu.misc:permaShow("WardJump") 
 		
-	TargetSelector = TargetSelector(TARGET_LOW_HP, (qRange + eRange),DAMAGE_MAGIC)
+	TargetSelector = TargetSelector(TARGET_LESS_CAST, (qRange + eRange), DAMAGE_MAGIC)
 	TargetSelector.name = "Katarina"
 	KatarinaMenu:addTS(TargetSelector)
 end
