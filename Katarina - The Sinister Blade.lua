@@ -1,6 +1,6 @@
 --[[
 	AutoCarry Script - Katarina 1.8.7 by Skeem
-		With Code from Kain <3
+		With Code from Kain  <3
 
 	Changelog :
    1.0 - Initial Release
@@ -153,7 +153,7 @@ function Harrass()
 		if KatarinaMenu.harrass.hMode == 1 then
 			if GetDistance(Target) <= qRange then CastQ(Target) end
 			if KatarinaMenu.harrass.DelayW then
-				if GetDistance(Target) <= eRange and not QREADY then CasE(Target) end
+				if GetDistance(Target) <= eRange and not QREADY then CastE(Target) end
 				if GetDistance(Target) <= wRange and not QREADY then CastSpell(_W, Target) end
 			else
 				if GetDistance(Target) <= eRange then CastE(Target) end
