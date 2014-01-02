@@ -98,7 +98,7 @@ function OnTick()
 	if KatarinaMenu.misc.ZWItems and (myHero.health < (myHero.maxHealth * ( KatarinaMenu.misc.ZWHealth / 100))) and Target and (ZNAREADY or WGTREADY) then
 		CastSpell((wgtSlot or znaSlot)) 
 	end
-	if KatarinaMenu.misc.aHP and (myHero.health < (myHero.maxHealth * ( KatarinaMenu.misc.HPHealth / 100))) then and not (UsingHPot or UsingFlask) and (HPREADY or FSKREADY) then CastSpell((hpSlot or fskSlot)) end
+	if KatarinaMenu.misc.aHP and (myHero.health < (myHero.maxHealth * ( KatarinaMenu.misc.HPHealth / 100))) and not (UsingHPot or UsingFlask) and (HPREADY or FSKREADY) then CastSpell((hpSlot or fskSlot)) end
 	if KatarinaMenu.misc.AutoLevelSkills then autoLevelSetSequence(levelSequence) end
 end
 --[/Plugin OnTick]--
