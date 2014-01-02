@@ -46,6 +46,7 @@
 			        - Smart Ult (Only ults if enemy can die from ult passive + skills)
 			        - Fixed jumping at random minions..
 			        - Fixed W for non VIPS
+			1.2 - More effective W Fix for non vips
   ]]--
   
 -- Name Check --  
@@ -60,7 +61,7 @@ end
 function OnLoad()
 	Variables()
 	KhazixMenu()
-	PrintChat("<font color='#0000FF'> >> Kha'zix - The Voidreaver 1.1 Loaded!! <<</font>")
+	PrintChat("<font color='#0000FF'> >> Kha'zix - The Voidreaver 1.2 Loaded!! <<</font>")
 end
 
 -- Tick Function --
@@ -328,9 +329,10 @@ function CastW(enemy)
 				end
 			end
 		else
-			local wCol = GetMinionCollision(myHero, enemy, wWidth, enemyMinions)
-			if not wCol then 
-				CastSpell(_W, enemy.x, enemy.z)
+			local wPred = TargetPrediction(wRange, wSpeed, wDelay, wSpeed)
+			local wPrediction = wPred:GetPrediction(enemy)
+			if wPrediction and not willHitMinion(wPrediction, wWidth) then
+				CastSpell(_W, wPrediction.x, wPrediction.z)
 			end
 		end
 	end
@@ -598,6 +600,33 @@ end
 
 function OnAnimation(unit,animationName)
     if unit.isMe and lastAnimation ~= animationName then lastAnimation = animationName end
+end
+
+-- regular minion mec taken from Sida's Auto Carry --
+function willHitMinion(predic, width)
+        for _, minion in pairs(enemyMinions.objects) do
+                if minion ~= nil and minion.valid and string.find(minion.name,"Minion_") == 1 and minion.team ~= player.team and minion.dead == false then
+                        if predic ~= nil then
+                                ex = player.x
+                                ez = player.z
+                                tx = predic.x
+                                tz = predic.z
+                                dx = ex - tx
+                                dz = ez - tz
+                                if dx ~= 0 then
+                                        m = dz/dx
+                                        c = ez - m*ex
+                                end
+                                mx = minion.x
+                                mz = minion.z
+                                distanc = (math.abs(mz - m*mx - c))/(math.sqrt(m*m+1))
+                                if distanc < width and math.sqrt((tx - ex)*(tx - ex) + (tz - ez)*(tz - ez)) > math.sqrt((tx - mx)*(tx - mx) + (tz - mz)*(tz - mz)) then
+                                        return true
+                                end
+                        end
+                end
+        end
+        return false
 end
 
 -- Spells/Items Checks --
