@@ -1,6 +1,6 @@
 --[[
-	AutoCarry Script - Katarina 1.8.7 by Skeem
-		With Code from Kain  <3
+	AutoCarry Script - Katarina 1.9 by Skeem
+		With Code from Kain <3
 
 	Changelog :
    1.0 - Initial Release
@@ -59,7 +59,7 @@
    1.8.5 - Fixed Draw Errors
    1.8.7 - Fixed W Delay changed name to Proc Q Mark
          - Fixed text errors added Q mark to calculations
-
+   1.9   - Fixed ult issues recoded a couple of things
   	]] --		
 
 -- Hero Name Check
@@ -69,7 +69,7 @@ if myHero.charName ~= "Katarina" then return end
 function OnLoad()
 	Variables()
 	KatarinaMenu()
-	PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 1.8.7 Loaded!! <<</font>")
+	PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 1.9 Loaded!! <<</font>")
 end
 --[/Plugin OnLoad]--
 
@@ -77,9 +77,8 @@ end
 function OnTick()
 	Checks()
 	KillSteal()
-	tick = GetTickCount()
-	
-	if Target ~= nil then
+
+	if ValidTarget(Target) then
 		if KatarinaMenu.harrass.wHarrass and GetDistance(Target) <= wRange then CastSpell(_W) end
 		if KatarinaMenu.killsteal.Ignite then AutoIgnite() end
 	end
@@ -110,7 +109,7 @@ function Farm()
         local wDmg = getDmg("W",minion,myHero)
 		local eDmg = getDmg("E",minion,myHero)
 		if ValidTarget(minion) then
-			 if KatarinaMenu.farming.qFarm and QREADY and GetDistance(minion) <= qRange and GetDistance(minion) >= wRange then
+			if KatarinaMenu.farming.qFarm and QREADY and GetDistance(minion) <= qRange then
 				if qDmg >= minion.health then CastSpell(_Q, minion) end
 			end
 			if KatarinaMenu.farming.wFarm and WREADY and GetDistance(minion) <= wRange then
@@ -151,17 +150,17 @@ function Harrass()
 	if KatarinaMenu.harrass.mTmH then MoveToMouse() end
 	if Target ~= nil then
 		if KatarinaMenu.harrass.hMode == 1 then
-			if GetDistance(Target) <= qRange then CastQ(Target) end
+			if GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
 			if KatarinaMenu.harrass.DelayW then
-				if GetDistance(Target) <= eRange and not QREADY then CastE(Target) end
+				if GetDistance(Target) <= eRange and not QREADY then CastSpell(_E, Target) end
 				if GetDistance(Target) <= wRange and not QREADY then CastSpell(_W, Target) end
 			else
-				if GetDistance(Target) <= eRange then CastE(Target) end
+				if GetDistance(Target) <= eRange then CastSpell(_E, Target) end
 				if GetDistance(Target) <= wRange then CastSpell(_W, Target) end
 			end
 		end
 		if KatarinaMenu.harrass.hMode == 2 then
-			if GetDistance(Target) <= qRange then CastQ(Target) end
+			if GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
 			if GetDistance(Target) <= wRange then CastSpell(_W, Target) end
 		end
 	end
@@ -173,14 +172,14 @@ function FullCombo()
 	if timeult == 0 then ultActive = false end
 	if not isChanneling("Spell4") and not ultActive then
 		if KatarinaMenu.autocarry.comboOrbwalk then
-			if Target ~= nil then
+			if ValidTarget(Target) then
 				OrbWalking(Target)
 			else
 				moveToCursor()
 			end
 		end
 	end		
-	if Target ~= nil then
+	if ValidTarget(Target) then
 		if KatarinaMenu.autocarry.bItems then
 			if DFGREADY then CastSpell(dfgSlot, Target) end
 			if BFTREADY then CastSpell(bftSlot, Target) end
@@ -375,8 +374,8 @@ function KillSteal()
 				if enemy.health <= (qDmg) and GetDistance(enemy) >= eRange and GetDistance(enemy) <= (qRange + eRange - 100) then
 					if QREADY and EREADY and wardReady() then
 						local mPos = Vector(myHero.x, myHero.y, myHero.z)
-						local ePos = Vector(enemy.x, enemy.y, Target.z)
-						local wPos =  mPos - (mPos - ePos):normalized() * eRange
+						local ePos = Vector(enemy.x, enemy.y, enemy.z)
+						local wPos =  mPos - (mPos - ePos):normalized() * (eRange - 100)
 						wardJump(wPos.x, wPos.z)
 						if QREADY then CastQ(enemy) end
 					end
@@ -384,8 +383,8 @@ function KillSteal()
 				if enemy.health <= (qDmg + wDmg + itemsDmg) and GetDistance(enemy) >= eRange and GetDistance(enemy) <= (wRange + eRange - 100) then
 					if QREADY and WREADY and EREADY and wardReady() then
 						local mPos = Vector(myHero.x, myHero.y, myHero.z)
-						local ePos = Vector(enemy.x, enemy.y, Target.z)
-						local wPos =  mPos - (mPos - ePos):normalized() * eRange
+						local ePos = Vector(enemy.x, enemy.y, enemy.z)
+						local wPos =  mPos - (mPos - ePos):normalized() * (eRange - 100)
 						wardJump(wPos.x, wPos.z)
 						if QREADY then CastQ(enemy) end
 						if GetDistance(enemy) <= wRange then CastSpell(_W) end
@@ -419,32 +418,24 @@ end
 
 -- Packet Send thanks for the idea pqmailer <3 --
 function OnSendPacket(p)
-	if KatarinaMenu.autocarry.StopUlt then
-		if isChanneling("Spell4") or ultActive then
-			if Target ~= nil and GetDistance(Target) <= rRange then
-				if not (QREADY and WREADY and EREADY) and Target.health > (qDmg + wDmg + eDmg) then
-					local packet = Packet(p)
-					if packet:get('name') == 'S_MOVE' then
-						if packet:get('sourceNetworkId') == myHero.networkID then
+	local packet = Packet(p)
+	if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' and packet:get('sourceNetworkId') == myHero.networkID then
+		if KatarinaMenu.autocarry.StopUlt then
+			if isChanneling("Spell4") then
+				if ValidTarget(Target) and GetDistance(Target) <= rRange and not Target.dead then
+					if not (QREADY and WREADY and EREADY) and Target.health > (qDmg + pDmg + wDmg + eDmg) then
 							packet:block()
-						end
 					end
 				end
 			end
-		end
-	end
-	if not KatarinaMenu.autocarry.StopUlt then
-		if isChanneling("Spell4") or ultActive then
-			if Target ~= nil and GetDistance(Target) <= rRange then
-				local packet = Packet(p)
-				if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' then
-					if packet:get('sourceNetworkId') == myHero.networkID then
-						packet:block()
-					end
+		else
+			if isChanneling("Spell4") then
+				if ValidTarget(Target) and GetDistance(Target) <= rRange then
+					packet:block()
 				end
 			end
 		end
-	end
+	end		
 end
 --------- END OF PACKET SEND ---------------------
 
@@ -546,12 +537,6 @@ function GetJungleMob()
         end
 end
 
-function OnProcessSpell(unit, spell)
-	if unit.isMe and spell.name == "KatarinaR" then
-		ultActive = true
-	end
-end
-
 function MoveToMouse()
 	local MousePos = Vector(mousePos.x, mousePos.y, mousePos.z)
 	local Position = myHero + (Vector(MousePos) - myHero):normalized()*300
@@ -599,7 +584,7 @@ function Variables()
 	QREADY, WREADY, EREADY, RREADY = false, false, false, false
 	HPREADY, MPREADY, FSKREADY = false, false, false
 	RSTREADY, SSREADY, SWREADY, VWREADY = false, false, false
-	lastAnimation = nil
+	lastAnimation = "Run"
 	lastAttack = 0
 	lastAttackCD = 0
 	lastWindUpTime = 0
@@ -840,8 +825,8 @@ function Checks()
 	
 	-- Updates Minions --
 	enemyMinions:update()
-	
-	-- Checks if Ult is Active: by eXtragoZ --
+
+		-- Checks if Ult is Active: by eXtragoZ --
 	if GetTickCount() <= timeult then ultActive = true end
 	if QREADY and WREADY and EREADY and not Target then ultActive = false end
 end
