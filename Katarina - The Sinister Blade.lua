@@ -1,6 +1,5 @@
 --[[
 	AutoCarry Script - Katarina 1.9 by Skeem
-		With Code from Kain <3
 
 	Changelog :
    1.0 - Initial Release
@@ -96,8 +95,10 @@ function OnTick()
 		local WardPos = GetDistance(mousePos) <= 600 and mousePos or getMousePos()
 		wardJump(WardPos.x, WardPos.z)
 	end
-	if KatarinaMenu.misc.ZWItems and IsMyHealthLow() and Target and (ZNAREADY or WGTREADY) then CastSpell((wgtSlot or znaSlot)) end
-	if KatarinaMenu.misc.aHP and NeedHP() and not (UsingHPot or UsingFlask) and (HPREADY or FSKREADY) then CastSpell((hpSlot or fskSlot)) end
+	if KatarinaMenu.misc.ZWItems and (myHero.health < (myHero.maxHealth * ( KatarinaMenu.misc.ZWHealth / 100))) and Target and (ZNAREADY or WGTREADY) then
+		CastSpell((wgtSlot or znaSlot)) 
+	end
+	if KatarinaMenu.misc.aHP and (myHero.health < (myHero.maxHealth * ( KatarinaMenu.misc.HPHealth / 100))) then and not (UsingHPot or UsingFlask) and (HPREADY or FSKREADY) then CastSpell((hpSlot or fskSlot)) end
 	if KatarinaMenu.misc.AutoLevelSkills then autoLevelSetSequence(levelSequence) end
 end
 --[/Plugin OnTick]--
@@ -330,7 +331,7 @@ function KillSteal()
 			------- DEBUG --------
 			if KatarinaMenu.misc.wardSave then
 				if enemy.health > (qDmg + wDmg + eDmg + rDmg) then
-					if GetDistance(enemy) < 600 and NeedHP() then
+					if GetDistance(enemy) < 600 and (myHero.health < (myHero.maxHealth * ( KatarinaMenu.misc.HPHealth / 100))) then
 						local fountain = GetFountain()
 						local mPos = Vector(myHero.x, myHero.y, myHero.z)
 						local fPos = Vector(fountain.x, fountain.y, fountain.z)
@@ -438,24 +439,6 @@ function OnSendPacket(p)
 	end		
 end
 --------- END OF PACKET SEND ---------------------
-
--- Low Health for Auto Pots & Zhonyas --
-function IsMyHealthLow()
-	if myHero.health < (myHero.maxHealth * ( KatarinaMenu.misc.ZWHealth / 100)) then
-		return true
-	else
-		return false
-	end
-end
-
-function NeedHP()
-	if myHero.health < (myHero.maxHealth * ( KatarinaMenu.misc.HPHealth / 100)) then
-		return true
-	else
-		return false
-	end
-end
------------- END OF LOW HEATH FOR AUTOPOTS & ZHONYAS ----------------
 
 -- Object Handling Functions --
 function OnCreateObj(obj)
@@ -752,7 +735,7 @@ function KatarinaMenu()
 		KatarinaMenu.misc:addParam("AutoLevelSkills", "Auto Level Skills (Requires Reload)", SCRIPT_PARAM_ONOFF, true)
 		KatarinaMenu.misc:permaShow("WardJump") 
 		
-	TargetSelector = TargetSelector(TARGET_LESS_CAST, (qRange + eRange), DAMAGE_MAGIC)
+	TargetSelector = TargetSelector(TARGET_LESS_CAST, eRange, DAMAGE_MAGIC)
 	TargetSelector.name = "Katarina"
 	KatarinaMenu:addTS(TargetSelector)
 end
