@@ -329,7 +329,7 @@ function CastW(enemy)
 				end
 			end
 		else
-			local wPred = TargetPrediction(wRange, wSpeed, wDelay, wSpeed)
+			local wPred = TargetPrediction(wRange, wSpeed, wDelay, wWidth)
 			local wPrediction = wPred:GetPrediction(enemy)
 			if wPrediction and not willHitMinion(wPrediction, wWidth) then
 				CastSpell(_W, wPrediction.x, wPrediction.z)
