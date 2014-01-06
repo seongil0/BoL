@@ -1,4 +1,4 @@
---[[ Kha'zix - The Voidreaver by Skeem 1.1
+--[[ Kha'zix - The Voidreaver by Skeem 1.2.1
 	
 	Features:
 			- Prodiction for VIPs, NonVIP prediction
@@ -47,6 +47,7 @@
 			        - Fixed jumping at random minions..
 			        - Fixed W for non VIPS
 			1.2 - More effective W Fix for non vips
+			1.2.1 - Fixed typo with W/E for nonvips
   ]]--
   
 -- Name Check --  
@@ -61,7 +62,7 @@ end
 function OnLoad()
 	Variables()
 	KhazixMenu()
-	PrintChat("<font color='#0000FF'> >> Kha'zix - The Voidreaver 1.2 Loaded!! <<</font>")
+	PrintChat("<font color='#0000FF'> >> Kha'zix - The Voidreaver 1.2.1 Loaded!! <<</font>")
 end
 
 -- Tick Function --
@@ -90,9 +91,9 @@ function Variables()
 	qName, wName, eName, rName = "Taste Their Fear", "Void Spike", "Leap", "Void Assault"
 	qReady, wReady, eReady, rReady = false, false, false, false
 	evolvedE = false
+	eSpeed, eDelay, eWidth = math.huge, .250, 100
+	wSpeed, wDelay, wWidth = 828.5, 0.225, 100
 	if VIP_USER then
-		eSpeed, eDelay, eWidth = math.huge, .250, 100
-		wSpeed, wDelay, wWidth = 828.5, 0.225, 100
 		wPos, ePos = nil, nil
 		Prodict = ProdictManager.GetInstance()
 		ProdictW = Prodict:AddProdictionObject(_W, wRange, wSpeed, wDelay, wWidth, myHero)
