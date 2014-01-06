@@ -22,6 +22,9 @@
 	      - Fixed recalling bug
 		  - Fixed Auto Pots
 	1.3.1 - Changed castR to vadash's
+	1.4   - Changed W Range
+	      - Fixed some issues with R
+	      - Added better support for revamped
   	]] --
 
 
@@ -100,12 +103,16 @@ end
 
 function CastR(Target)
 	if RREADY then
-	local ultPos = GetAoESpellPosition(450, Target, 250)
+		local ultPos = GetAoESpellPosition(450, Target, 250)
 		if ultPos and GetDistance(ultPos) <= rRange then
 			if CountEnemies(ultPos, 450) > 1 then
 				CastSpell(_R, ultPos.x, ultPos.z)
-			elseif IsSACReborn and TS_GetPriority(Target) <= 2 then
+			end
+		else
+			if IsSACReborn then
 				SkillR:Cast(Target)
+			else
+				AutoCarry.CastSkillshot(SkillR, Target)
 			end
 		end
 	end
@@ -121,7 +128,7 @@ function CastW(enemy)
 		if IsSACReborn then
 			SkillW:Cast(enemy)
 		else
-			CastSpell(_W, enemy.x, enemy.z)
+			AutoCarry.CastSkillshot(SkillW, Target)
 		end
 	end
 end
@@ -357,15 +364,18 @@ function loadMain()
 		HaveStun, HaveTibbers, Recall = false, false, false
 		hpReady, mpReady, fskReady = false, false, false
 		HK1, HK2, HK3 = string.byte("Z"), string.byte("K"), string.byte("T")
-        qRange, wRange, eRange, rRange = 625, 620, 600, 630
+        qRange, wRange, eRange, rRange = 625, 600, 600, 630
 		TextList = {"Harass him!!", "Q+W KILL!!", "FULL COMBO KILL!"}
 		KillText = {}
 		waittxt = {} -- prevents UI lags, all credits to Dekaron
 		for i=1, heroManager.iCount do waittxt[i] = i*3 end -- All credits to Dekaron
 		levelSequence = { nil, 0, 1, 3, 1, 4, 1, 2, 1, 2, 4, 2, 2, 3, 3, 4, 3, 3, }
 		if IsSACReborn then
-		SkillW = AutoCarry.Skills:NewSkill(false, _W, wRange, "Incinerate", AutoCarry.SPELL_CONE, 0, false, false, 1.5, 650, 45, false)
-		SkillR = AutoCarry.Skills:NewSkill(false, _R, rRange, "Infernal Guardian", AutoCarry.SPELL_CIRCLE, 0, false, false, 1.5, 250, 450, false)
+			SkillW = AutoCarry.Skills:NewSkill(false, _W, wRange, "Incinerate", AutoCarry.SPELL_CONE, 0, false, false, 1.5, 650, 45, false)
+			SkillR = AutoCarry.Skills:NewSkill(false, _R, rRange, "Infernal Guardian", AutoCarry.SPELL_CIRCLE, 0, false, false, 1.5, 250, 450, false)
+		else
+			SkillW = {spellKey = _W, range = wRange, speed = 1.5, delay = 250, width = 100, configName = "Incinerate", displayName = "W Incinerate", enabled = true, skillShot = true, minions = false, reset = false, reqTarget = false }
+			SkillR = {spellKey = _R, range = rRange, speed = 1.5, delay = 250, width = 450, configName = "Incinerate", displayName = "W Incinerate", enabled = true, skillShot = true, minions = false, reset = false, reqTarget = false }
 		end
 end
 
