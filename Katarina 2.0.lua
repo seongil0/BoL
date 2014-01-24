@@ -9,7 +9,7 @@
 		YP   YD YP   YP    YP    YP   YP 88   YD Y888888P VP   V8P YP   YP 
                                                                    
 
-	Script - Katarina - The Sinister Blase 2.0 by Skeem
+	Script - Katarina - The Sinister Blade 2.0 by Skeem
 
 	Changelog :
    1.0 - Initial Release
@@ -358,7 +358,7 @@ function KatarinaMenu()
 			KatarinaMenu.killsteal:addParam("ultKS", "Use "..SkillR.name.." (R) to KS", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.killsteal:addParam("itemsKS", "Use Items to KS", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.killsteal:addParam("Ignite", "Auto Ignite", SCRIPT_PARAM_ONOFF, true)
-			KatarinaMenu.killsteal:permaShow("KillSteal")
+			KatarinaMenu.killsteal:permaShow("smartKS")
 		---<
 		---> Drawing Menu			
 		KatarinaMenu:addSubMenu("["..myHero.charName.." - Drawing Settings]", "drawing")	
@@ -379,9 +379,9 @@ function KatarinaMenu()
 			KatarinaMenu.misc:addParam("aHP", "Auto Health Pots", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.misc:addParam("HPHealth", "Min % for Health Pots", SCRIPT_PARAM_SLICE, 50, 0, 100, -1)
 			KatarinaMenu.misc:addParam("AutoLevelSkills", "Auto Level Skills (Requires Reload)", SCRIPT_PARAM_ONOFF, true)
-			KatarinaMenu.misc:permaShow("WardJump")
+			KatarinaMenu.misc:permaShow("wardJumpKey")
 		---<
-		---> Target Slector		
+		---> Target Selector		
 			TargetSelector = TargetSelector(TARGET_LESS_CAST, SkillE.range, DAMAGE_MAGIC)
 			TargetSelector.name = "Katarina"
 			KatarinaMenu:addTS(TargetSelector)
