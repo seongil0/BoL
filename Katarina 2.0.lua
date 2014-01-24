@@ -160,7 +160,8 @@ function Variables()
 	--- Skills Vars ---
 	--- Items Vars ---
 	--->
-		Items = {
+		Items =
+		{
 					HealthPot      = {ready = false},
 					FlaskPot       = {ready = false},
 					TrinketWard    = {ready = false},
@@ -168,7 +169,7 @@ function Variables()
 				    SightStone     = {ready = false},
 				    SightWard      = {ready = false},
 				    VisionWard     = {ready = false}
-         }
+        }
 	---<
 	--- Items Vars ---
 	--- Orbwalking Vars ---
@@ -184,6 +185,12 @@ function Variables()
 		TextList = {"Harass him!!", "Q Kill!", "W Kill!", "E Kill!", "Q+W Kill!", "Q+E Kill!", "W+E Kill!", "Q+W+E Kill!", "Full Combo Kill!", "Need CDs"}
 		KillText = {}
 		colorText = ARGB(255,0,255,0)
+		wardColor =
+		{
+					available	= ARGB(255,255,255,255),
+					searching	= ARGB(255,250,123, 20),
+					unavailable	= ARGB(255,255, 0 , 0 )
+		}
 	---<
 	--- Drawing Vars ---
 	--- Misc Vars ---
@@ -411,7 +418,7 @@ function FullCombo()
 				if KatarinaMenu.combo.comboOrbwalk then
 					OrbWalking(Target)
 				end
-				if KatarinaMenu.combo.bItems then
+				if KatarinaMenu.combo.comboItems then
 					UseItems(Target)
 				end
 				CastQ(Target)
@@ -1127,14 +1134,37 @@ function OnDraw()
 		end
 	---<
 	--- Draw Enemy Damage Text ---
+	--- Draw Enemy Target ---
+	--->
 		if Target then
 			if KatarinaMenu.drawing.drawTargetText then
-				DrawText("Targetting: " .. Target.charName, 12, 100, 100, colorText)
+				DrawText("Targeting: " .. Target.charName, 12, 100, 100, colorText)
 			end
 			if KatarinaMenu.drawing.drawTargetCircle then
 				DrawCircle(Target.x, Target.y, Target.z, 100, colorText)
 			end
 		end
+	---<
+	--- Draw Enemy Target ---
+	--- Draw Ward Jump Range and Mouse ---
+	--->
+		if WardJumpKey then
+			if SkillE.ready then
+				DrawCircle3D(myHero.x, myHero.y, myHero.z, 600, 2, wardColor.available, 50)
+				if GetDistance(mousePos) <= 600 then
+					DrawCircle3D(mousePos.x, mousePos.y, mousePos.z, 50, 2, wardColor.available, 20)
+				else
+					DrawCircle3D(mousePos.x, mousePos.y, mousePos.z, 50, 2, wardColor.unavailable, 20)
+				end
+				if (GetDistance(mousePos) <= 700 and GetDistance(mousePos) > 600) or not (Items.TrinketWard.ready or Items.RubySightStone.ready or Items.SightStone.ready or Items.VisionWard.ready) then
+					DrawCircle3D(mousePos.x, mousePos.y, mousePos.z, 50, 2, wardColor.searching, 20)
+				end
+			else
+				DrawCircle3D(mousePos.x, mousePos.y, mousePos.z, 50, 2, wardColor.unavailable, 20)
+			end
+		end
+	---<
+	--- Draw Ward Jump Range and Mouse ---
 end
 -- / Plugin On Draw / --
 
