@@ -9,7 +9,7 @@
 		YP   YD YP   YP    YP    YP   YP 88   YD Y888888P VP   V8P YP   YP 
                                                                    
 
-	Script - Katarina - The Sinister Blade 2.0 by Skeem
+	Script - Katarina - The Sinister Blase 2.0 by Skeem
 
 	Changelog :
    1.0 - Initial Release
@@ -162,7 +162,6 @@ function Variables()
 	--->
 		Items = {
 					HealthPot      = {ready = false},
-					ManaPot        = {ready = false},
 					FlaskPot       = {ready = false},
 					TrinketWard    = {ready = false},
 		            RubySightStone = {ready = false},
@@ -381,7 +380,7 @@ function KatarinaMenu()
 			KatarinaMenu.misc:addParam("AutoLevelSkills", "Auto Level Skills (Requires Reload)", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.misc:permaShow("wardJumpKey")
 		---<
-		---> Target Selector		
+		---> Target Slector		
 			TargetSelector = TargetSelector(TARGET_LESS_CAST, SkillE.range, DAMAGE_MAGIC)
 			TargetSelector.name = "Katarina"
 			KatarinaMenu:addTS(TargetSelector)
@@ -732,7 +731,20 @@ end
 -- / Use Items Function / --
 
 function UseConsumables()
-
+	--- Check if Zhonya/Wooglets Needed --
+	--->
+		if KatarinaMenu.misc.ZWItems and isLow('Zhonya') and Target and (znaReady or wgtReady) then
+			CastSpell((wgtSlot or znaSlot))
+		end
+	---<
+	--- Check if Zhonya/Wooglets Needed --
+	--- Check if Potions Needed --
+	--->
+		if KatarinaMenu.misc.aHP and isLow('Health') and not (UsingHPot or UsingFlask) and (Items.HealthPot.ready or Items.FlaskPot.ready) then
+			CastSpell((hpSlot or fskSlot))
+		end
+	---<
+	--- Check if Potions Needed --
 end	
 
 -- / Auto Ignite Function / --
@@ -1209,8 +1221,7 @@ function Checks()
 											 GetInventorySlotItem(3146),
 											 GetInventorySlotItem(3144),
 											 GetInventorySlotItem(3153)
-		hpSlot, mpSlot, fskSlot =            GetInventorySlotItem(2003),
-								             GetInventorySlotItem(2004),
+		hpSlot, fskSlot =            		 GetInventorySlotItem(2003),
 								             GetInventorySlotItem(2041)
 		znaSlot, wgtSlot, bftSlot =          GetInventorySlotItem(3157),
 	    	                                 GetInventorySlotItem(3090),
@@ -1239,7 +1250,6 @@ function Checks()
 	--- Checks if Health Pots / Mana Pots are Ready ---
 	--->
 		Items.HealthPot.ready = (hpSlot ~= nil and myHero:CanUseSpell(hpSlot) == READY)
-		Items.ManaPot.ready =(mpSlot ~= nil and myHero:CanUseSpell(mpSlot) == READY)
 		Items.FlaskPot.ready = (fskSlot ~= nil and myHero:CanUseSpell(fskSlot) == READY)
 	---<
 	--- Checks if Health Pots / Mana Pots are Ready ---	
@@ -1299,3 +1309,30 @@ function Checks()
 	--- Setting Cast of Ult ---
 end
 -- / Checks Function / --
+
+-- / isLow Function / --
+function isLow(Name)
+	--- Check Zhonya/Wooglets HP ---
+	--->
+		if Name == 'Zhonya' or Name == 'Wooglets' then
+			if (myHero.health / myHero.maxHealth) <= (KatarinaMenu.misc.ZWHealth / 100) then
+				return true
+			else
+				return false
+			end
+		end
+	---<
+	--- Check Zhonya/Wooglets HP ---
+	--- Check Potions HP ---
+	--->
+		if Name == 'Health' then
+			if (myHero.health / myHero.maxHealth) <= (KatarinaMenu.misc.HPHealth / 100) then
+				return true
+			else
+				return false
+			end
+		end
+	---<
+	--- Check Potions HP ---
+end
+-- / isLow Function / --
