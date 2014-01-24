@@ -1,4 +1,4 @@
---[[ Kha'zix - The Voidreaver by Skeem 1.2.1
+--[[ Kha'zix - The Voidreaver by Skeem 1.2.2
 	
 	Features:
 			- Prodiction for VIPs, NonVIP prediction
@@ -48,6 +48,7 @@
 			        - Fixed W for non VIPS
 			1.2 - More effective W Fix for non vips
 			1.2.1 - Fixed typo with W/E for nonvips
+			1.2.2 - Fixed minion Targetting
   ]]--
   
 -- Name Check --  
@@ -62,7 +63,7 @@ end
 function OnLoad()
 	Variables()
 	KhazixMenu()
-	PrintChat("<font color='#0000FF'> >> Kha'zix - The Voidreaver 1.2.1 Loaded!! <<</font>")
+	PrintChat("<font color='#0000FF'> >> Kha'zix - The Voidreaver 1.2.2 Loaded!! <<</font>")
 end
 
 -- Tick Function --
@@ -634,7 +635,12 @@ end
 function Checks()
 	-- Updates Targets --
 	TargetSelector:update()
-	Target = TargetSelector.target
+	tsTarget = TargetSelector.target
+	if tsTarget and tsTarget.type == "obj_AI_Hero" then
+		Target = tsTarget
+	else
+		Target = nil
+	end
 	
 	-- Finds Ignite --
 	if myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") then
