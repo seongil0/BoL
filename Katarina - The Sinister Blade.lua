@@ -9,30 +9,30 @@
 		YP   YD YP   YP    YP    YP   YP 88   YD Y888888P VP   V8P YP   YP 
                                                                    
 
-	Script - Katarina - The Sinister Blade 2.0 by Skeem
+	Script - Katarina - The Sinister Blade 2.0.2 by Skeem
 
 	Changelog :
-   1.0 - Initial Release
-   1.1 - Fixed Damage Calculation
-	   - Fixed Auto Ignite
-	   - Hopefully Fixed BugSplat
-   1.2 - Really fixed BugSplat Now
-	   - More Damage Calculation Adjustments
-	   - More checks for when to ult
-	   - More checks to not use W when enemy not in range
+   1.0	 - Initial Release
+   1.1	 - Fixed Damage Calculation
+		 - Fixed Auto Ignite
+		 - Hopefully Fixed BugSplat
+   1.2	 - Really fixed BugSplat Now
+		 - More Damage Calculation Adjustments
+		 - More checks for when to ult
+		 - More checks to not use W when enemy not in range
    1.2.1 - Fixed the problem with channelling ultimate
-   1.3 - Fixed the problem with ult AGAIN
-       - Added Auto Pots
-	   - Added Auto Zhonyas
-	   - Added Draw Circles of targets that can die
+   1.3	 - Fixed the problem with ult AGAIN
+		 - Added Auto Pots
+		 - Added Auto Zhonyas
+		 - Added Draw Circles of targets that can die
    1.3.1 - Lul another Ult fix wtfux
          - Added move to mouse to harass mode
-   1.4 - Recoded most of the script
-       - Added toggle to use items with KS
-	   - Jungle Clearing
-	   - New method to stop ult from not channeling
-	   - New Menu
-	   - Lane Clear
+   1.4	 - Recoded most of the script
+		 - Added toggle to use items with KS
+		 - Jungle Clearing
+		 - New method to stop ult from not channeling
+		 - New Menu
+		 - Lane Clear
    1.4.1 - Added packet block ult movement
    1.4.2 - Some draw text fixes
 		 - ult range fixes so it doesn't keep spinning if no enemies are around
@@ -86,12 +86,25 @@
          - New Draw which shows exactly which skills need to be used to kill
          - New Option to Draw Who is being targetted by text
          - New Option to Draw a circle around target
-    2.0.1- Removed Draw Circles around Target (FPS Drops)
+   2.0.1 - Removed Draw Circles around Target (FPS Drops)
          - All bug fixes by Roach:
-           - Fixed Variables
-           - Fixed and Added Ward Jump
-           - Fixed Items Usage
-
+			- Fixed Variables
+			- Fixed and Added Ward Jump
+			- Fixed Items Usage
+   2.0.2 - Added TickManager/FPS Drops Improver - It will FPS Drpos lower as possible
+		 - Deleted 'wardSave' from Misc Menu
+		 - Improved Ulti-KS
+		 - Now Lag Free Circles is implemented:
+			- Credits to:
+				- barasia283
+				- vadash
+				- ViceVersa
+				- Trees
+				- Any more I don't know of
+			- Features:
+				- Globally reduces the FPS drop from circles.
+			- Requirements:
+				- VIP
   	]] --		
 
 -- / Hero Name Check / --
@@ -109,6 +122,7 @@ end
 -- / Loading Function / --
 
 -- / Tick Function / --
+	
 function OnTick()
 	--->
 		Checks()
@@ -184,7 +198,23 @@ function Variables()
 		lastAttackCD = 0
 		lastWindUpTime = 0
 	---<
-	--- Orbwalking Vars --
+	--- Orbwalking Vars ---
+	--- TickManager Vars ---
+	--->
+		TManager =
+		{
+			onTick	= TickManager(20),
+			onDraw	= TickManager(80),
+			onSpell	= TickManager(15)
+		}
+	---<
+	--- TickManager Vars ---
+	--- LFC Vars ---
+	--->
+		_G.oldDrawCircle = rawget(_G, 'DrawCircle')
+		_G.DrawCircle = DrawCircle2
+	---<
+	--- LFC Vars ---
 	--- Drawing Vars ---
 	--->
 		TextList = {"Harass him!!", "Q Kill!", "W Kill!", "E Kill!", "Q+W Kill!", "Q+E Kill!", "W+E Kill!", "Q+W+E Kill!", "Full Combo Kill!", "Need CDs"}
@@ -372,7 +402,13 @@ function KatarinaMenu()
 			KatarinaMenu.killsteal:permaShow("smartKS")
 		---<
 		---> Drawing Menu			
-		KatarinaMenu:addSubMenu("["..myHero.charName.." - Drawing Settings]", "drawing")	
+		KatarinaMenu:addSubMenu("["..myHero.charName.." - Drawing Settings]", "drawing")
+			if VIP_USER then
+				KatarinaMenu.drawing:addSubMenu("["..myHero.charName.." - LFC Settings]", "lfc")
+					KatarinaMenu.drawing.lfc:addParam("LagFree", "Activate Lag Free Circles", SCRIPT_PARAM_ONOFF, false)
+					KatarinaMenu.drawing.lfc:addParam("CL", "Length before Snapping", SCRIPT_PARAM_SLICE, 300, 75, 2000, 0)
+					KatarinaMenu.drawing.lfc:addParam("CLinfo", "Higher length = Lower FPS Drops", SCRIPT_PARAM_INFO, "")
+			end
 			KatarinaMenu.drawing:addParam("disableAll", "Disable All Ranges Drawing", SCRIPT_PARAM_ONOFF, false)
 			KatarinaMenu.drawing:addParam("drawText", "Draw Enemy Text", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.drawing:addParam("drawTargetText", "Draw Who I'm Targetting", SCRIPT_PARAM_ONOFF, true)
@@ -383,7 +419,6 @@ function KatarinaMenu()
 		---> Misc Menu	
 		KatarinaMenu:addSubMenu("["..myHero.charName.." - Misc Settings]", "misc")
 			KatarinaMenu.misc:addParam("wardJumpKey", "Ward Jump Hotkey (G)", SCRIPT_PARAM_ONKEYDOWN, false, 71)
-			KatarinaMenu.misc:addParam("wardSave", "Beta Ward Save", SCRIPT_PARAM_ONKEYDOWN, false, 71)
 			KatarinaMenu.misc:addParam("ZWItems", "Auto Zhonyas/Wooglets", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.misc:addParam("ZWHealth", "Min Health % for Zhonyas/Wooglets", SCRIPT_PARAM_SLICE, 15, 0, 100, -1)
 			KatarinaMenu.misc:addParam("aHP", "Auto Health Pots", SCRIPT_PARAM_ONOFF, true)
@@ -391,7 +426,7 @@ function KatarinaMenu()
 			KatarinaMenu.misc:addParam("AutoLevelSkills", "Auto Level Skills (Requires Reload)", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.misc:permaShow("wardJumpKey")
 		---<
-		---> Target Slector		
+		---> Target Selector		
 			TargetSelector = TargetSelector(TARGET_LESS_CAST, SkillE.range, DAMAGE_MAGIC)
 			TargetSelector.name = "Katarina"
 			KatarinaMenu:addTS(TargetSelector)
@@ -1115,6 +1150,11 @@ end
 
 -- / Plugin On Draw / --
 function OnDraw()
+	--- Tick Manager Check ---
+	--->
+		if not TManager.onDraw:isReady() then return end
+	---<
+	--->
 	--- Drawing Our Ranges ---
 	--->
 		if not myHero.dead then
@@ -1217,20 +1257,128 @@ end
 --- On Process Spell ---
 --->
 	function OnProcessSpell(object,spell)
-		if object == myHero then
-			if spell.name:lower():find("attack") then
-				lastAttack = GetTickCount() - GetLatency()/2
-				lastWindUpTime = spell.windUpTime*1000
-				lastAttackCD = spell.animationTime*1000
-        	end
-    	end
+		--- Tick Manager Check ---
+		--->
+			if not TManager.onSpell:isReady() then return end
+		---<
+		--->
+			if object == myHero then
+				if spell.name:lower():find("attack") then
+					lastAttack = GetTickCount() - GetLatency()/2
+					lastWindUpTime = spell.windUpTime*1000
+					lastAttackCD = spell.animationTime*1000
+				end
+			end
+		---<
 	end
 ---<
 --- On Process Spell ---
 -- / OrbWalking Functions / --
 
+-- / FPS Manager Functions / --
+class 'TickManager'
+--- TM Init Function ---
+--->
+	function TickManager:__init(ticksPerSecond)
+		self.TPS = ticksPerSecond
+		self.lastClock = 0
+		self.currentClock = 0
+	end
+---<
+--- TM Init Function ---
+--- TM Type Function ---
+--->
+	function TickManager:__type()
+		return "TickManager"
+	end
+---<
+--- TM Init Function ---
+--- Set TPS Function ---
+--->
+	function TickManager:setTPS(ticksPerSecond)
+		self.TPS = ticksPerSecond
+	end
+---<
+--- Set TPS Function ---
+--- Get TPS Function ---
+--->
+	function TickManager:getTPS(ticksPerSecond)
+		return self.TPS
+	end
+---<
+--- Get TPS Function ---
+--- TM Ready Function ---
+--->
+	function TickManager:isReady()
+		self.currentClock = os.clock()
+		if self.currentClock < self.lastClock + (1 / self.TPS) then return false end
+		self.lastClock = self.currentClock
+		return true
+	end
+---<
+--- TM Ready Function ---
+-- / FPS Manager Functions / --
+
+-- / Lag Free Circles Functions / --
+--- Draw Cicle Next Level Function ---
+--->
+	function DrawCircleNextLvl(x, y, z, radius, width, color, chordlength)
+		radius = radius or 300
+		quality = math.max(8, round(180 / math.deg((math.asin((chordlength / (2 * radius)))))))
+		quality = 2 * math.pi / quality
+		radius = radius * .92
+		local points = {}
+		
+		for theta = 0, 2 * math.pi + quality, quality do
+			local c = WorldToScreen(D3DXVECTOR3(x + radius * math.cos(theta), y, z - radius * math.sin(theta)))
+			points[#points + 1] = D3DXVECTOR2(c.x, c.y)
+		end
+		
+		DrawLines2(points, width or 1, color or 4294967295)
+	end
+---<
+--- Draw Cicle Next Level Function ---
+--- Round Function ---
+--->
+	function round(num) 
+		if num >= 0 then return math.floor(num+.5) else return math.ceil(num-.5) end
+	end
+---<
+--- Round Function ---
+--- Draw Cicle 2 Function ---
+--->
+	function DrawCircle2(x, y, z, radius, color)
+		local vPos1 = Vector(x, y, z)
+		local vPos2 = Vector(cameraPos.x, cameraPos.y, cameraPos.z)
+		local tPos = vPos1 - (vPos1 - vPos2):normalized() * radius
+		local sPos = WorldToScreen(D3DXVECTOR3(tPos.x, tPos.y, tPos.z))
+		
+		if OnScreen({ x = sPos.x, y = sPos.y }, { x = sPos.x, y = sPos.y }) then
+			DrawCircleNextLvl(x, y, z, radius, 1, color, KatarinaMenu.drawing.lfc.CL) 
+		end
+	end
+---<
+--- Draw Cicle 2 Function ---
+-- / Lag Free Circles Functions / --
+
 -- / Checks Function / --
 function Checks()
+	--- Tick Manager Check ---
+	--->
+		if not TManager.onTick:isReady() then return end
+	---<
+	--- Tick Manager Check ---
+	if VIP_USER then
+		--- LFC Checks ---
+		--->
+			if not KatarinaMenu.drawing.lfc.LagFree then 
+				_G.DrawCircle = _G.oldDrawCircle 
+			else
+				_G.DrawCircle = DrawCircle2
+			end
+		---<
+		--- LFC Checks ---
+	end
 	--- Updates & Checks if Target is Valid ---
 	--->
 		TargetSelector:update()
