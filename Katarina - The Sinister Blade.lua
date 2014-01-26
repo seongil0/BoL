@@ -9,7 +9,7 @@
 		YP   YD YP   YP    YP    YP   YP 88   YD Y888888P VP   V8P YP   YP 
                                                                    
 
-	Script - Katarina - The Sinister Blade 2.0.2 by Skeem
+	Script - Katarina - The Sinister Blade 2.0.3 by Skeem
 
 	Changelog :
    1.0	 - Initial Release
@@ -91,7 +91,7 @@
 			- Fixed Variables
 			- Fixed and Added Ward Jump
 			- Fixed Items Usage
-   2.0.2 - Added TickManager/FPS Drops Improver - It will FPS Drpos lower as possible
+   2.0.2 - Added TickManager/FPS Drops Improver - It will lower your FPS Drops
 		 - Deleted 'wardSave' from Misc Menu
 		 - Improved Ulti-KS
 		 - Now Lag Free Circles is implemented:
@@ -105,6 +105,12 @@
 				- Globally reduces the FPS drop from circles.
 			- Requirements:
 				- VIP
+   2.0.3 - Added Ulti Seconds Timer
+			- Features:
+				- How many seconds do we need to kill an Enemy
+			- It will be Improved as it is in Early Development
+		 - Fixed some more Typo
+		 - Fixed a little bug where the Ward-Jump function didn't jumped on Minions
   	]] --		
 
 -- / Hero Name Check / --
@@ -116,7 +122,7 @@ function OnLoad()
 	--->
 		Variables()
 		KatarinaMenu()
-		PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 2.0 Loaded!! <<</font>")
+		PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 2.0.3 Loaded!! <<</font>")
 	---<
 end
 -- / Loading Function / --
@@ -217,7 +223,7 @@ function Variables()
 	--- LFC Vars ---
 	--- Drawing Vars ---
 	--->
-		TextList = {"Harass him!!", "Q Kill!", "W Kill!", "E Kill!", "Q+W Kill!", "Q+E Kill!", "W+E Kill!", "Q+W+E Kill!", "Full Combo Kill!", "Need CDs"}
+		TextList = {"Harass him", "Q = Kill", "W = Kill", "E = Kill!", "Q+W = Kill", "Q+E = Kill", "E+W = Kill", "Q+E+W = Kill", "Q+W+E+R: ", "Need CDs"}
 		KillText = {}
 		colorText = ARGB(255,0,255,0)
 		wardColor =
@@ -820,7 +826,7 @@ function DamageCalculation()
 				qDmg = (SkillQ.ready and getDmg("Q",enemy,myHero) or 0)
     	        wDmg = (SkillW.ready and getDmg("W",enemy,myHero) or 0)
 				eDmg = (SkillE.ready and getDmg("E",enemy,myHero) or 0)
-            	rDmg = getDmg("R",enemy,myHero)*12
+            	rDmg = getDmg("R",enemy,myHero,3)
 				if dfgReady then dfgDmg = (dfgSlot and getDmg("DFG",enemy,myHero) or 0)	end
 				if bftReady then bftdmg = (bftSlot and getDmg("BLACKFIRE",enemy,myHero) or 0) end
         	    if hxgReady then hxgDmg = (hxgSlot and getDmg("HXG",enemy,myHero) or 0) end
@@ -1176,12 +1182,16 @@ function OnDraw()
 	--->
 		if KatarinaMenu.drawing.drawText then
 			for i = 1, heroManager.iCount do
-        		local Unit = heroManager:GetHero(i)
-        		if ValidTarget(Unit) then
-        			local barPos = WorldToScreen(D3DXVECTOR3(Unit.x, Unit.y, Unit.z)) --(Credit to Zikkah)
+        		local enemy = heroManager:GetHero(i)
+        		if ValidTarget(enemy) then
+        			local barPos = WorldToScreen(D3DXVECTOR3(enemy.x, enemy.y, enemy.z)) --(Credit to Zikkah)
 					local PosX = barPos.x - 35
-					local PosY = barPos.y - 10        
-        	 		DrawText(TextList[KillText[i]], 16, PosX, PosY, colorText)
+					local PosY = barPos.y - 10
+					if KillText[i] ~= 9 then
+						DrawText(TextList[KillText[i]], 16, PosX, PosY, colorText)
+					else
+						DrawText(TextList[KillText[i]] .. string.format("%4.1f", ((enemy.health - (qDmg + pDmg + wDmg + eDmg + itemsDmg)) / rDmg) * 2.5) .. "s = Kill", 16, PosX, PosY, colorText)
+					end
 				end
 			end
 		end
