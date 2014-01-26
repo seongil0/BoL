@@ -217,12 +217,14 @@ function Variables()
 		}
 	---<
 	--- TickManager Vars ---
-	--- LFC Vars ---
-	--->
-		_G.oldDrawCircle = rawget(_G, 'DrawCircle')
-		_G.DrawCircle = DrawCircle2
-	---<
-	--- LFC Vars ---
+	if VIP_USER then
+		--- LFC Vars ---
+		--->
+			_G.oldDrawCircle = rawget(_G, 'DrawCircle')
+			_G.DrawCircle = DrawCircle2
+		---<
+		--- LFC Vars ---
+	end
 	--- Drawing Vars ---
 	--->
 		TextList = {"Harass him", "Q = Kill", "W = Kill", "E = Kill!", "Q+W = Kill", "Q+E = Kill", "E+W = Kill", "Q+E+W = Kill", "Q+W+E+R: ", "Need CDs"}
