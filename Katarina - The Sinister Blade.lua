@@ -111,6 +111,8 @@
 			- It will be Improved as it is in Early Development
 		 - Fixed some more Typo
 		 - Fixed a little bug where the Ward-Jump function didn't jumped on Minions
+		 - 'colorText' is now Yellow every time, because other colors can be hard to see
+		 - Fixed a bug where, if you were a Free User, the Lag Free Cicrcles Started to Spam errors
   	]] --		
 
 -- / Hero Name Check / --
@@ -225,7 +227,7 @@ function Variables()
 	--->
 		TextList = {"Harass him", "Q = Kill", "W = Kill", "E = Kill!", "Q+W = Kill", "Q+E = Kill", "E+W = Kill", "Q+E+W = Kill", "Q+W+E+R: ", "Need CDs"}
 		KillText = {}
-		colorText = ARGB(255,0,255,0)
+		colorText = ARGB(255,255,204,0)
 		wardColor =
 		{
 					available	= ARGB(255,255,255,255),
@@ -843,66 +845,50 @@ function DamageCalculation()
 				elseif enemy.health <= qDmg then
 					if SkillQ.ready then
 						KillText[i] = 2
-						colorText = ARGB(255,255,0,0)
 					else
 						KillText[i] = 10
-						colorText = ARGB(255,0,0,255)
 					end
 				elseif enemy.health <= wDmg then
 					if SkillW.ready then
 						KillText[i] = 3
-						colorText = ARGB(255,255,0,0)
 					else
 						KillText[i] = 10
-						colorText = ARGB(255,0,0,255)
 					end
 				elseif enemy.health <= eDmg then
 					if SkillE.ready then
 						KillText[i] = 4
-						colorText = ARGB(255,255,0,0)
 					else
 						KillText[i] = 10
-						colorText = ARGB(255,0,0,255)
 					end
 				elseif enemy.health <= (qDmg + wDmg) and SkillQ.ready and SkillW.ready then
 					if SkillQ.ready and SkillW.ready then
 						KillText[i] = 5
-						colorText = ARGB(255,255,0,0)
 					else
 						KillText[i] = 10
-						colorText = ARGB(255,0,0,255)
 					end
 				elseif enemy.health <= (qDmg + eDmg) and SkillQ.ready and SkillE.ready then
 					if SkillQ.ready and SkillE.ready then
 						KillText[i] = 6
-						colorText = ARGB(255,255,0,0)
 					else
 						KillText[i] = 10
-						colorText = ARGB(255,0,0,255)
 					end
 				elseif enemy.health <= (wDmg + eDmg) and SkillW.ready and SkillE.ready then
 					if SkillW.ready and SkillE.ready then
 						KillText[i] = 7
-						colorText = ARGB(255,255,0,0)
 					else
 						KillText[i] = 10
-						colorText = ARGB(255,0,0,255)
 					end
 				elseif enemy.health <= (qDmg + wDmg + eDmg) and SkillQ.ready and SkillW.ready and SkillE.ready then
 					if SkillQ.ready and SkillW.ready and SkillE.ready then
 						KillText[i] = 8
-						colorText = ARGB(255,255,0,0)
 					else
 						KillText[i] = 10
-						colorText = ARGB(255,0,0,255)
 					end
 				elseif enemy.health <= (qDmg + pDmg + wDmg + eDmg + rDmg + itemsDmg) then
 					if SkillQ.ready and SkillW.ready and SkillE.ready then
 						KillText[i] = 9
-						colorText = ARGB(255,255,0,0)
 					else
 						KillText[i] = 10
-						colorText = ARGB(255,0,0,255)
 					end
 				end
 			end
@@ -1328,48 +1314,49 @@ class 'TickManager'
 ---<
 --- TM Ready Function ---
 -- / FPS Manager Functions / --
-
--- / Lag Free Circles Functions / --
---- Draw Cicle Next Level Function ---
---->
-	function DrawCircleNextLvl(x, y, z, radius, width, color, chordlength)
-		radius = radius or 300
-		quality = math.max(8, round(180 / math.deg((math.asin((chordlength / (2 * radius)))))))
-		quality = 2 * math.pi / quality
-		radius = radius * .92
-		local points = {}
-		
-		for theta = 0, 2 * math.pi + quality, quality do
-			local c = WorldToScreen(D3DXVECTOR3(x + radius * math.cos(theta), y, z - radius * math.sin(theta)))
-			points[#points + 1] = D3DXVECTOR2(c.x, c.y)
+if VIP_USER then
+	-- / Lag Free Circles Functions / --
+	--- Draw Cicle Next Level Function ---
+	--->
+		function DrawCircleNextLvl(x, y, z, radius, width, color, chordlength)
+			radius = radius or 300
+			quality = math.max(8, round(180 / math.deg((math.asin((chordlength / (2 * radius)))))))
+			quality = 2 * math.pi / quality
+			radius = radius * .92
+			local points = {}
+			
+			for theta = 0, 2 * math.pi + quality, quality do
+				local c = WorldToScreen(D3DXVECTOR3(x + radius * math.cos(theta), y, z - radius * math.sin(theta)))
+				points[#points + 1] = D3DXVECTOR2(c.x, c.y)
+			end
+			
+			DrawLines2(points, width or 1, color or 4294967295)
 		end
-		
-		DrawLines2(points, width or 1, color or 4294967295)
-	end
----<
---- Draw Cicle Next Level Function ---
---- Round Function ---
---->
-	function round(num) 
-		if num >= 0 then return math.floor(num+.5) else return math.ceil(num-.5) end
-	end
----<
---- Round Function ---
---- Draw Cicle 2 Function ---
---->
-	function DrawCircle2(x, y, z, radius, color)
-		local vPos1 = Vector(x, y, z)
-		local vPos2 = Vector(cameraPos.x, cameraPos.y, cameraPos.z)
-		local tPos = vPos1 - (vPos1 - vPos2):normalized() * radius
-		local sPos = WorldToScreen(D3DXVECTOR3(tPos.x, tPos.y, tPos.z))
-		
-		if OnScreen({ x = sPos.x, y = sPos.y }, { x = sPos.x, y = sPos.y }) then
-			DrawCircleNextLvl(x, y, z, radius, 1, color, KatarinaMenu.drawing.lfc.CL) 
+	---<
+	--- Draw Cicle Next Level Function ---
+	--- Round Function ---
+	--->
+		function round(num) 
+			if num >= 0 then return math.floor(num+.5) else return math.ceil(num-.5) end
 		end
-	end
----<
---- Draw Cicle 2 Function ---
--- / Lag Free Circles Functions / --
+	---<
+	--- Round Function ---
+	--- Draw Cicle 2 Function ---
+	--->
+		function DrawCircle2(x, y, z, radius, color)
+			local vPos1 = Vector(x, y, z)
+			local vPos2 = Vector(cameraPos.x, cameraPos.y, cameraPos.z)
+			local tPos = vPos1 - (vPos1 - vPos2):normalized() * radius
+			local sPos = WorldToScreen(D3DXVECTOR3(tPos.x, tPos.y, tPos.z))
+			
+			if OnScreen({ x = sPos.x, y = sPos.y }, { x = sPos.x, y = sPos.y }) then
+				DrawCircleNextLvl(x, y, z, radius, 1, color, KatarinaMenu.drawing.lfc.CL) 
+			end
+		end
+	---<
+	--- Draw Cicle 2 Function ---
+	-- / Lag Free Circles Functions / --
+end
 
 -- / Checks Function / --
 function Checks()
