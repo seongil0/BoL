@@ -119,6 +119,7 @@
 		 - Fixed a bug where E Range was not seen
 		 - Fixed more typo and variables from 1.9
 		 - Made ward jumping more accurate
+		 - Fixed harass function
   	]] --		
 
 -- / Hero Name Check / --
@@ -136,7 +137,6 @@ end
 -- / Loading Function / --
 
 -- / Tick Function / --
-	
 function OnTick()
 	--->
 		Checks()
@@ -510,7 +510,7 @@ function HarassCombo()
 				CastQ(Target)
 				if KatarinaMenu.harass.detonateQ then
 					if not SkillQ.ready then CastE(Target) end
-					if not SkillW.ready then CastW(Target) end
+					if not SkillE.ready then CastW(Target) end
 				else
 					CastE(Target)
 					CastW(Target)
