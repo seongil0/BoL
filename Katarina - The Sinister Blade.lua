@@ -9,7 +9,7 @@
 		YP   YD YP   YP    YP    YP   YP 88   YD Y888888P VP   V8P YP   YP 
                                                                    
 
-	Script - Katarina - The Sinister Blade 2.0.3 by Skeem
+	Script - Katarina - The Sinister Blade 2.0.4 by Skeem
 
 	Changelog :
    1.0	 - Initial Release
@@ -113,6 +113,12 @@
 		 - Fixed a little bug where the Ward-Jump function didn't jumped on Minions
 		 - 'colorText' is now Yellow every time, because other colors can be hard to see
 		 - Fixed a bug where, if you were a Free User, the Lag Free Cicrcles Started to Spam errors
+   2.0.4 - Fixed a bug where "Sinister Steel" (W) was used even if Katarina was Channelling her Ultimate
+		 - Fixed Range Draws blinking by adding a new option to Enable/Disable TickManager/FPS Improver in 'Misc Menu' (Default: OFF)
+		 - Using ARGB Function for the Draw Ranges
+		 - Fixed a bug where E Range was not seen
+		 - Fixed more typo and variables from 1.9
+		 - Made ward jumping more accurate
   	]] --		
 
 -- / Hero Name Check / --
@@ -124,7 +130,7 @@ function OnLoad()
 	--->
 		Variables()
 		KatarinaMenu()
-		PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 2.0.3 Loaded!! <<</font>")
+		PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 2.0.4 Loaded!! <<</font>")
 	---<
 end
 -- / Loading Function / --
@@ -138,7 +144,7 @@ function OnTick()
 		UseConsumables()
 
 		if Target then
-			if KatarinaMenu.harass.wharass then CastW(Target) end
+			if KatarinaMenu.harass.wharass and not castingUlt then CastW(Target) end
 			if KatarinaMenu.killsteal.Ignite then AutoIgnite(Target) end
 		end
 	---<
@@ -179,10 +185,10 @@ end
 function Variables()
 	--- Skills Vars --
 	--->
-		SkillQ = {range = 675, name = "Bouncing Blades", ready = false}
-		SkillW = {range = 375, name = "Sinister Steel", ready = false}
-		SkillE = {range = 700, name = "Shunpo", ready = false}
-		SkillR = {range = 550, name = "Death Lotus", ready = false}
+		SkillQ = {range = 675, name = "Bouncing Blades",	ready = false, color = ARGB(255,178, 0 , 0 )}
+		SkillW = {range = 375, name = "Sinister Steel",		ready = false, color = ARGB(255, 32,178,170)}
+		SkillE = {range = 700, name = "Shunpo",				ready = false, color = ARGB(255,128, 0 ,128)}
+		SkillR = {range = 550, name = "Death Lotus",		ready = false								}
 	---<
 	--- Skills Vars ---
 	--- Items Vars ---
@@ -379,16 +385,16 @@ function KatarinaMenu()
 			KatarinaMenu.harass:addParam("detonateQ", "Proc Q Mark", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.harass:addParam("hMode", "Harass Mode",SCRIPT_PARAM_SLICE, 1, 1, 2, 0)
 			KatarinaMenu.harass:addParam("harassKey", "Harass Hotkey (T)", SCRIPT_PARAM_ONKEYDOWN, false, 84)
-			KatarinaMenu.harass:addParam("wharass", "Always Sinister Steel (W)", SCRIPT_PARAM_ONOFF, true)
+			KatarinaMenu.harass:addParam("wharass", "Always "..SkillW.name.." ((W)", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.harass:addParam("mTmH", "Move To Mouse", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.harass:permaShow("harassKey")
 		---<
 		---> Farming Menu
 		KatarinaMenu:addSubMenu("["..myHero.charName.." - Farming Settings]", "farming")
 			KatarinaMenu.farming:addParam("farmKey", "Farming ON/Off (Z)", SCRIPT_PARAM_ONKEYTOGGLE, true, 90)
-			KatarinaMenu.farming:addParam("qFarm", "Farm with Bouncing Blades (Q)", SCRIPT_PARAM_ONOFF, true)
-			KatarinaMenu.farming:addParam("wFarm", "Sinister Steel (W)", SCRIPT_PARAM_ONOFF, true)
-			KatarinaMenu.farming:addParam("eFarm", "Farm with Shunpo (E)", SCRIPT_PARAM_ONOFF, false)
+			KatarinaMenu.farming:addParam("qFarm", "Farm with "..SkillQ.name.." (Q)", SCRIPT_PARAM_ONOFF, true)
+			KatarinaMenu.farming:addParam("wFarm", "Farm with "..SkillW.name.." (W)", SCRIPT_PARAM_ONOFF, true)
+			KatarinaMenu.farming:addParam("eFarm", "Farm with "..SkillE.name.." (E)", SCRIPT_PARAM_ONOFF, false)
 			KatarinaMenu.farming:permaShow("farmKey")
 		---<
 		---> Clear Menu		
@@ -433,6 +439,7 @@ function KatarinaMenu()
 			KatarinaMenu.misc:addParam("ZWHealth", "Min Health % for Zhonyas/Wooglets", SCRIPT_PARAM_SLICE, 15, 0, 100, -1)
 			KatarinaMenu.misc:addParam("aHP", "Auto Health Pots", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.misc:addParam("HPHealth", "Min % for Health Pots", SCRIPT_PARAM_SLICE, 50, 0, 100, -1)
+			KatarinaMenu.misc:addParam("uTM", "Use Tick Manager/FPS Improver",SCRIPT_PARAM_ONOFF, false)
 			KatarinaMenu.misc:addParam("AutoLevelSkills", "Auto Level Skills (Requires Reload)", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.misc:permaShow("wardJumpKey")
 		---<
@@ -720,7 +727,7 @@ function wardJump(x, y)
 			if next(Wards) ~= nil then
 				for i, obj in pairs(Wards) do 
 					if obj.valid then
-						if GetDistance(obj, mousePos) <= 400 then
+						if GetDistance(obj, mousePos) <= 500 then
 							CastSpell(_E, obj)
 						else
 							if GetTickCount()-lastwardused >= 2000 then
@@ -1146,7 +1153,7 @@ end
 function OnDraw()
 	--- Tick Manager Check ---
 	--->
-		if not TManager.onDraw:isReady() then return end
+		if not TManager.onDraw:isReady() and KatarinaMenu.misc.uTM then return end
 	---<
 	--->
 	--- Drawing Our Ranges ---
@@ -1154,13 +1161,13 @@ function OnDraw()
 		if not myHero.dead then
 			if not KatarinaMenu.drawing.disableAll then
 				if SkillQ.ready and KatarinaMenu.drawing.drawQ then 
-					DrawCircle(myHero.x, myHero.y, myHero.z, SkillQ.range, 0xB20000)
+					DrawCircle(myHero.x, myHero.y, myHero.z, SkillQ.range, SkillQ.color)
 				end
 				if SkillW.ready and KatarinaMenu.drawing.drawW then
-					DrawCircle(myHero.x, myHero.y, myHero.z, SkillW.range, 0x20B2AA)
+					DrawCircle(myHero.x, myHero.y, myHero.z, SkillW.range, SkillW.color)
 				end
-				if SkillE.ready and KatarinaMenu.drawing.DrawE then
-					DrawCircle(myHero.x, myHero.y, myHero.z, SkillE.range, 0x800080)
+				if SkillE.ready and KatarinaMenu.drawing.drawE then
+					DrawCircle(myHero.x, myHero.y, myHero.z, SkillE.range, SkillE.color)
 				end
 			end
 		end
@@ -1257,7 +1264,7 @@ end
 	function OnProcessSpell(object,spell)
 		--- Tick Manager Check ---
 		--->
-			if not TManager.onSpell:isReady() then return end
+			if not TManager.onSpell:isReady() and KatarinaMenu.misc.uTM then return end
 		---<
 		--->
 			if object == myHero then
@@ -1364,7 +1371,7 @@ end
 function Checks()
 	--- Tick Manager Check ---
 	--->
-		if not TManager.onTick:isReady() then return end
+		if not TManager.onTick:isReady() and KatarinaMenu.misc.uTM then return end
 	---<
 	--- Tick Manager Check ---
 	if VIP_USER then
