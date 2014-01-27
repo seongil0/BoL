@@ -47,11 +47,11 @@ function OnTick()
 	ManaPotSlot = GetInventorySlotItem(2004)
 	FlaskSlot = GetInventorySlotItem(2041)
 	
-	if ConsumablesHelper.AutoHealthPots and MyHealthIsLow() then
+	if ConsumablesHelper.AutoHealthPots and isLow('Health') then
 		if FlaskSlot ~= nil and not (UsingHealthPot or UsingFlask) then CastSpell(FlaskSlot) end
 		if HealthPotSlot ~= nil and not (UsingHealthPot or UsingFlask) then CastSpell(HealthPotSlot) end
 	end
-	if ConsumablesHelper.AutoManaPots and MyManaIsLow() then
+	if ConsumablesHelper.AutoManaPots and isLow('Mana') then
 		if FlaskSlot ~= nil and not (UsingManaPot or UsingFlask) then CastSpell(FlaskSlot) end
 		if ManaPotSlot ~= nil and not (UsingManaPot or UsingFlask) then CastSpell(ManaPotSlot) end
 	end
@@ -95,18 +95,19 @@ function OnDeleteObj(obj)
 	end
 end
 
-function MyHealthIsLow()
-	if myHero.health < (myHero.maxHealth * ( ConsumablesHelper.PercentofHealth / 100)) then
-		return true
-	else
-		return false
+function isLow(Name)
+	if Name == 'Mana' then
+		if myHero.mana < (myHero.maxMana * ( ConsumablesHelper.PercentofMana / 100)) then
+			return true
+		else
+			return false
+		end
 	end
-end
-
-function MyManaIsLow()
-	if myHero.mana < (myHero.maxMana * ( ConsumablesHelper.PercentofMana / 100)) then
-		return true
-	else
-		return false
+	if Name == 'Health' then
+		if myHero.health < (myHero.maxHealth * ( ConsumablesHelper.PercentofHealth / 100)) then
+			return true
+		else
+			return false
+		end
 	end
 end
