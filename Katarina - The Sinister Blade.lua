@@ -9,7 +9,7 @@
 		YP   YD YP   YP    YP    YP   YP 88   YD Y888888P VP   V8P YP   YP 
                                                                    
 
-	Script - Katarina - The Sinister Blade 2.0.4 by Skeem
+	Script - Katarina - The Sinister Blade 2.0.5 by Skeem
 
 	Changelog :
    1.0	 - Initial Release
@@ -120,6 +120,9 @@
 		 - Fixed more typo and variables from 1.9
 		 - Made ward jumping more accurate
 		 - Fixed harass function
+   2.0.5 - FPS Lag should be fixed now
+         - Edited Ward Jump to jump at max range
+         - Added Jump to Allies if in danger
   	]] --		
 
 -- / Hero Name Check / --
@@ -131,7 +134,7 @@ function OnLoad()
 	--->
 		Variables()
 		KatarinaMenu()
-		PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 2.0.4 Loaded!! <<</font>")
+		PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 2.0.5 Loaded!! <<</font>")
 	---<
 end
 -- / Loading Function / --
@@ -177,6 +180,7 @@ function OnTick()
 		end
 		if KatarinaMenu.killsteal.smartKS then KillSteal() end
 		if KatarinaMenu.misc.AutoLevelSkills then autoLevelSetSequence(levelSequence) end
+		if KatarinaMenu.misc.jumpAllies then DangerCheck() end
 	---<
 end
 -- / Tick Function / --
@@ -189,6 +193,7 @@ function Variables()
 		SkillW = {range = 375, name = "Sinister Steel",		ready = false, color = ARGB(255, 32,178,170)}
 		SkillE = {range = 700, name = "Shunpo",				ready = false, color = ARGB(255,128, 0 ,128)}
 		SkillR = {range = 550, name = "Death Lotus",		ready = false								}
+		SkillWard = {range = 625}
 	---<
 	--- Skills Vars ---
 	--- Items Vars ---
@@ -246,7 +251,8 @@ function Variables()
 	--- Drawing Vars ---
 	--- Misc Vars ---
 	--->
-		lastwardused = 0
+		lastWardUsed = 0
+		wardObject = nil
 		levelSequence = { 1,3,2,2,2,4,2,1,2,1,4,1,1,3,3,4,3,3 }
 		UsingHPot = false
 		castDelay, castingUlt = 0, false
@@ -263,8 +269,8 @@ function Variables()
 		Wards = {}
 		allyHeroes = GetAllyHeroes()
 		enemyHeroes = GetEnemyHeroes()
-		enemyMinions = minionManager(MINION_ENEMY, 1000, player, MINION_SORT_HEALTH_ASC)
-		allyMinions = minionManager(MINION_ALLY, 1000, player, MINION_SORT_HEALTH_DES)
+		enemyMinions = minionManager(MINION_ENEMY, SkillE.range, player, MINION_SORT_HEALTH_ASC)
+		allyMinions = minionManager(MINION_ALLY, SkillE.range, player, MINION_SORT_HEALTH_ASC)
 		JungleMobs = {}
 		JungleFocusMobs = {}
 		priorityTable = {
@@ -353,7 +359,7 @@ function Variables()
 		end
 		for i = 0, objManager.maxObjects do
 			local object = objManager:getObject(i)
-			if object ~= nil then
+			if object and object.valid and not object.dead then
 				if FocusJungleNames[object.name] then
 					table.insert(JungleFocusMobs, object)
 				elseif JungleMobNames[object.name] then
@@ -435,6 +441,7 @@ function KatarinaMenu()
 		---> Misc Menu	
 		KatarinaMenu:addSubMenu("["..myHero.charName.." - Misc Settings]", "misc")
 			KatarinaMenu.misc:addParam("wardJumpKey", "Ward Jump Hotkey (G)", SCRIPT_PARAM_ONKEYDOWN, false, 71)
+			KatarinaMenu.misc:addParam("jumpAllies", "Jump To Allies if In Danger", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.misc:addParam("ZWItems", "Auto Zhonyas/Wooglets", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.misc:addParam("ZWHealth", "Min Health % for Zhonyas/Wooglets", SCRIPT_PARAM_SLICE, 15, 0, 100, -1)
 			KatarinaMenu.misc:addParam("aHP", "Auto Health Pots", SCRIPT_PARAM_ONOFF, true)
@@ -723,56 +730,56 @@ end
 -- / Ward Jumping Function / --
 function wardJump(x, y)
 	--->
-		if SkillE.ready then
-			if next(Wards) ~= nil then
-				for i, obj in pairs(Wards) do 
-					if obj.valid then
-						if GetDistance(obj, mousePos) <= 500 then
-							CastSpell(_E, obj)
-						else
-							if GetTickCount()-lastwardused >= 2000 then
-								if Items.TrinketWard.ready then
-									CastSpell(ITEM_7, x, y)
-									lastwardused = GetTickCount()
-								elseif Items.RubySightStone.ready then
-									CastSpell(rstSlot, x, y)
-									lastwardused = GetTickCount()
-								elseif Items.SightStone.ready then 
-									CastSpell(ssSlot, x, y)
-									lastwardused = GetTickCount()
-								elseif Items.SightWard.ready then 
-									CastSpell(swSlot, x, y)
-									lastwardused = GetTickCount()
-								elseif Items.VisionWard.ready then
-									CastSpell(vwSlot, x, y)
-									lastwardused = GetTickCount()
-								end
-							end
-						end
-					end
-				end
-			else
-				if GetTickCount()-lastwardused >= 2000 then
-					if Items.TrinketWard.ready then
-						CastSpell(ITEM_7, x, y)
-						lastwardused = GetTickCount()
-					elseif Items.RubySightStone.ready then
-						CastSpell(rstSlot, x, y)
-						lastwardused = GetTickCount()
-					elseif Items.SightStone.ready then 
-						CastSpell(ssSlot, x, y)
-						lastwardused = GetTickCount()
-					elseif Items.SightWard.ready then 
-						CastSpell(swSlot, x, y)
-						lastwardused = GetTickCount()
-					elseif Items.VisionWard.ready then
-						CastSpell(vwSlot, x, y)
-						lastwardused = GetTickCount()
+        if SkillE.ready then
+        	local WardUsed = false
+        	local WardDistance = 300
+        	local MinionWard, AllyWard = false, false
+        	for _, ally in pairs(allyHeroes) do
+				if ValidTarget(ally, SkillE.range, false) then
+					if GetDistance(ally, mousePos) <= WardDistance then
+						AllyWard = true
+						CastSpell(_E, Ally)
 					end
 				end
 			end
-		end
-	---<
+        	for _, minion in pairs(allyMinions.objects) do
+        		if ValidTarget(minion, SkillE.range, false) then
+        			if GetDistance(minion, mousePos) <= WardDistance then
+        				MinionWard = true
+        				CastSpell(_E, minion)
+        			end
+        		end
+        	end
+            if next(Wards) ~= nil then
+                for i, obj in pairs(Wards) do 
+                    if obj.valid then
+                        MousePos = getMousePos()
+	                    if GetDistance(obj, MousePos) <= WardDistance then
+                            CastSpell(_E, obj)
+                         end
+                    end
+                end
+            end
+	        if not (WardUsed or MinionWard or AllyWard) then
+                if Items.TrinketWard.ready then
+                    CastSpell(ITEM_7, x, y)
+                    WardUsed = true
+                elseif Items.RubySightStone.ready then
+                    CastSpell(rstSlot, x, y)
+                    WardUsed = true
+                elseif Items.SightStone.ready then 
+                    CastSpell(ssSlot, x, y)
+                    WardUsed = true
+                elseif Items.SightWard.ready then 
+                    CastSpell(swSlot, x, y)
+                    WardUsed = true
+                elseif Items.VisionWard.ready then
+                    CastSpell(vwSlot, x, y)
+                    WardUsed = true
+                end
+            end
+        end
+    ---<
 end
 -- / Ward Jumping Function / --
 
@@ -838,11 +845,11 @@ function DamageCalculation()
     	        wDmg = (SkillW.ready and getDmg("W",enemy,myHero) or 0)
 				eDmg = (SkillE.ready and getDmg("E",enemy,myHero) or 0)
             	rDmg = getDmg("R",enemy,myHero,3)
-				if dfgReady then dfgDmg = (dfgSlot and getDmg("DFG",enemy,myHero) or 0)	end
-				if bftReady then bftdmg = (bftSlot and getDmg("BLACKFIRE",enemy,myHero) or 0) end
-        	    if hxgReady then hxgDmg = (hxgSlot and getDmg("HXG",enemy,myHero) or 0) end
-            	if bwcReady then bwcDmg = (bwcSlot and getDmg("BWC",enemy,myHero) or 0) end
-            	if iReady then iDmg = (ignite and getDmg("IGNITE",enemy,myHero) or 0) end
+				dfgDmg = (dfgReady and getDmg("DFG", enemy, myHero) or 0)
+        	    hxgDmg = (hxgReady and getDmg("HXG", enemy, myHero) or 0)
+            	bwcDmg = (bwcReady and getDmg("BWC", enemy, myHero) or 0)
+            	bftdmg = (bftReady and getDmg("BLACKFIRE", enemy, myHero) or 0)
+            	iDmg = (ignite and getDmg("IGNITE",enemy,myHero) or 0)
             	onspellDmg = (liandrysSlot and getDmg("LIANDRYS",enemy,myHero) or 0)+(blackfireSlot and getDmg("BLACKFIRE",enemy,myHero) or 0)
             	itemsDmg = dfgDmg + bftDmg + hxgDmg + bwcDmg + iDmg + onspellDmg
     ---<
@@ -956,6 +963,20 @@ end
 -- / KillSteal Function / --
 
 -- / Misc Functions / --
+--- Danger Check ---
+--->
+	function DangerCheck()
+		if isInDanger(myHero) and Target then
+			for _, Ally in pairs(allyHeroes) do
+				if ValidTarget(Ally, SkillE.range, false) then
+					if GetDistance(Ally, Target) < GetDistance(myHero, Target) then
+						if SkillE.ready then CastSpell(_E, Ally) end
+					end
+				end
+			end
+		end
+	end
+---<
 --- Get Mouse Pos Function by Klokje ---
 --->
 	function getMousePos(range)
@@ -988,19 +1009,20 @@ end
 --- Checking if Hero in Danger ---
 --->
 	function isInDanger(hero)
-		nEnemiesClose, nEnemiesFar = 0, 0
-		hpPercent = hero.health / hero.maxHealth
-		for _, enemy in pairs(enemies) do
-			if not enemy.dead and hero:GetDistance(enemy) <= 500 then 
-				nEnemiesClose = nEnemiesClose + 1 
-				if hpPercent < 0.5 and hpPercent < enemy.health / enemy.maxHealth then return true end
-			elseif not enemy.dead and hero:GetDistance(enemy) <= 1000 then
-				nEnemiesFar = nEnemiesFar + 1 
-			end
-		end
-		if nEnemiesClose > 1 then return true end
-		if nEnemiesClose == 1 and nEnemiesFar > 1 then return true end
-		return false
+        nEnemiesClose, nEnemiesFar = 0, 0
+        hpPercent = hero.health / hero.maxHealth
+        for _, enemy in pairs(enemyHeroes) do
+                if not enemy.dead and hero:GetDistance(enemy) <= 200 then
+                        nEnemiesClose = nEnemiesClose + 1
+                        if hpPercent < 0.5 and hpPercent < enemy.health / enemy.maxHealth then return true end
+                elseif not enemy.dead and hero:GetDistance(enemy) <= 1000 then
+                        nEnemiesFar = nEnemiesFar + 1
+                end
+        end
+       
+        if nEnemiesClose > 1 then return true end
+        if nEnemiesClose == 1 and nEnemiesFar > 1 then return true end
+        return false
 	end
 ---<
 --- Checking if Hero in Danger ---
@@ -1140,6 +1162,11 @@ function OnDeleteObj(obj)
 			for i, Mob in pairs(JungleFocusMobs) do
 				if obj.name == Mob.name then
 					table.remove(JungleFocusMobs, i)
+				end
+			end
+			for i,ward in ipairs(Wards) do
+				if not ward.valid or (obj.name == ward.name and obj.x == ward.x and obj.z == ward.z) then
+					table.remove(Wards,i)
 				end
 			end
 		end
@@ -1455,40 +1482,7 @@ function Checks()
 		Items.SightWard.ready        = (swSlot ~= nil and myHero:CanUseSpell(swSlot) == READY)
 		Items.VisionWard.ready       = (vwSlot ~= nil and myHero:CanUseSpell(vwSlot) == READY)
 	---<
-	--- Checks if Wards are Ready ---	
-	--- Updates Wards that Die ---
-	--->
-		if next(Wards)~=nil then
-			for i, obj in pairs(Wards) do
-				if not obj.valid then
-					table.remove(Wards, i)
-				end
-			end
-		end
-	---<
-	--- Updates Wards that Die ---
-	--- Inserts Allies into Ward Table ---
-	--->
-		for _, ally in pairs(allyHeroes) do
-			if GetDistance(ally) < SkillE.range and ValidTarget(minion) then
-				table.insert(Wards, ally)
-			end
-		end
-	---<
-	--- Inserts Allies into Ward Table ---
-	--- Inserts Minions into Ward Table ---
-		for _, EnemyMinion in pairs(enemyMinions.objects) do
-			if GetDistance(EnemyMinion) < (SkillE.range + 200) and ValidTarget(EnemyMinion) then
-				table.insert(Wards, EnemyMinion)
-			end
-		end
-		for _, AllyMinion in pairs(allyMinions.objects) do
-			if GetDistance(AllyMinion) < (SkillE.range + 200) then
-				table.insert(Wards, AllyMinion)
-			end
-		end
-	---<
-	--- Inserts Minions Into Ward Table ---
+	--- Checks if Wards are Ready ---
 	--- Updates Minions ---
 	--->
 		enemyMinions:update()
