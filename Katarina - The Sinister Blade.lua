@@ -123,6 +123,7 @@
    2.0.5 - FPS Lag should be fixed now
          - Edited Ward Jump to jump at max range
          - Added Jump to Allies if in danger
+		 - Fixed Ulti problem for Free Users
   	]] --		
 
 -- / Hero Name Check / --
@@ -1256,7 +1257,7 @@ end
 	function OrbWalking(Target)
 		if TimeToAttack() and GetDistance(Target) <= myHero.range + GetDistance(myHero.minBBox) then
 			myHero:Attack(Target)
-    	elseif heroCanMove() then
+    	elseif heroCanMove() and (not isChanneling("Spell4") and not castingUlt) then
         	moveToCursor()
     	end
 	end
