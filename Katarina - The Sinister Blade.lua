@@ -1218,7 +1218,7 @@ function OnDraw()
         			local barPos = WorldToScreen(D3DXVECTOR3(enemy.x, enemy.y, enemy.z)) --(Credit to Zikkah)
 					local PosX = barPos.x - 35
 					local PosY = barPos.y - 10
-					if KillText[i] ~= 9 then
+					if KillText[i] ~= 10 then
 						DrawText(TextList[KillText[i]], 16, PosX, PosY, colorText)
 					else
 						DrawText(TextList[KillText[i]] .. string.format("%4.1f", ((enemy.health - (qDmg + pDmg + wDmg + eDmg + itemsDmg)) / rDmg) * 2.5) .. "s = Kill", 16, PosX, PosY, colorText)
