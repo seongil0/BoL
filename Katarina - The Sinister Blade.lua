@@ -583,7 +583,7 @@ function Farm()
 						end
 					elseif eFarmKey then
 						if minion.health <= eMinionDmg then
-							CastSpell(_E, minion)
+							CastE(minion)
 						end
 					end
 				end
@@ -739,7 +739,7 @@ function wardJump(x, y)
 				if ValidTarget(ally, SkillE.range, false) then
 					if GetDistance(ally, mousePos) <= WardDistance then
 						AllyWard = true
-						CastSpell(_E, Ally)
+						CastSpell(_E, ally)
 					end
 				end
 			end
@@ -968,10 +968,10 @@ end
 --->
 	function DangerCheck()
 		if isInDanger(myHero) and Target then
-			for _, Ally in pairs(allyHeroes) do
+			for _, ally in pairs(allyHeroes) do
 				if ValidTarget(Ally, SkillE.range, false) then
 					if GetDistance(Ally, Target) < GetDistance(myHero, Target) then
-						if SkillE.ready then CastSpell(_E, Ally) end
+						if SkillE.ready then CastSpell(_E, ally) end
 					end
 				end
 			end
