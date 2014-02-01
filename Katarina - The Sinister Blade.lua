@@ -1255,11 +1255,13 @@ end
 --- Orbwalking Target ---
 --->
 	function OrbWalking(Target)
-		if TimeToAttack() and GetDistance(Target) <= myHero.range + GetDistance(myHero.minBBox) then
-			myHero:Attack(Target)
-    	elseif heroCanMove() and (not isChanneling("Spell4") and not castingUlt) then
-        	moveToCursor()
-    	end
+		if not isChanneling("Spell4") and not castingUlt then
+			if TimeToAttack() and GetDistance(Target) <= myHero.range + GetDistance(myHero.minBBox) then
+				myHero:Attack(Target)
+			elseif heroCanMove() then
+				moveToCursor()
+			end
+		end
 	end
 ---<
 --- Orbwalking Target ---
