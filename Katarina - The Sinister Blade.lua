@@ -124,6 +124,8 @@
          - Edited Ward Jump to jump at max range
          - Added Jump to Allies if in danger
 		 - Fixed Ulti problem for Free Users
+		 - Updated Damage Calculation
+			- Added: Q+E+W+Itm = Kill
   	]] --		
 
 -- / Hero Name Check / --
@@ -239,7 +241,7 @@ function Variables()
 	end
 	--- Drawing Vars ---
 	--->
-		TextList = {"Harass him", "Q = Kill", "W = Kill", "E = Kill!", "Q+W = Kill", "Q+E = Kill", "E+W = Kill", "Q+E+W = Kill", "Q+W+E+R: ", "Need CDs"}
+		TextList = {"Harass him", "Q = Kill", "W = Kill", "E = Kill!", "Q+W = Kill", "Q+E = Kill", "E+W = Kill", "Q+E+W = Kill", "Q+E+W+Itm = Kill", "Q+W+E+R: ", "Need CDs"}
 		KillText = {}
 		colorText = ARGB(255,255,204,0)
 		wardColor =
@@ -863,49 +865,55 @@ function DamageCalculation()
 					if SkillQ.ready then
 						KillText[i] = 2
 					else
-						KillText[i] = 10
+						KillText[i] = 11
 					end
 				elseif enemy.health <= wDmg then
 					if SkillW.ready then
 						KillText[i] = 3
 					else
-						KillText[i] = 10
+						KillText[i] = 11
 					end
 				elseif enemy.health <= eDmg then
 					if SkillE.ready then
 						KillText[i] = 4
 					else
-						KillText[i] = 10
+						KillText[i] = 11
 					end
 				elseif enemy.health <= (qDmg + wDmg) and SkillQ.ready and SkillW.ready then
 					if SkillQ.ready and SkillW.ready then
 						KillText[i] = 5
 					else
-						KillText[i] = 10
+						KillText[i] = 11
 					end
 				elseif enemy.health <= (qDmg + eDmg) and SkillQ.ready and SkillE.ready then
 					if SkillQ.ready and SkillE.ready then
 						KillText[i] = 6
 					else
-						KillText[i] = 10
+						KillText[i] = 11
 					end
 				elseif enemy.health <= (wDmg + eDmg) and SkillW.ready and SkillE.ready then
 					if SkillW.ready and SkillE.ready then
 						KillText[i] = 7
 					else
-						KillText[i] = 10
+						KillText[i] = 11
 					end
 				elseif enemy.health <= (qDmg + wDmg + eDmg) and SkillQ.ready and SkillW.ready and SkillE.ready then
 					if SkillQ.ready and SkillW.ready and SkillE.ready then
 						KillText[i] = 8
 					else
-						KillText[i] = 10
+						KillText[i] = 11
 					end
-				elseif enemy.health <= (qDmg + pDmg + wDmg + eDmg + rDmg + itemsDmg) then
+				elseif (enemy.health <= (qDmg + wDmg + eDmg + itemsDmg) or enemy.health <= (qDmg + pDmg + wDmg + eDmg + itemsDmg)) and SkillQ.ready and SkillW.ready and SkillE.ready then
 					if SkillQ.ready and SkillW.ready and SkillE.ready then
 						KillText[i] = 9
 					else
+						KillText[i] = 11
+					end
+				elseif enemy.health <= (qDmg + pDmg + wDmg + eDmg + rDmg + itemsDmg) then
+					if SkillQ.ready and SkillW.ready and SkillE.ready then
 						KillText[i] = 10
+					else
+						KillText[i] = 11
 					end
 				end
 			end
@@ -1255,7 +1263,7 @@ end
 --- Orbwalking Target ---
 --->
 	function OrbWalking(Target)
-		if not isChanneling("Spell4") and not castingUlt then
+		if not isChanneling("Spell4") then
 			if TimeToAttack() and GetDistance(Target) <= myHero.range + GetDistance(myHero.minBBox) then
 				myHero:Attack(Target)
 			elseif heroCanMove() then
