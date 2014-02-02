@@ -126,6 +126,8 @@
 		 - Fixed Ulti problem for Free Users
 		 - Updated Damage Calculation
 			- Added: Q+E+W+Itm = Kill
+		 - Hopefully fixed Ward-Jump
+		 - Improved Ulti functionality for VIP and Free Users
   	]] --		
 
 -- / Hero Name Check / --
@@ -763,7 +765,7 @@ function wardJump(x, y)
                     end
                 end
             end
-	        if not (WardUsed or MinionWard or AllyWard) then
+	        if (not WardUsed or not MinionWard or not AllyWard) then
                 if Items.TrinketWard.ready then
                     CastSpell(ITEM_7, x, y)
                     WardUsed = true
@@ -1090,7 +1092,7 @@ end
 function OnSendPacket(packet)
 	-- Block Packets if Channeling --
 	--->
-		if isChanneling("Spell4") then
+		if isChanneling("Spell4") and GetDistance(Target) > SkillR.range then
 			local packet = Packet(packet)
 			if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' and packet:get('sourceNetworkId') == myHero.networkID then
 				if KatarinaMenu.combo.stopUlt then
@@ -1263,7 +1265,7 @@ end
 --- Orbwalking Target ---
 --->
 	function OrbWalking(Target)
-		if not isChanneling("Spell4") then
+		if not isChanneling("Spell4") and GetDistance(Target) > SkillR.range then
 			if TimeToAttack() and GetDistance(Target) <= myHero.range + GetDistance(myHero.minBBox) then
 				myHero:Attack(Target)
 			elseif heroCanMove() then
