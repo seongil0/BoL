@@ -128,6 +128,7 @@
 			- Added: Q+E+W+Itm = Kill
 		 - Hopefully fixed Ward-Jump
 		 - Improved Ulti functionality for VIP and Free Users
+		 - Fixed a bug where Katarina was not farming with W if only W was Enabled to farm
   	]] --		
 
 -- / Hero Name Check / --
@@ -579,6 +580,12 @@ function Farm()
 								CastSpell(_Q, minion)
 							end
 						end
+					elseif not qFarmKey and wFarmKey then
+						if SkillW.ready then
+							if minion.health <= (wMinionDmg) then
+								CastSpell(_W)
+							end
+						end
 					end
 				elseif (GetDistance(minion) > SkillW.range) and (GetDistance(minion) <= SkillQ.range) then
 					if qFarmKey then
@@ -765,7 +772,7 @@ function wardJump(x, y)
                     end
                 end
             end
-	        if (not WardUsed or not MinionWard or not AllyWard) then
+	        if not WardUsed or not MinionWard or not AllyWard then
                 if Items.TrinketWard.ready then
                     CastSpell(ITEM_7, x, y)
                     WardUsed = true
