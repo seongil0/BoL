@@ -1099,18 +1099,20 @@ end
 function OnSendPacket(packet)
 	-- Block Packets if Channeling --
 	--->
-		if isChanneling("Spell4") and GetDistance(Target) > SkillR.range then
-			local packet = Packet(packet)
-			if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' and packet:get('sourceNetworkId') == myHero.networkID then
-				if KatarinaMenu.combo.stopUlt then
-					if Target and GetDistance(Target) < SkillR.range then
-						if not SkillQ.ready and SkillW.ready and SkillE.ready and Target.health > (qDmg + wDmg + eDmg) then
+		for _, Ally in pairs(allyHeroes) do
+			if isChanneling("Spell4") and GetDistance(Ally) > SkillR.range then
+				local packet = Packet(packet)
+				if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' and packet:get('sourceNetworkId') == myHero.networkID then
+					if KatarinaMenu.combo.stopUlt then
+						if Target and GetDistance(Target) < SkillR.range then
+							if not SkillQ.ready and SkillW.ready and SkillE.ready and Target.health > (qDmg + wDmg + eDmg) then
+								packet:block()
+							end
+						end
+					else
+						if Target and GetDistance(Target) < SkillR.range then
 							packet:block()
 						end
-					end
-				else
-					if Target and GetDistance(Target) < SkillR.range then
-						packet:block()
 					end
 				end
 			end
@@ -1272,11 +1274,13 @@ end
 --- Orbwalking Target ---
 --->
 	function OrbWalking(Target)
-		if not isChanneling("Spell4") and GetDistance(Target) > SkillR.range then
-			if TimeToAttack() and GetDistance(Target) <= myHero.range + GetDistance(myHero.minBBox) then
-				myHero:Attack(Target)
-			elseif heroCanMove() then
-				moveToCursor()
+		for _, Ally in pairs(allyHeroes) do
+			if not isChanneling("Spell4") and GetDistance(Ally) > SkillR.range then
+				if TimeToAttack() and GetDistance(Target) <= myHero.range + GetDistance(myHero.minBBox) then
+					myHero:Attack(Target)
+				elseif heroCanMove() then
+					moveToCursor()
+				end
 			end
 		end
 	end
