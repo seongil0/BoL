@@ -1099,8 +1099,8 @@ end
 function OnSendPacket(packet)
 	-- Block Packets if Channeling --
 	--->
-		for _, Ally in pairs(allyHeroes) do
-			if isChanneling("Spell4") and GetDistance(Ally) > SkillR.range then
+		for _, enemy in pairs(enemyHeroes) do
+			if isChanneling("Spell4") and GetDistance(enemy) > SkillR.range then
 				local packet = Packet(packet)
 				if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' and packet:get('sourceNetworkId') == myHero.networkID then
 					if KatarinaMenu.combo.stopUlt then
@@ -1274,8 +1274,8 @@ end
 --- Orbwalking Target ---
 --->
 	function OrbWalking(Target)
-		for _, Ally in pairs(allyHeroes) do
-			if not isChanneling("Spell4") and GetDistance(Ally) > SkillR.range then
+		for _, enemy in pairs(enemyHeroes) do
+			if not isChanneling("Spell4") and GetDistance(enemy) > SkillR.range then
 				if TimeToAttack() and GetDistance(Target) <= myHero.range + GetDistance(myHero.minBBox) then
 					myHero:Attack(Target)
 				elseif heroCanMove() then
