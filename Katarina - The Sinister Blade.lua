@@ -131,6 +131,8 @@
 		 - Fixed a bug where Katarina was not farming with W if only W was Enabled to farm
   	]] --		
 
+require "DrawDamageLib"
+
 -- / Hero Name Check / --
 if myHero.charName ~= "Katarina" then return end
 -- / Hero Name Check / --
@@ -762,6 +764,14 @@ function wardJump(x, y)
         			end
         		end
         	end
+			for _, minion in pairs(enemyMinions.objects) do
+        		if ValidTarget(minion, SkillE.range, false) then
+        			if GetDistance(minion, mousePos) <= WardDistance then
+        				MinionWard = true
+        				CastSpell(_E, minion)
+        			end
+        		end
+        	end
             if next(Wards) ~= nil then
                 for i, obj in pairs(Wards) do 
                     if obj.valid then
@@ -772,20 +782,22 @@ function wardJump(x, y)
                     end
                 end
             end
-	        if not WardUsed or not MinionWard or not AllyWard then
+			
+			local wUsed = (not WardUsed or not MinionWard or not AllyWard)
+	        if wUsed then
                 if Items.TrinketWard.ready then
                     CastSpell(ITEM_7, x, y)
                     WardUsed = true
-                elseif Items.RubySightStone.ready then
+                elseif Items.RubySightStone.ready and wUsed then
                     CastSpell(rstSlot, x, y)
                     WardUsed = true
-                elseif Items.SightStone.ready then 
+                elseif Items.SightStone.ready and wUsed then 
                     CastSpell(ssSlot, x, y)
                     WardUsed = true
-                elseif Items.SightWard.ready then 
+                elseif Items.SightWard.ready and wUsed then 
                     CastSpell(swSlot, x, y)
                     WardUsed = true
-                elseif Items.VisionWard.ready then
+                elseif Items.VisionWard.ready and wUsed then
                     CastSpell(vwSlot, x, y)
                     WardUsed = true
                 end
@@ -804,6 +816,7 @@ function UseItems(enemy)
 		end
 		if ValidTarget(enemy) then
 			if dfgReady and GetDistance(enemy) <= 600 then CastSpell(dfgSlot, enemy) end
+			if bftReady and GetDistance(enemy) <= 600 then CastSpell(bftSlot, enemy) end
 			if hxgReady and GetDistance(enemy) <= 600 then CastSpell(hxgSlot, enemy) end
 			if bwcReady and GetDistance(enemy) <= 450 then CastSpell(bwcSlot, enemy) end
 			if brkReady and GetDistance(enemy) <= 450 then CastSpell(brkSlot, enemy) end
@@ -1205,6 +1218,7 @@ function OnDraw()
 	--->
 	--- Drawing Our Ranges ---
 	--->
+		drawDamage()
 		if not myHero.dead then
 			if not KatarinaMenu.drawing.disableAll then
 				if SkillQ.ready and KatarinaMenu.drawing.drawQ then 
