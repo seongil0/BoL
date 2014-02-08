@@ -131,8 +131,6 @@
 		 - Fixed a bug where Katarina was not farming with W if only W was Enabled to farm
   	]] --		
 
-require "DrawDamageLib"
-
 -- / Hero Name Check / --
 if myHero.charName ~= "Katarina" then return end
 -- / Hero Name Check / --
@@ -1218,7 +1216,6 @@ function OnDraw()
 	--->
 	--- Drawing Our Ranges ---
 	--->
-		drawDamage()
 		if not myHero.dead then
 			if not KatarinaMenu.drawing.disableAll then
 				if SkillQ.ready and KatarinaMenu.drawing.drawQ then 
