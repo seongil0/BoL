@@ -121,15 +121,17 @@
 		 - Made ward jumping more accurate
 		 - Fixed harass function
    2.0.5 - FPS Lag should be fixed now
-         - Edited Ward Jump to jump at max range
-         - Added Jump to Allies if in danger
+		 - Edited Ward Jump to jump at max range
+		 - Added Jump to Allies if in danger
 		 - Fixed Ulti problem for Free Users
 		 - Updated Damage Calculation
 			- Added: Q+E+W+Itm = Kill
 		 - Hopefully fixed Ward-Jump
 		 - Improved Ulti functionality for VIP and Free Users
 		 - Fixed a bug where Katarina was not farming with W if only W was Enabled to farm
-  	]] --		
+		 - Fixed a bug with Damage Calculation
+		 - Added Liandry's Torment into the Damage Calculation
+  	]] --
 
 -- / Hero Name Check / --
 if myHero.charName ~= "Katarina" then return end
@@ -465,9 +467,9 @@ function KatarinaMenu()
 			if heroManager.iCount < 10 then -- borrowed from Sidas Auto Carry, modified to 3v3
        			PrintChat(" >> Too few champions to arrange priority")
 			elseif heroManager.iCount == 6 and TTMAP then
-				ArrangeTTPrioritys()
+				ArrangeTTPriorities()
     		else
-        		ArrangePrioritys()
+        		ArrangePriorities()
     		end
     	---<
 	---<
@@ -482,7 +484,7 @@ function FullCombo()
 		if castDelay == 0 then
 			castingUlt = false
 		end
-		if not isChanneling("Spell4") and not castingUlt then
+		if not (isChanneling("Spell4") or castingUlt) then
 			if Target then
 				if KatarinaMenu.combo.comboOrbwalk then
 					OrbWalking(Target)
@@ -862,7 +864,7 @@ function DamageCalculation()
  		for i=1, heroManager.iCount do
 		local enemy = heroManager:GetHero(i)
 			if ValidTarget(enemy) then
-				dfgDmg, hxgDmg, bwcDmg, iDmg, bftDmg = 0, 0, 0, 0, 0
+				dfgDmg, hxgDmg, bwcDmg, iDmg, bftDmg, liandrysDmg = 0, 0, 0, 0, 0, 0
 				pDmg = (SkillQ.ready and getDmg("Q", enemy, myHero, 2) or 0)
 				qDmg = (SkillQ.ready and getDmg("Q",enemy,myHero) or 0)
     	        wDmg = (SkillW.ready and getDmg("W",enemy,myHero) or 0)
@@ -872,9 +874,10 @@ function DamageCalculation()
         	    hxgDmg = (hxgReady and getDmg("HXG", enemy, myHero) or 0)
             	bwcDmg = (bwcReady and getDmg("BWC", enemy, myHero) or 0)
             	bftdmg = (bftReady and getDmg("BLACKFIRE", enemy, myHero) or 0)
+				liandrysDmg = (liandrysReady and getDmg("LIANDRYS", enemy, myHero) or 0)
             	iDmg = (ignite and getDmg("IGNITE",enemy,myHero) or 0)
-            	onspellDmg = (liandrysSlot and getDmg("LIANDRYS",enemy,myHero) or 0)+(blackfireSlot and getDmg("BLACKFIRE",enemy,myHero) or 0)
-            	itemsDmg = dfgDmg + bftDmg + hxgDmg + bwcDmg + iDmg + onspellDmg
+            	onspellDmg = liandrysDmg + bftDmg
+            	itemsDmg = dfgDmg + hxgDmg + bwcDmg + iDmg + onspellDmg
     ---<
     --- Calculate our Damage On Enemies ---
     --- Setting KillText Color & Text ---
@@ -1069,7 +1072,7 @@ end
 --- Get Jungle Mob Function by Apple ---
 --- Arrange Priorities 5v5 ---
 --->
-	function ArrangePrioritys()
+	function ArrangePriorities()
     	for i, enemy in pairs(enemyHeroes) do
         	SetPriority(priorityTable.AD_Carry, enemy, 1)
         	SetPriority(priorityTable.AP, enemy, 2)
@@ -1082,7 +1085,7 @@ end
 --- Arrange Priorities 5v5 ---
 --- Arrange Priorities 3v3 ---
 --->
-	function ArrangeTTPrioritys()
+	function ArrangeTTPriorities()
 		for i, enemy in pairs(enemyHeroes) do
 			SetPriority(priorityTable.AD_Carry, enemy, 1)
         	SetPriority(priorityTable.AP, enemy, 1)
@@ -1286,7 +1289,7 @@ end
 --->
 	function OrbWalking(Target)
 		for _, enemy in pairs(enemyHeroes) do
-			if not isChanneling("Spell4") and GetDistance(enemy) > SkillR.range then
+			if not (isChanneling("Spell4") or castingUlt) and GetDistance(enemy) > SkillR.range then
 				if TimeToAttack() and GetDistance(Target) <= myHero.range + GetDistance(myHero.minBBox) then
 					myHero:Attack(Target)
 				elseif heroCanMove() then
@@ -1469,19 +1472,20 @@ function Checks()
 	--- Checks and finds Ignite ---
 	--- Slots for Items ---
 	--->
-		rstSlot, ssSlot, swSlot, vwSlot =    GetInventorySlotItem(2045),
-										     GetInventorySlotItem(2049),
-										     GetInventorySlotItem(2044),
-										     GetInventorySlotItem(2043)
-		dfgSlot, hxgSlot, bwcSlot, brkSlot = GetInventorySlotItem(3128),
-											 GetInventorySlotItem(3146),
-											 GetInventorySlotItem(3144),
-											 GetInventorySlotItem(3153)
-		hpSlot, fskSlot =            		 GetInventorySlotItem(2003),
-								             GetInventorySlotItem(2041)
-		znaSlot, wgtSlot, bftSlot =          GetInventorySlotItem(3157),
-	    	                                 GetInventorySlotItem(3090),
-											 GetInventorySlotItem(3188)
+		rstSlot, ssSlot, swSlot, vwSlot =			GetInventorySlotItem(2045),
+													GetInventorySlotItem(2049),
+													GetInventorySlotItem(2044),
+													GetInventorySlotItem(2043)
+		dfgSlot, hxgSlot, bwcSlot, brkSlot =		GetInventorySlotItem(3128),
+													GetInventorySlotItem(3146),
+													GetInventorySlotItem(3144),
+													GetInventorySlotItem(3153)
+		hpSlot, fskSlot =							GetInventorySlotItem(2003),
+													GetInventorySlotItem(2041)
+		znaSlot, wgtSlot, bftSlot, liandrysSlot =	GetInventorySlotItem(3157),
+													GetInventorySlotItem(3090),
+													GetInventorySlotItem(3188),
+													GetInventorySlotItem(3151)
 	---<
 	--- Slots for Items ---
 	--- Checks if Spells are Ready ---
@@ -1494,13 +1498,14 @@ function Checks()
 	---<
 	--- Checks if Active Items are Ready ---
 	--->
-		dfgReady = (dfgSlot ~= nil and myHero:CanUseSpell(dfgSlot) == READY)
-		hxgReady = (hxgSlot ~= nil and myHero:CanUseSpell(hxgSlot) == READY)
-		bwcReady = (bwcSlot ~= nil and myHero:CanUseSpell(bwcSlot) == READY)
-		brkReady = (brkSlot ~= nil and myHero:CanUseSpell(brkSlot) == READY)
-		znaReady = (znaSlot ~= nil and myHero:CanUseSpell(znaSlot) == READY)
-		wgtReady = (wgtSlot ~= nil and myHero:CanUseSpell(wgtSlot) == READY)
-		bftReady = (bftSlot ~= nil and myHero:CanUseSpell(bftSlot) == READY)
+		dfgReady		= (dfgSlot		~= nil and myHero:CanUseSpell(dfgSlot)		== READY)
+		hxgReady		= (hxgSlot		~= nil and myHero:CanUseSpell(hxgSlot)		== READY)
+		bwcReady		= (bwcSlot		~= nil and myHero:CanUseSpell(bwcSlot)		== READY)
+		brkReady		= (brkSlot		~= nil and myHero:CanUseSpell(brkSlot)		== READY)
+		znaReady		= (znaSlot		~= nil and myHero:CanUseSpell(znaSlot)		== READY)
+		wgtReady		= (wgtSlot		~= nil and myHero:CanUseSpell(wgtSlot)		== READY)
+		bftReady		= (bftSlot		~= nil and myHero:CanUseSpell(bftSlot)		== READY)
+		lyandrisReady	= (liandrysSlot ~= nil and myHero:CanUseSpell(liandrysSlot) == READY)
 	---<
 	--- Checks if Items are Ready ---
 	--- Checks if Health Pots / Mana Pots are Ready ---
