@@ -752,7 +752,7 @@ function wardJump(x, y)
 				if ValidTarget(ally, SkillE.range, false) then
 					if GetDistance(ally, mousePos) <= WardDistance then
 						AllyWard = true
-						CastE(ally)
+						CastSpell(_E, ally)
 					end
 				end
 			end
@@ -760,7 +760,7 @@ function wardJump(x, y)
         		if ValidTarget(minion, SkillE.range, false) then
         			if GetDistance(minion, mousePos) <= WardDistance then
         				MinionWard = true
-        				CastE(minion)
+        				CastSpell(_E, minion)
         			end
         		end
         	end
@@ -768,7 +768,7 @@ function wardJump(x, y)
         		if ValidTarget(minion, SkillE.range, false) then
         			if GetDistance(minion, mousePos) <= WardDistance then
         				MinionWard = true
-        				CastE(minion)
+        				CastSpell(_E, minion)
         			end
         		end
         	end
@@ -777,7 +777,7 @@ function wardJump(x, y)
                     if obj.valid then
                         MousePos = getMousePos()
 	                    if GetDistance(obj, MousePos) <= WardDistance then
-                            CastE(obj)
+                            CastSpell(_E, obj)
                          end
                     end
                 end
