@@ -131,6 +131,7 @@
 		 - Fixed a bug where Katarina was not farming with W if only W was Enabled to farm
 		 - Fixed a bug with Damage Calculation
 		 - Added Liandry's Torment into the Damage Calculation
+		 - Increased Farming Performance
   	]] --
 
 -- / Hero Name Check / --
@@ -142,7 +143,7 @@ function OnLoad()
 	--->
 		Variables()
 		KatarinaMenu()
-		PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 2.0.5 Loaded!! <<</font>")
+		PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 2.0.5 Loaded <<</font>")
 	---<
 end
 -- / Loading Function / --
@@ -549,6 +550,7 @@ function Farm()
 	--->
 		for _, minion in pairs(enemyMinions.objects) do
 			--- Minion Damages ---
+			local pMinionDmg = getDmg("Q", minion, myHero, 2)
 			local qMinionDmg = getDmg("Q", minion, myHero)
         	local wMinionDmg = getDmg("W", minion, myHero)
 			local eMinionDmg = getDmg("E", minion, myHero)
@@ -563,7 +565,7 @@ function Farm()
 				if GetDistance(minion) <= SkillW.range then
 					if qFarmKey and wFarmKey then
 						if SkillQ.ready and SkillW.ready then
-							if minion.health <= (qMinionDmg + wMinionDmg) and minion.health > wMinionDmg then
+							if minion.health <= (pMinionDmg + qMinionDmg + wMinionDmg) and minion.health > wMinionDmg then
 								CastQ(minion)
 								CastSpell(_W)
 							end
