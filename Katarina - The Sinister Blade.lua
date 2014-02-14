@@ -564,7 +564,7 @@ function Farm()
 					if qFarmKey and wFarmKey then
 						if SkillQ.ready and SkillW.ready then
 							if minion.health <= (qMinionDmg + wMinionDmg) and minion.health > wMinionDmg then
-								CastSpell(_Q, minion)
+								CastQ(minion)
 								CastSpell(_W)
 							end
 						elseif SkillW.ready then
@@ -573,13 +573,13 @@ function Farm()
 							end
 						elseif SkillQ.ready and not SkillW.ready then
 							if minion.health <= (qMinionDmg) then
-								CastSpell(_Q, minion)
+								CastQ(minion)
 							end
 						end
 					elseif qFarmKey and not wFarmKey then
 						if SkillQ.ready then
 							if minion.health <= (qMinionDmg) then
-								CastSpell(_Q, minion)
+								CastQ(minion)
 							end
 						end
 					elseif not qFarmKey and wFarmKey then
@@ -592,7 +592,7 @@ function Farm()
 				elseif (GetDistance(minion) > SkillW.range) and (GetDistance(minion) <= SkillQ.range) then
 					if qFarmKey then
 						if minion.health <= qMinionDmg then
-							CastSpell(_Q, minion)
+							CastQ(minion)
 						end
 					elseif eFarmKey then
 						if minion.health <= eMinionDmg then
@@ -619,13 +619,13 @@ function MixedClear()
 					OrbWalking(JungleMob)
 				end
 				if KatarinaMenu.clear.clearQ and SkillQ.ready and GetDistance(JungleMob) <= SkillQ.range then
-					CastSpell(_Q, JungleMob)
+					CastQ(JungleMob)
 				end
 				if KatarinaMenu.clear.clearW and SkillW.ready and GetDistance(JungleMob) <= SkillW.range then
 					CastSpell(_W)
 				end
 				if KatarinaMenu.clear.clearE and SkillE.ready and GetDistance(JungleMob) <= SkillE.range then
-					CastSpell(_E, JungleMob) 
+					CastE(JungleMob)
 				end
 			else
 				if KatarinaMenu.clear.clearOrbJ then
@@ -644,13 +644,13 @@ function MixedClear()
 						OrbWalking(minion)
 					end
 					if KatarinaMenu.clear.clearQ and SkillQ.ready and GetDistance(minion) <= SkillQ.range then
-						CastSpell(_Q, minion)
+						CastQ(minion)
 					end
 					if KatarinaMenu.clear.clearW and SkillW.ready and GetDistance(minion) <= SkillW.range then
 						CastSpell(_W)
 					end
 					if KatarinaMenu.clear.clearE and SkillE.ready and GetDistance(minion) <= SkillE.range then 
-						CastSpell(_E, minion)
+						CastE(minion)
 					end
 				else
 					if KatarinaMenu.clear.clearOrbM then
@@ -752,7 +752,7 @@ function wardJump(x, y)
 				if ValidTarget(ally, SkillE.range, false) then
 					if GetDistance(ally, mousePos) <= WardDistance then
 						AllyWard = true
-						CastSpell(_E, ally)
+						CastE(ally)
 					end
 				end
 			end
@@ -760,7 +760,7 @@ function wardJump(x, y)
         		if ValidTarget(minion, SkillE.range, false) then
         			if GetDistance(minion, mousePos) <= WardDistance then
         				MinionWard = true
-        				CastSpell(_E, minion)
+        				CastE(minion)
         			end
         		end
         	end
@@ -768,7 +768,7 @@ function wardJump(x, y)
         		if ValidTarget(minion, SkillE.range, false) then
         			if GetDistance(minion, mousePos) <= WardDistance then
         				MinionWard = true
-        				CastSpell(_E, minion)
+        				CastE(minion)
         			end
         		end
         	end
@@ -777,7 +777,7 @@ function wardJump(x, y)
                     if obj.valid then
                         MousePos = getMousePos()
 	                    if GetDistance(obj, MousePos) <= WardDistance then
-                            CastSpell(_E, obj)
+                            CastE(obj)
                          end
                     end
                 end
@@ -820,8 +820,6 @@ function UseItems(enemy)
 			if hxgReady and GetDistance(enemy) <= 600 then CastSpell(hxgSlot, enemy) end
 			if bwcReady and GetDistance(enemy) <= 450 then CastSpell(bwcSlot, enemy) end
 			if brkReady and GetDistance(enemy) <= 450 then CastSpell(brkSlot, enemy) end
-			if tmtReady and GetDistance(enemy) <= 185 then CastSpell(tmtSlot) end
-			if hdrReady and GetDistance(enemy) <= 185 then CastSpell(hdrSlot) end
 		end
 	---<
 	--- Use Items ---
