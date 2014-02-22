@@ -132,6 +132,7 @@
 		 - Fixed a bug with Damage Calculation
 		 - Added Liandry's Torment into the Damage Calculation
 		 - Increased Farming Performance
+   2.0.6 - Added Orbwalkig in Harass
   	]] --
 
 -- / Hero Name Check / --
@@ -143,7 +144,7 @@ function OnLoad()
 	--->
 		Variables()
 		KatarinaMenu()
-		PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 2.0.5 Loaded <<</font>")
+		PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 2.0.6 Loaded <<</font>")
 	---<
 end
 -- / Loading Function / --
@@ -401,7 +402,7 @@ function KatarinaMenu()
 			KatarinaMenu.harass:addParam("hMode", "Harass Mode",SCRIPT_PARAM_SLICE, 1, 1, 2, 0)
 			KatarinaMenu.harass:addParam("harassKey", "Harass Hotkey (T)", SCRIPT_PARAM_ONKEYDOWN, false, 84)
 			KatarinaMenu.harass:addParam("wharass", "Always "..SkillW.name.." ((W)", SCRIPT_PARAM_ONOFF, true)
-			KatarinaMenu.harass:addParam("mTmH", "Move To Mouse", SCRIPT_PARAM_ONOFF, true)
+			KatarinaMenu.harass:addParam("harassOrbwalk", "Orbwalk in Harass", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.harass:permaShow("harassKey")
 		---<
 		---> Farming Menu
@@ -517,10 +518,10 @@ end
 function HarassCombo()
 	--- Smart Harass --
 	--->
-		if KatarinaMenu.harass.mTmH then
-			moveToCursor()
-		end
 		if Target then
+			if KatarinaMenu.harass.harassOrbwalk then
+				Orbwalking(Target)
+			end
 			--- Harass Mode 1 Q+W+E ---
 			if KatarinaMenu.harass.hMode == 1 then
 				CastQ(Target)
@@ -539,6 +540,10 @@ function HarassCombo()
 				CastW(Target)
 			end
 			--- Harass Mode 2 ---
+		else
+			if KatarinaMenu.harass.harassOrbwalk then
+				moveToCursor()
+			end
 		end
 	---<
 	--- Smart Harass ---
