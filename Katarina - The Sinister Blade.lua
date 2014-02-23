@@ -520,7 +520,7 @@ function HarassCombo()
 	--->
 		if Target then
 			if KatarinaMenu.harass.harassOrbwalk then
-				Orbwalking(Target)
+				OrbWalking(Target)
 			end
 			--- Harass Mode 1 Q+W+E ---
 			if KatarinaMenu.harass.hMode == 1 then
