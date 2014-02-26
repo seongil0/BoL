@@ -9,7 +9,7 @@
 		YP   YD YP   YP    YP    YP   YP 88   YD Y888888P VP   V8P YP   YP 
                                                                    
 
-	Script - Katarina - The Sinister Blade 2.0.5 by Skeem
+	Script - Katarina - The Sinister Blade 2.0.6 by Skeem
 
 	Changelog :
    1.0	 - Initial Release
@@ -133,6 +133,12 @@
 		 - Added Liandry's Torment into the Damage Calculation
 		 - Increased Farming Performance
    2.0.6 - Added Orbwalkig in Harass
+		 - Improved Ult Functionality
+		 - Fixed bugs from 2.0.5 about Ult
+		 - Fixed some typo
+		 - Fixed some logics about killsteal
+		 - Fixed some Logics about getting Distance
+
   	]] --
 
 -- / Hero Name Check / --
@@ -540,10 +546,10 @@ function HarassCombo()
 				CastW(Target)
 			end
 			--- Harass Mode 2 ---
-		else
-			if KatarinaMenu.harass.harassOrbwalk then
-				moveToCursor()
-			end
+
+
+
+
 		end
 	---<
 	--- Smart Harass ---
@@ -958,28 +964,28 @@ function KillSteal()
 		if Target then
 			local distance = GetDistance(Target)
 			local health = Target.health
-			if health <= qDmg and SkillQ.ready and (distance < SkillQ.range) then
+			if health <= qDmg and SkillQ.ready and (distance <= SkillQ.range) then
 				CastQ(Target)
-			elseif health <= wDmg and SkillW.ready and (distance < SkillW.range) then
+			elseif health <= wDmg and SkillW.ready and (distance <= SkillW.range) then
 				CastW(Target)
-			elseif health <= eDmg and SkillE.ready and (distance < SkillE.range) then
+			elseif health <= eDmg and SkillE.ready and (distance <= SkillE.range) then
 				CastE(Target)
-			elseif health <= (qDmg + wDmg) and SkillQ.ready and SkillW.ready and (distance < SkillW.range) then
+			elseif health <= (qDmg + wDmg) and SkillQ.ready and SkillW.ready and (distance <= SkillW.range) then
 				CastW(Target)
-			elseif health <= (qDmg + eDmg) and SkillQ.ready and SkillE.ready and (distance < SkillE.range) then
+			elseif health <= (qDmg + eDmg) and SkillQ.ready and SkillE.ready and (distance <= SkillE.range) then
 				CastE(Target)
-			elseif health <= (wDmg + eDmg) and SkillW.ready and SkillE.ready and (distance < SkillW.range) then
+			elseif health <= (wDmg + eDmg) and SkillW.ready and SkillE.ready and (distance <= SkillW.range) then
 				CastW(Target)
-			elseif health <= (qDmg + wDmg + eDmg) and SkillQ.ready and SkillW.ready and SkillE.ready and (distance < SkillE.range) then
+			elseif health <= (qDmg + wDmg + eDmg) and SkillQ.ready and SkillW.ready and SkillE.ready and (distance <= SkillE.range) then
 				CastE(Target)
 			elseif KatarinaMenu.killsteal.ultKS then
-				if health <= (qDmg + pDmg + wDmg + eDmg + rDmg) and SkillQ.ready and SkillW.ready and SkillE.ready and SkillR.ready and (distance < SkillE.range) then
+				if health <= (qDmg + pDmg + wDmg + eDmg + rDmg) and SkillQ.ready and SkillW.ready and SkillE.ready and SkillR.ready and (distance <= SkillE.range) then
 					CastE(Target)
 					CastQ(Target)
 					CastW(Target)
 					CastR(Target)
 				end
-				if health <= rDmg and distance < (SkillR.range - 100) then
+				if health <= rDmg and distance <= (SkillR.range - 100) then
 					CastR(Target)
 				end
 			elseif KatarinaMenu.killsteal.itemsKS then
@@ -987,7 +993,7 @@ function KillSteal()
 					if SkillQ.ready and SkillW.ready and SkillE.ready and SkillR.ready then
 						UseItems(Target)
 					end
-				elseif health <= (qDmg + wDmg + eDmg + itemsDmg) and health > (qDmg + wDmg + eDmg) then
+				elseif health <= (qDmg + wDmg + eDmg + itemsDmg) and health >= (qDmg + wDmg + eDmg) then
 					if SkillQ.ready and SkillW.ready and SkillE.ready then
 						UseItems(Target)
 					end
@@ -1006,7 +1012,7 @@ end
 		if isInDanger(myHero) and Target then
 			for _, ally in pairs(allyHeroes) do
 				if ValidTarget(Ally, SkillE.range, false) then
-					if GetDistance(Ally, Target) < GetDistance(myHero, Target) then
+					if GetDistance(Ally, Target) <= GetDistance(myHero, Target) then
 						if SkillE.ready then CastSpell(_E, ally) end
 					end
 				end
@@ -1119,17 +1125,17 @@ function OnSendPacket(packet)
 	-- Block Packets if Channeling --
 	--->
 		for _, enemy in pairs(enemyHeroes) do
-			if isChanneling("Spell4") and GetDistance(enemy) > SkillR.range then
+			if (isChanneling("Spell4") or castingUlt) and GetDistance(enemy) <= SkillR.range then
 				local packet = Packet(packet)
 				if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' and packet:get('sourceNetworkId') == myHero.networkID then
 					if KatarinaMenu.combo.stopUlt then
-						if Target and GetDistance(Target) < SkillR.range then
+						if Target and GetDistance(Target) <= SkillR.range then
 							if not SkillQ.ready and SkillW.ready and SkillE.ready and Target.health > (qDmg + wDmg + eDmg) then
 								packet:block()
 							end
 						end
 					else
-						if Target and GetDistance(Target) < SkillR.range then
+						if Target and GetDistance(Target) <= SkillR.range then
 							packet:block()
 						end
 					end
@@ -1395,7 +1401,7 @@ class 'TickManager'
 -- / FPS Manager Functions / --
 if VIP_USER then
 	-- / Lag Free Circles Functions / --
-	--- Draw Cicle Next Level Function ---
+	--- Draw Circle Next Level Function ---
 	--->
 		function DrawCircleNextLvl(x, y, z, radius, width, color, chordlength)
 			radius = radius or 300
