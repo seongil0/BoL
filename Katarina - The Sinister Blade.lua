@@ -138,7 +138,6 @@
 		 - Fixed some typo
 		 - Fixed some logics about killsteal
 		 - Fixed some Logics about getting Distance
-
   	]] --
 
 -- / Hero Name Check / --
@@ -546,10 +545,6 @@ function HarassCombo()
 				CastW(Target)
 			end
 			--- Harass Mode 2 ---
-
-
-
-
 		end
 	---<
 	--- Smart Harass ---
@@ -1300,7 +1295,7 @@ end
 --->
 	function OrbWalking(Target)
 		for _, enemy in pairs(enemyHeroes) do
-			if not (isChanneling("Spell4") or castingUlt) and GetDistance(enemy) > SkillR.range then
+			if not isChanneling("Spell4") and GetDistance(enemy) > SkillR.range then
 				if TimeToAttack() and GetDistance(Target) <= myHero.range + GetDistance(myHero.minBBox) then
 					myHero:Attack(Target)
 				elseif heroCanMove() then
