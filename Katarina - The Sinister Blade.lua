@@ -1121,7 +1121,7 @@ function OnSendPacket(packet)
 	-- Block Packets if Channeling --
 	--->
 		for _, enemy in pairs(enemyHeroes) do
-			if (isChanneling("Spell4") and castingUlt) and GetDistance(enemy) <= SkillR.range then
+			if (isChanneling("Spell4") or castingUlt) and GetDistance(enemy) <= SkillR.range then
 				local packet = Packet(packet)
 				if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' and packet:get('sourceNetworkId') == myHero.networkID then
 					if KatarinaMenu.combo.stopUlt then
