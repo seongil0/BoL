@@ -139,6 +139,7 @@
 		 - Fixed some logics about killsteal
 		 - Fixed some Logics about getting Distance
 		 - Improved Logics of the Script
+		 - Fixed Farming Bug - "Shunpo" (E)
   	]] --
 
 -- / Hero Name Check / --
@@ -598,13 +599,13 @@ function Farm()
 							end
 						end
 					end
-				elseif (GetDistance(minion) > SkillW.range) and (GetDistance(minion) <= SkillQ.range) then
+				elseif (GetDistance(minion) > SkillW.range) then
 					if qFarmKey then
-						if minion.health <= qMinionDmg then
+						if minion.health <= qMinionDmg and (GetDistance(minion) <= SkillQ.range) then
 							CastQ(minion)
 						end
 					elseif eFarmKey then
-						if minion.health <= eMinionDmg then
+						if minion.health <= eMinionDmg and (GetDistance(minion) <= SkillE.range) then
 							CastE(minion)
 						end
 					end
