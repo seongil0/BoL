@@ -164,7 +164,7 @@ function OnTick()
 		UseConsumables()
 
 		if Target then
-			if KatarinaMenu.harass.wharass and (not isChanneling("Spell4") or not castingUlt) then CastW(Target) end
+			if KatarinaMenu.harass.wharass and (not isChanneling("Spell4") and not castingUlt) then CastW(Target) end
 			if KatarinaMenu.killsteal.Ignite then AutoIgnite(Target) end
 		end
 	---<
@@ -493,7 +493,7 @@ function FullCombo()
 		if castDelay == 0 then
 			castingUlt = false
 		end
-		if (not isChanneling("Spell4") or not castingUlt) then
+		if (not isChanneling("Spell4") and not castingUlt) then
 			if Target then
 				if KatarinaMenu.combo.comboOrbwalk then
 					OrbWalking(Target)
@@ -746,7 +746,7 @@ function CastR(enemy)
 		if (SkillQ.ready or SkillW.ready or SkillE.ready or (GetDistance(enemy) > SkillR.range)) or not SkillR.ready then
 			return false
 		end
-		if ValidTarget(enemy) and (not isChanneling("Spell4") or not castingUlt) then
+		if ValidTarget(enemy) and (not isChanneling("Spell4") and not castingUlt) then
 			CastSpell(_R) 
 			castDelay = GetTickCount()+250
 		end
@@ -1126,7 +1126,7 @@ function OnSendPacket(packet)
 	-- Block Packets if Channeling --
 	--->
 		for _, enemy in pairs(enemyHeroes) do
-			if (isChanneling("Spell4") or castingUlt) and GetDistance(enemy) <= SkillR.range then
+			if (isChanneling("Spell4") or castingUlt) then
 				local packet = Packet(packet)
 				if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' and packet:get('sourceNetworkId') == myHero.networkID then
 					if KatarinaMenu.combo.stopUlt then
@@ -1301,7 +1301,7 @@ end
 --->
 	function OrbWalking(Target)
 		for _, enemy in pairs(enemyHeroes) do
-			if (not isChanneling("Spell4") or not castingUlt) and GetDistance(enemy) > SkillR.range then
+			if (not isChanneling("Spell4") and not castingUlt) then
 				if TimeToAttack() and GetDistance(Target) <= myHero.range + GetDistance(myHero.minBBox) then
 					myHero:Attack(Target)
 				elseif heroCanMove() then
