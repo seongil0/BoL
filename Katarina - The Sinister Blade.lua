@@ -47,6 +47,7 @@
    1.6   - Fixed Jungle Clear
 		 - Added Toggle to Stop ult if enemies can die from other spells
 		 - Fixed Ward Jump
+
 		 - Improved Farm a bit
    1.6.1 - Added Blackfire Tourch in combo
 		 - Fixed ult stop when enemies can die
@@ -196,7 +197,7 @@ function OnTick()
 		end	
 		if WardJumpKey then
 			moveToCursor()
-			local WardPos = GetDistance(mousePos) <= 600 and mousePos or getMousePos()
+			local WardPos = GetDistance(mousePos) <= SkillWard.range and mousePos or getMousePos()
 			wardJump(WardPos.x, WardPos.z)
 		end
 		if KatarinaMenu.killsteal.smartKS then KillSteal() end
@@ -214,7 +215,7 @@ function Variables()
 		SkillW =	{range = 375, name = "Sinister Steel",	ready = false,																			color = ARGB(255, 32,178,170)	}
 		SkillE =	{range = 700, name = "Shunpo",			ready = false,																			color = ARGB(255,128, 0 ,128)	}
 		SkillR =	{range = 550, name = "Death Lotus",		ready = false,	castDelay = 0,	castingUlt = false																		}
-		SkillWard = {range = 625, lastPlaced = 0,			itemSlot = nil																											}
+		SkillWard = {range = 600, lastPlaced = 0,			itemSlot = nil																											}
 	---<
 	--- Skills Vars ---
 	--- Items Vars ---
@@ -531,7 +532,7 @@ end
 function HarassCombo()
 	--- Smart Harass --
 	--->
-		if KatarinaMenu.harass.detonateQ and GetTickCount() >= (GetTickCount() >= (SkillQ.timeToHit + SkillQ.markDelay) or SkillQ.ready) then
+		if KatarinaMenu.harass.detonateQ and (GetTickCount() >= (SkillQ.timeToHit + SkillQ.markDelay) or SkillQ.ready) then
 			SkillQ.timeToHit = 0
 		end
 		if Target then
@@ -1038,11 +1039,11 @@ end
 --- Get Mouse Pos Function by Klokje ---
 --->
 	function getMousePos(range)
-		local temprange = range or 600
+		local temprange = range or SkillWard.range
 		local MyPos = Vector(myHero.x, myHero.y, myHero.z)
 		local MousePos = Vector(mousePos.x, mousePos.y, mousePos.z)
 
-		return MyPos - (MyPos - MousePos):normalized() * 600
+		return MyPos - (MyPos - MousePos):normalized() * SkillWard.range
 	end
 ---<
 --- Get Mouse Pos Function by Klokje ---
@@ -1292,13 +1293,13 @@ function OnDraw()
 	--->
 		if WardJumpKey then
 			if SkillE.ready then
-				DrawCircle3D(myHero.x, myHero.y, myHero.z, 600, 2, wardColor.available, 50)
-				if GetDistance(mousePos) <= 600 then
+				DrawCircle3D(myHero.x, myHero.y, myHero.z, SkillWard.range, 2, wardColor.available, 50)
+				if GetDistance(mousePos) <= SkillWard.range then
 					DrawCircle3D(mousePos.x, mousePos.y, mousePos.z, 50, 2, wardColor.available, 20)
 				else
 					DrawCircle3D(mousePos.x, mousePos.y, mousePos.z, 50, 2, wardColor.unavailable, 20)
 				end
-				if (GetDistance(mousePos) <= 700 and GetDistance(mousePos) > 600) or not (Items.TrinketWard.ready or Items.RubySightStone.ready or Items.SightStone.ready or Items.VisionWard.ready) then
+				if (GetDistance(mousePos) <= 700 and GetDistance(mousePos) > SkillWard.range) or not (Items.TrinketWard.ready or Items.RubySightStone.ready or Items.SightStone.ready or Items.VisionWard.ready) then
 					DrawCircle3D(mousePos.x, mousePos.y, mousePos.z, 50, 2, wardColor.searching, 20)
 				end
 			else
