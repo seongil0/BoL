@@ -143,6 +143,7 @@
    2.0.7 - Finally fixed Proc Q Mark
 		 - Changed some variables
 		 - Improved Ult Killsteal (Experimental)
+		 - Hopefully fixed Double-Ward Bug
   	]] --
 
 -- / Hero Name Check / --
@@ -209,11 +210,11 @@ end
 function Variables()
 	--- Skills Vars --
 	--->
-		SkillQ = {range = 675, name = "Bouncing Blades",	ready = false,	delay = 400,	projSpeed = 1400,	timeToHit = 0,	markDelay = 4000,	color = ARGB(255,178, 0 , 0 )	}
-		SkillW = {range = 375, name = "Sinister Steel",		ready = false,																			color = ARGB(255, 32,178,170)	}
-		SkillE = {range = 700, name = "Shunpo",				ready = false,																			color = ARGB(255,128, 0 ,128)	}
-		SkillR = {range = 550, name = "Death Lotus",		ready = false,	castDelay = 0,	castingUlt = false																		}
-		SkillWard = {range = 625}
+		SkillQ =	{range = 675, name = "Bouncing Blades",	ready = false,	delay = 400,	projSpeed = 1400,	timeToHit = 0,	markDelay = 4000,	color = ARGB(255,178, 0 , 0 )	}
+		SkillW =	{range = 375, name = "Sinister Steel",		ready = false,																		color = ARGB(255, 32,178,170)	}
+		SkillE =	{range = 700, name = "Shunpo",				ready = false,																		color = ARGB(255,128, 0 ,128)	}
+		SkillR =	{range = 550, name = "Death Lotus",		ready = false,	castDelay = 0,	castingUlt = false																		}
+		SkillWard = {range = 625, lastPlaced = 0}
 	---<
 	--- Skills Vars ---
 	--- Items Vars ---
@@ -495,7 +496,7 @@ function FullCombo()
 		if SkillR.castDelay == 0 then
 			SkillR.castingUlt = false
 		end
-		if KatarinaMenu.combo.detonateQ and GetTickCount() >= (SkillQ.timeToHit + 4000) then
+		if KatarinaMenu.combo.detonateQ and (GetTickCount() >= (SkillQ.timeToHit + SkillQ.markDelay) or SkillQ.ready) then
 			SkillQ.timeToHit = 0
 		end
 		if (not isChanneling("Spell4") and not SkillR.castingUlt) then
@@ -530,7 +531,7 @@ end
 function HarassCombo()
 	--- Smart Harass --
 	--->
-		if KatarinaMenu.harass.detonateQ and GetTickCount() >= (SkillQ.timeToHit + 4000) then
+		if KatarinaMenu.harass.detonateQ and GetTickCount() >= (GetTickCount() >= (SkillQ.timeToHit + SkillQ.markDelay) or SkillQ.ready) then
 			SkillQ.timeToHit = 0
 		end
 		if Target then
@@ -808,8 +809,7 @@ function wardJump(x, y)
                 end
             end
 			
-			local wUsed = (not WardUsed or not MinionWard or not AllyWard)
-	        if wUsed then
+	        if (not WardUsed or not MinionWard or not AllyWard) and GetTickCount() > SkillWard.lastPlaced then
                 if Items.TrinketWard.ready then
                     CastSpell(ITEM_7, x, y)
                     WardUsed = true
@@ -826,6 +826,7 @@ function wardJump(x, y)
                     CastSpell(vwSlot, x, y)
                     WardUsed = true
                 end
+				SkillWard.lastPlaced = GetTickCount() + 2000
             end
         end
     ---<
