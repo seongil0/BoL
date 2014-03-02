@@ -9,7 +9,7 @@
 		YP   YD YP   YP    YP    YP   YP 88   YD Y888888P VP   V8P YP   YP 
                                                                    
 
-	Script - Katarina - The Sinister Blade 2.0.6 by Skeem
+	Script - Katarina - The Sinister Blade 2.0.7 by Skeem
 
 	Changelog :
    1.0	 - Initial Release
@@ -140,6 +140,9 @@
 		 - Fixed some Logics about getting Distance
 		 - Improved Logics of the Script
 		 - Fixed Farming Bug - "Shunpo" (E)
+   2.0.7 - Finally fixed Proc Q Mark
+		 - Changed some variables
+		 - Improved Ult Killsteal (Experimental)
   	]] --
 
 -- / Hero Name Check / --
@@ -151,7 +154,7 @@ function OnLoad()
 	--->
 		Variables()
 		KatarinaMenu()
-		PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 2.0.6 Loaded <<</font>")
+		PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 2.0.7 Loaded <<</font>")
 	---<
 end
 -- / Loading Function / --
@@ -164,7 +167,7 @@ function OnTick()
 		UseConsumables()
 
 		if Target then
-			if KatarinaMenu.harass.wharass and (not isChanneling("Spell4") and not castingUlt) then CastW(Target) end
+			if KatarinaMenu.harass.wharass and (not isChanneling("Spell4") and not SkillR.castingUlt) then CastW(Target) end
 			if KatarinaMenu.killsteal.Ignite then AutoIgnite(Target) end
 		end
 	---<
@@ -206,10 +209,10 @@ end
 function Variables()
 	--- Skills Vars --
 	--->
-		SkillQ = {range = 675, name = "Bouncing Blades",	ready = false, color = ARGB(255,178, 0 , 0 )}
-		SkillW = {range = 375, name = "Sinister Steel",		ready = false, color = ARGB(255, 32,178,170)}
-		SkillE = {range = 700, name = "Shunpo",				ready = false, color = ARGB(255,128, 0 ,128)}
-		SkillR = {range = 550, name = "Death Lotus",		ready = false								}
+		SkillQ = {range = 675, name = "Bouncing Blades",	ready = false,	delay = 400,	projSpeed = 1400,	timeToHit = 0,	markDelay = 4000,	color = ARGB(255,178, 0 , 0 )	}
+		SkillW = {range = 375, name = "Sinister Steel",		ready = false,																			color = ARGB(255, 32,178,170)	}
+		SkillE = {range = 700, name = "Shunpo",				ready = false,																			color = ARGB(255,128, 0 ,128)	}
+		SkillR = {range = 550, name = "Death Lotus",		ready = false,	castDelay = 0,	castingUlt = false																		}
 		SkillWard = {range = 625}
 	---<
 	--- Skills Vars ---
@@ -272,7 +275,6 @@ function Variables()
 		wardObject = nil
 		levelSequence = { 1,3,2,2,2,4,2,1,2,1,4,1,1,3,3,4,3,3 }
 		UsingHPot = false
-		castDelay, castingUlt = 0, false
 		gameState = GetGame()
 		if gameState.map.shortName == "twistedTreeline" then
 			TTMAP = true
@@ -490,10 +492,13 @@ end
 function FullCombo()
 	--- Combo While Not Channeling --
 	--->
-		if castDelay == 0 then
-			castingUlt = false
+		if SkillR.castDelay == 0 then
+			SkillR.castingUlt = false
 		end
-		if (not isChanneling("Spell4") and not castingUlt) then
+		if KatarinaMenu.combo.detonateQ and GetTickCount() >= (SkillQ.timeToHit + 4000) then
+			SkillQ.timeToHit = 0
+		end
+		if (not isChanneling("Spell4") and not SkillR.castingUlt) then
 			if Target then
 				if KatarinaMenu.combo.comboOrbwalk then
 					OrbWalking(Target)
@@ -502,7 +507,7 @@ function FullCombo()
 					UseItems(Target)
 				end
 				CastQ(Target)
-				if KatarinaMenu.combo.detonateQ then
+				if KatarinaMenu.combo.detonateQ and GetTickCount() >= SkillQ.timeToHit then
 					if not SkillQ.ready then CastE(Target) end
 					if not SkillE.ready then CastW(Target) end
 				else
@@ -525,6 +530,9 @@ end
 function HarassCombo()
 	--- Smart Harass --
 	--->
+		if KatarinaMenu.harass.detonateQ and GetTickCount() >= (SkillQ.timeToHit + 4000) then
+			SkillQ.timeToHit = 0
+		end
 		if Target then
 			if KatarinaMenu.harass.harassOrbwalk then
 				OrbWalking(Target)
@@ -532,7 +540,7 @@ function HarassCombo()
 			--- Harass Mode 1 Q+W+E ---
 			if KatarinaMenu.harass.hMode == 1 then
 				CastQ(Target)
-				if KatarinaMenu.harass.detonateQ then
+				if KatarinaMenu.harass.detonateQ and GetTickCount() >= SkillQ.timeToHit then
 					if not SkillQ.ready then CastE(Target) end
 					if not SkillE.ready then CastW(Target) end
 				else
@@ -693,6 +701,9 @@ function CastQ(enemy)
 				CastSpell(_Q, enemy)
 				return true
 			end
+			if SkillQ.timeToHit == 0 then
+				SkillQ.timeToHit = GetTickCount() + (SkillQ.delay + (GetDistance(myHero, enemy) / SkillQ.projSpeed))
+			end
 		end
 		return false
 	---<
@@ -746,9 +757,9 @@ function CastR(enemy)
 		if (SkillQ.ready or SkillW.ready or SkillE.ready or (GetDistance(enemy) > SkillR.range)) or not SkillR.ready then
 			return false
 		end
-		if ValidTarget(enemy) and (not isChanneling("Spell4") and not castingUlt) then
+		if ValidTarget(enemy) and (not isChanneling("Spell4") and not SkillR.castingUlt) then
 			CastSpell(_R) 
-			castDelay = GetTickCount()+250
+			SkillR.castDelay = GetTickCount()+250
 		end
 	---<
 	--- Dymanic R Cast --
@@ -1126,7 +1137,7 @@ function OnSendPacket(packet)
 	-- Block Packets if Channeling --
 	--->
 		for _, enemy in pairs(enemyHeroes) do
-			if (isChanneling("Spell4") or castingUlt) then
+			if (isChanneling("Spell4") or SkillR.castingUlt) then
 				local packet = Packet(packet)
 				if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' and packet:get('sourceNetworkId') == myHero.networkID then
 					if KatarinaMenu.combo.stopUlt then
@@ -1155,13 +1166,13 @@ function OnCreateObj(obj)
 		if obj ~= nil then
 			if (obj.name:find("katarina_deathLotus_mis.troy") or obj.name:find("katarina_deathLotus_tar.troy")) then
 				if GetDistance(obj, myHero) <= 70 then
-					castDelay = GetTickCount()+250
+					SkillR.castDelay = GetTickCount()+250
 				end
 			end
 			if (obj.name:find("katarina_deathlotus_success.troy") or obj.name:find("Katarina_deathLotus_empty.troy")) then
 				if GetDistance(obj, myHero) <= 70 then
-					castDelay = 0
-					castingUlt = false
+					SkillR.castDelay = 0
+					SkillR.castingUlt = false
 				end
 			end
 			if obj.name:find("Global_Item_HealthPotion.troy") then
@@ -1189,10 +1200,10 @@ function OnDeleteObj(obj)
 	--->
 		if obj ~= nil then
 			if (obj.name:find("katarina_deathlotus_success.troy") or obj.name:find("Katarina_deathLotus_empty.troy")) then
-				castingUlt = false
+				SkillR.castingUlt = false
 			end
 			if (obj.name:find("katarina_deathLotus_mis.troy") or obj.name:find("katarina_deathLotus_tar.troy")) then
-				castingUlt = false
+				SkillR.castingUlt = false
 			end
 			if obj.name:find("TeleportHome.troy") then
 				Recall = false
@@ -1301,7 +1312,7 @@ end
 --->
 	function OrbWalking(Target)
 		for _, enemy in pairs(enemyHeroes) do
-			if (not isChanneling("Spell4") and not castingUlt) then
+			if (not isChanneling("Spell4") and not SkillR.castingUlt) then
 				if TimeToAttack() and GetDistance(Target) <= myHero.range + GetDistance(myHero.minBBox) then
 					myHero:Attack(Target)
 				elseif heroCanMove() then
@@ -1543,8 +1554,8 @@ function Checks()
 	--- Updates Minions ---
 	--- Setting Cast of Ult ---
 	--->
-		if GetTickCount() <= castDelay then castingUlt = true end
-		if SkillQ.ready and SkillW.ready and SkillE.ready and not Target then castingUlt = false end
+		if GetTickCount() <= SkillR.castDelay then SkillR.castingUlt = true end
+		if SkillQ.ready and SkillW.ready and SkillE.ready and not Target then SkillR.castingUlt = false end
 	---<
 	--- Setting Cast of Ult ---
 end
