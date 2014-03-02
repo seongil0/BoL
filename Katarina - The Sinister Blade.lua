@@ -813,20 +813,24 @@ function wardJump(x, y)
                 if Items.TrinketWard.ready then
                     CastSpell(ITEM_7, x, y)
                     WardUsed = true
+					SkillWard.lastPlaced = GetTickCount() + 2000
                 elseif Items.RubySightStone.ready and wUsed then
                     CastSpell(rstSlot, x, y)
                     WardUsed = true
+					SkillWard.lastPlaced = GetTickCount() + 2000
                 elseif Items.SightStone.ready and wUsed then 
                     CastSpell(ssSlot, x, y)
                     WardUsed = true
+					SkillWard.lastPlaced = GetTickCount() + 2000
                 elseif Items.SightWard.ready and wUsed then 
                     CastSpell(swSlot, x, y)
                     WardUsed = true
+					SkillWard.lastPlaced = GetTickCount() + 2000
                 elseif Items.VisionWard.ready and wUsed then
                     CastSpell(vwSlot, x, y)
                     WardUsed = true
+					SkillWard.lastPlaced = GetTickCount() + 2000
                 end
-				SkillWard.lastPlaced = GetTickCount() + 2000
             end
         end
     ---<
