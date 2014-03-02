@@ -3,11 +3,11 @@
 	
 		db   dD  .d8b.  d888888b  .d8b.  d8888b. d888888b d8b   db  .d8b.  
 		88 ,8P' d8' `8b `~~88~~' d8' `8b 88  `8D   `88'   888o  88 d8' `8b 
-		88,8P   88ooo88    88    88ooo88 88oobY'    88    88V8o 88 88ooo88 
-		88`8b   88~~~88    88    88~~~88 88`8b      88    88 V8o88 88~~~88 
-		88 `88. 88   88    88    88   88 88 `88.   .88.   88  V888 88   88 
-		YP   YD YP   YP    YP    YP   YP 88   YD Y888888P VP   V8P YP   YP 
-                                                                   
+		88,8P   88ooo88	88	88ooo88 88oobY'	88	88V8o 88 88ooo88 
+		88`8b   88~~~88	88	88~~~88 88`8b	  88	88 V8o88 88~~~88 
+		88 `88. 88   88	88	88   88 88 `88.   .88.   88  V888 88   88 
+		YP   YD YP   YP	YP	YP   YP 88   YD Y888888P VP   V8P YP   YP 
+																   
 
 	Script - Katarina - The Sinister Blade 2.0.7 by Skeem
 
@@ -26,7 +26,7 @@
 		 - Added Auto Zhonyas
 		 - Added Draw Circles of targets that can die
    1.3.1 - Lul another Ult fix wtfux
-         - Added move to mouse to harass mode
+		 - Added move to mouse to harass mode
    1.4	 - Recoded most of the script
 		 - Added toggle to use items with KS
 		 - Jungle Clearing
@@ -38,56 +38,56 @@
 		 - ult range fixes so it doesn't keep spinning if no enemies are around
 		 - Added some permashows
    1.5   - No longer AutoCarry Script
-         - Requires iSAC library for orbwalking
+		 - Requires iSAC library for orbwalking
 		 - Revamped code a little
 		 - Deleted ult usage from auto KS for now
    1.5.2 - Fixed Skills not casting ult
-         - Fixed enemy chasing bug
+		 - Fixed enemy chasing bug
 		 - Added delay W to both harass & full combo with toggle in menu
    1.6   - Fixed Jungle Clear
 		 - Added Toggle to Stop ult if enemies can die from other spells
 		 - Fixed Ward Jump
 		 - Improved Farm a bit
    1.6.1 - Added Blackfire Tourch in combo
-         - Fixed ult stop when enemies can die
+		 - Fixed ult stop when enemies can die
    1.6.2 - Fixed Blackfire torch error
    1.7   - Updated ward jump, won't use more than 1 item
-         - Beta KS with wards if E not ready
+		 - Beta KS with wards if E not ready
 		 - Beta ward save when in danger
 		 - Doesn't require iSAC anymore
    1.7.1 - Fixed ward jump (doesn't jump to wards that are in oposite way of mouse)
-         - Fixed Combo
+		 - Fixed Combo
 		 - some fixes for auto ward save
    1.8   - Added Trinkets for Ward Jump
-         - Improved KS a little, removed unnecessary code
+		 - Improved KS a little, removed unnecessary code
    1.8.3 - Attempt to fix some errors
-         - Reworked combo a little should be smoother now
-         - Added togge for orbwalking in combo as requested
-         - Casting wards should work a little better as well
+		 - Reworked combo a little should be smoother now
+		 - Added togge for orbwalking in combo as requested
+		 - Casting wards should work a little better as well
    1.8.4 - Fixed bugsplat
    1.8.5 - Fixed Draw Errors
    1.8.7 - Fixed W Delay changed name to Proc Q Mark
-         - Fixed text errors added Q mark to calculations
+		 - Fixed text errors added Q mark to calculations
    1.9   - Fixed ult issues recoded a couple of things
    2.0   - Big update rewrote everything!
-         - Combo Reworked should be a lot smoother now
-         - Harass Reworked as well, should work better and detonate marks
-         - Farm reworked / Uses mixed skill damages to maximize farm
-         - Ward Jump Improved / Now Can ward to minions & allies that are in range
-         - Lane Clear & Jungle Clear Improved / Uses new jungle table with all mobs in 5v5 / 3v3
-         - New Overkill Protection
-         - New Option to OrbWalk Minions In Lane During Lane Clear
-         - New Option to Orbwalk Jungle during jungle clear
-         - New Option to block packets while channeling (Won't block ultimate if Target is killable (Option for this too))
-         - New Option to KS with Ult
-         - New Option to KS with Items
-         - New Option to KS with Wards / Minions / Allies
-         - Added Priority Arranger to Target Selector
-         - New Draw which shows exactly which skills need to be used to kill
-         - New Option to Draw Who is being targetted by text
-         - New Option to Draw a circle around target
+		 - Combo Reworked should be a lot smoother now
+		 - Harass Reworked as well, should work better and detonate marks
+		 - Farm reworked / Uses mixed skill damages to maximize farm
+		 - Ward Jump Improved / Now Can ward to minions & allies that are in range
+		 - Lane Clear & Jungle Clear Improved / Uses new jungle table with all mobs in 5v5 / 3v3
+		 - New Overkill Protection
+		 - New Option to OrbWalk Minions In Lane During Lane Clear
+		 - New Option to Orbwalk Jungle during jungle clear
+		 - New Option to block packets while channeling (Won't block ultimate if Target is killable (Option for this too))
+		 - New Option to KS with Ult
+		 - New Option to KS with Items
+		 - New Option to KS with Wards / Minions / Allies
+		 - Added Priority Arranger to Target Selector
+		 - New Draw which shows exactly which skills need to be used to kill
+		 - New Option to Draw Who is being targetted by text
+		 - New Option to Draw a circle around target
    2.0.1 - Removed Draw Circles around Target (FPS Drops)
-         - All bug fixes by Roach:
+		 - All bug fixes by Roach:
 			- Fixed Variables
 			- Fixed and Added Ward Jump
 			- Fixed Items Usage
@@ -174,10 +174,10 @@ function OnTick()
 	---<
 	-- Menu Variables --
 	--->
-		ComboKey =     KatarinaMenu.combo.comboKey
+		ComboKey =	 KatarinaMenu.combo.comboKey
 		FarmingKey =   KatarinaMenu.farming.farmKey
-		HarassKey =    KatarinaMenu.harass.harassKey
-		ClearKey =     KatarinaMenu.clear.clearKey
+		HarassKey =	KatarinaMenu.harass.harassKey
+		ClearKey =	 KatarinaMenu.clear.clearKey
 		WardJumpKey =  KatarinaMenu.misc.wardJumpKey
 	---<
 	-- Menu Variables --
@@ -211,23 +211,23 @@ function Variables()
 	--- Skills Vars --
 	--->
 		SkillQ =	{range = 675, name = "Bouncing Blades",	ready = false,	delay = 400,	projSpeed = 1400,	timeToHit = 0,	markDelay = 4000,	color = ARGB(255,178, 0 , 0 )	}
-		SkillW =	{range = 375, name = "Sinister Steel",		ready = false,																		color = ARGB(255, 32,178,170)	}
-		SkillE =	{range = 700, name = "Shunpo",				ready = false,																		color = ARGB(255,128, 0 ,128)	}
+		SkillW =	{range = 375, name = "Sinister Steel",	ready = false,																			color = ARGB(255, 32,178,170)	}
+		SkillE =	{range = 700, name = "Shunpo",			ready = false,																			color = ARGB(255,128, 0 ,128)	}
 		SkillR =	{range = 550, name = "Death Lotus",		ready = false,	castDelay = 0,	castingUlt = false																		}
-		SkillWard = {range = 625, lastPlaced = 0}
+		SkillWard = {range = 625, lastPlaced = 0,			itemSlot = nil																											}
 	---<
 	--- Skills Vars ---
 	--- Items Vars ---
 	--->
 		Items =
 		{
-					HealthPot      = {ready = false},
-					FlaskPot       = {ready = false},
-					TrinketWard    = {ready = false},
+					HealthPot	  = {ready = false},
+					FlaskPot	   = {ready = false},
+					TrinketWard	= {ready = false},
 					RubySightStone = {ready = false},
-					SightStone     = {ready = false},
-					SightWard      = {ready = false},
-					VisionWard     = {ready = false}
+					SightStone	 = {ready = false},
+					SightWard	  = {ready = false},
+					VisionWard	 = {ready = false}
 		}
 	---<
 	--- Items Vars ---
@@ -294,27 +294,27 @@ function Variables()
 		JungleMobs = {}
 		JungleFocusMobs = {}
 		priorityTable = {
-	    	AP = {
-	        	"Annie", "Ahri", "Akali", "Anivia", "Annie", "Brand", "Cassiopeia", "Diana", "Evelynn", "FiddleSticks", "Fizz", "Gragas", "Heimerdinger", "Karthus",
-	        	"Kassadin", "Katarina", "Kayle", "Kennen", "Leblanc", "Lissandra", "Lux", "Malzahar", "Mordekaiser", "Morgana", "Nidalee", "Orianna",
-	        	"Ryze", "Sion", "Swain", "Syndra", "Teemo", "TwistedFate", "Veigar", "Viktor", "Vladimir", "Xerath", "Ziggs", "Zyra",
-	        },
-	    	Support = {
-	        	"Alistar", "Blitzcrank", "Janna", "Karma", "Leona", "Lulu", "Nami", "Nunu", "Sona", "Soraka", "Taric", "Thresh", "Zilean",
-	        },
-	    	Tank = {
-	        	"Amumu", "Chogath", "DrMundo", "Galio", "Hecarim", "Malphite", "Maokai", "Nasus", "Rammus", "Sejuani", "Nautilus", "Shen", "Singed", "Skarner", "Volibear",
-	        	"Warwick", "Yorick", "Zac",
-	        },
-	    	AD_Carry = {
-	        	"Ashe", "Caitlyn", "Corki", "Draven", "Ezreal", "Graves", "Jayce", "Jinx", "KogMaw", "Lucian", "MasterYi", "MissFortune", "Pantheon", "Quinn", "Shaco", "Sivir",
-	        	"Talon","Tryndamere", "Tristana", "Twitch", "Urgot", "Varus", "Vayne", "Yasuo","Zed", 
-	        },
-	    	Bruiser = {
-	        	"Aatrox", "Darius", "Elise", "Fiora", "Gangplank", "Garen", "Irelia", "JarvanIV", "Jax", "Khazix", "LeeSin", "Nocturne", "Olaf", "Poppy",
-	        	"Renekton", "Rengar", "Riven", "Rumble", "Shyvana", "Trundle", "Udyr", "Vi", "MonkeyKing", "XinZhao",
-	        },
-        }
+			AP = {
+				"Annie", "Ahri", "Akali", "Anivia", "Annie", "Brand", "Cassiopeia", "Diana", "Evelynn", "FiddleSticks", "Fizz", "Gragas", "Heimerdinger", "Karthus",
+				"Kassadin", "Katarina", "Kayle", "Kennen", "Leblanc", "Lissandra", "Lux", "Malzahar", "Mordekaiser", "Morgana", "Nidalee", "Orianna",
+				"Ryze", "Sion", "Swain", "Syndra", "Teemo", "TwistedFate", "Veigar", "Viktor", "Vladimir", "Xerath", "Ziggs", "Zyra",
+			},
+			Support = {
+				"Alistar", "Blitzcrank", "Janna", "Karma", "Leona", "Lulu", "Nami", "Nunu", "Sona", "Soraka", "Taric", "Thresh", "Zilean",
+			},
+			Tank = {
+				"Amumu", "Chogath", "DrMundo", "Galio", "Hecarim", "Malphite", "Maokai", "Nasus", "Rammus", "Sejuani", "Nautilus", "Shen", "Singed", "Skarner", "Volibear",
+				"Warwick", "Yorick", "Zac",
+			},
+			AD_Carry = {
+				"Ashe", "Caitlyn", "Corki", "Draven", "Ezreal", "Graves", "Jayce", "Jinx", "KogMaw", "Lucian", "MasterYi", "MissFortune", "Pantheon", "Quinn", "Shaco", "Sivir",
+				"Talon","Tryndamere", "Tristana", "Twitch", "Urgot", "Varus", "Vayne", "Yasuo","Zed", 
+			},
+			Bruiser = {
+				"Aatrox", "Darius", "Elise", "Fiora", "Gangplank", "Garen", "Irelia", "JarvanIV", "Jax", "Khazix", "LeeSin", "Nocturne", "Olaf", "Poppy",
+				"Renekton", "Rengar", "Riven", "Rumble", "Shyvana", "Trundle", "Udyr", "Vi", "MonkeyKing", "XinZhao",
+			},
+		}
 		if TTMAP then --
 			FocusJungleNames = {
 				["TT_NWraith1.1.1"] = true,
@@ -477,13 +477,13 @@ function KatarinaMenu()
 		---<
 		---> Arrange Priorities
 			if heroManager.iCount < 10 then -- borrowed from Sidas Auto Carry, modified to 3v3
-       			PrintChat(" >> Too few champions to arrange priority")
+	   			PrintChat(" >> Too few champions to arrange priority")
 			elseif heroManager.iCount == 6 and TTMAP then
 				ArrangeTTPriorities()
-    		else
-        		ArrangePriorities()
-    		end
-    	---<
+			else
+				ArrangePriorities()
+			end
+		---<
 	---<
 	--- Main Menu ---
 end
@@ -573,7 +573,7 @@ function Farm()
 			--- Minion Damages ---
 			local pMinionDmg = getDmg("Q", minion, myHero, 2)
 			local qMinionDmg = getDmg("Q", minion, myHero)
-        	local wMinionDmg = getDmg("W", minion, myHero)
+			local wMinionDmg = getDmg("W", minion, myHero)
 			local eMinionDmg = getDmg("E", minion, myHero)
 			--- Minion Damages ---
 			--- Minion Keys ---
@@ -770,11 +770,11 @@ end
 -- / Ward Jumping Function / --
 function wardJump(x, y)
 	--->
-        if SkillE.ready then
-        	local WardUsed = false
-        	local WardDistance = 300
-        	local MinionWard, AllyWard = false, false
-        	for _, ally in pairs(allyHeroes) do
+		if SkillE.ready then
+			local WardUsed = false
+			local WardDistance = 300
+			local MinionWard, AllyWard = false, false
+			for _, ally in pairs(allyHeroes) do
 				if ValidTarget(ally, SkillE.range, false) then
 					if GetDistance(ally, mousePos) <= WardDistance then
 						AllyWard = true
@@ -782,58 +782,56 @@ function wardJump(x, y)
 					end
 				end
 			end
-        	for _, minion in pairs(allyMinions.objects) do
-        		if ValidTarget(minion, SkillE.range, false) then
-        			if GetDistance(minion, mousePos) <= WardDistance then
-        				MinionWard = true
-        				CastSpell(_E, minion)
-        			end
-        		end
-        	end
+			for _, minion in pairs(allyMinions.objects) do
+				if ValidTarget(minion, SkillE.range, false) then
+					if GetDistance(minion, mousePos) <= WardDistance then
+						MinionWard = true
+						CastSpell(_E, minion)
+					end
+				end
+			end
 			for _, minion in pairs(enemyMinions.objects) do
-        		if ValidTarget(minion, SkillE.range, false) then
-        			if GetDistance(minion, mousePos) <= WardDistance then
-        				MinionWard = true
-        				CastSpell(_E, minion)
-        			end
-        		end
-        	end
-            if next(Wards) ~= nil then
-                for i, obj in pairs(Wards) do 
-                    if obj.valid then
-                        MousePos = getMousePos()
-	                    if GetDistance(obj, MousePos) <= WardDistance then
-                            CastSpell(_E, obj)
-                         end
-                    end
-                end
-            end
+				if ValidTarget(minion, SkillE.range, false) then
+					if GetDistance(minion, mousePos) <= WardDistance then
+						MinionWard = true
+						CastSpell(_E, minion)
+					end
+				end
+			end
+			if next(Wards) ~= nil then
+				for i, obj in pairs(Wards) do 
+					if obj.valid then
+						MousePos = getMousePos()
+						if GetDistance(obj, MousePos) <= WardDistance then
+							CastSpell(_E, obj)
+						 end
+					end
+				end
+			end
 			
-	        if (not WardUsed or not MinionWard or not AllyWard) and GetTickCount() > SkillWard.lastPlaced then
-                if Items.TrinketWard.ready then
-                    CastSpell(ITEM_7, x, y)
-                    WardUsed = true
+			if (not WardUsed or not MinionWard or not AllyWard) and GetTickCount() > SkillWard.lastPlaced then
+				if Items.TrinketWard.ready then
+					SkillWard.itemSlot = ITEM_7
+				elseif Items.RubySightStone.ready then
+					SkillWard.itemSlot = rstSlot
+				elseif Items.SightStone.ready then 
+					SkillWard.itemSlot = ssSlot
+					CastSpell(ssSlot, x, y)
+				elseif Items.SightWard.ready then
+					SkillWard.itemSlot = swSlot
+				elseif Items.VisionWard.ready then
+					SkillWard.itemSlot = vwSlot
+				end
+				
+				if SkillWard.itemSlot ~= nil then
+					CastSpell(SkillWard.itemSlot, x, y)
+					WardUsed = true
 					SkillWard.lastPlaced = GetTickCount() + 2000
-                elseif Items.RubySightStone.ready and wUsed then
-                    CastSpell(rstSlot, x, y)
-                    WardUsed = true
-					SkillWard.lastPlaced = GetTickCount() + 2000
-                elseif Items.SightStone.ready and wUsed then 
-                    CastSpell(ssSlot, x, y)
-                    WardUsed = true
-					SkillWard.lastPlaced = GetTickCount() + 2000
-                elseif Items.SightWard.ready and wUsed then 
-                    CastSpell(swSlot, x, y)
-                    WardUsed = true
-					SkillWard.lastPlaced = GetTickCount() + 2000
-                elseif Items.VisionWard.ready and wUsed then
-                    CastSpell(vwSlot, x, y)
-                    WardUsed = true
-					SkillWard.lastPlaced = GetTickCount() + 2000
-                end
-            end
-        end
-    ---<
+					SkillWard.itemSlot = nil
+				end
+			end
+		end
+	---<
 end
 -- / Ward Jumping Function / --
 
@@ -895,23 +893,23 @@ function DamageCalculation()
 				dfgDmg, hxgDmg, bwcDmg, iDmg, bftDmg, liandrysDmg = 0, 0, 0, 0, 0, 0
 				pDmg = (SkillQ.ready and getDmg("Q", enemy, myHero, 2) or 0)
 				qDmg = (SkillQ.ready and getDmg("Q",enemy,myHero) or 0)
-    	        wDmg = (SkillW.ready and getDmg("W",enemy,myHero) or 0)
+				wDmg = (SkillW.ready and getDmg("W",enemy,myHero) or 0)
 				eDmg = (SkillE.ready and getDmg("E",enemy,myHero) or 0)
-            	rDmg = getDmg("R",enemy,myHero,3)
+				rDmg = getDmg("R",enemy,myHero,3)
 				dfgDmg = (dfgReady and getDmg("DFG", enemy, myHero) or 0)
-        	    hxgDmg = (hxgReady and getDmg("HXG", enemy, myHero) or 0)
-            	bwcDmg = (bwcReady and getDmg("BWC", enemy, myHero) or 0)
-            	bftdmg = (bftReady and getDmg("BLACKFIRE", enemy, myHero) or 0)
+				hxgDmg = (hxgReady and getDmg("HXG", enemy, myHero) or 0)
+				bwcDmg = (bwcReady and getDmg("BWC", enemy, myHero) or 0)
+				bftdmg = (bftReady and getDmg("BLACKFIRE", enemy, myHero) or 0)
 				liandrysDmg = (liandrysReady and getDmg("LIANDRYS", enemy, myHero) or 0)
-            	iDmg = (ignite and getDmg("IGNITE",enemy,myHero) or 0)
-            	onspellDmg = liandrysDmg + bftDmg
-            	itemsDmg = dfgDmg + hxgDmg + bwcDmg + iDmg + onspellDmg
-    ---<
-    --- Calculate our Damage On Enemies ---
-    --- Setting KillText Color & Text ---
-    --->
-    			if enemy.health > (pDmg + qDmg + eDmg + wDmg + rDmg + itemsDmg) then
-    				KillText[i] = 1
+				iDmg = (ignite and getDmg("IGNITE",enemy,myHero) or 0)
+				onspellDmg = liandrysDmg + bftDmg
+				itemsDmg = dfgDmg + hxgDmg + bwcDmg + iDmg + onspellDmg
+	---<
+	--- Calculate our Damage On Enemies ---
+	--- Setting KillText Color & Text ---
+	--->
+				if enemy.health > (pDmg + qDmg + eDmg + wDmg + rDmg + itemsDmg) then
+					KillText[i] = 1
 				elseif enemy.health <= qDmg then
 					if SkillQ.ready then
 						KillText[i] = 2
@@ -1040,49 +1038,49 @@ end
 --- Get Mouse Pos Function by Klokje ---
 --->
 	function getMousePos(range)
-    	local temprange = range or 600
-    	local MyPos = Vector(myHero.x, myHero.y, myHero.z)
-    	local MousePos = Vector(mousePos.x, mousePos.y, mousePos.z)
+		local temprange = range or 600
+		local MyPos = Vector(myHero.x, myHero.y, myHero.z)
+		local MousePos = Vector(mousePos.x, mousePos.y, mousePos.z)
 
-    	return MyPos - (MyPos - MousePos):normalized() * 600
+		return MyPos - (MyPos - MousePos):normalized() * 600
 	end
 ---<
 --- Get Mouse Pos Function by Klokje ---
 --- On Animation (Setting our last Animation) ---
 --->
 	function OnAnimation(unit, animationName)
-    	if unit.isMe and lastAnimation ~= animationName then lastAnimation = animationName end
+		if unit.isMe and lastAnimation ~= animationName then lastAnimation = animationName end
 	end
 ---<
 --- On Animation (Setting our last Animation) ---
 --- isChanneling Function (Checks if Animation is Channeling) ---
 --->
 	function isChanneling(animationName)
-    	if lastAnimation == animationName then
-        	return true
-    	else
-        	return false
-    	end
+		if lastAnimation == animationName then
+			return true
+		else
+			return false
+		end
 	end
 ---<
 --- isChanneling Function (Checks if Animation is Channeling) ---
 --- Checking if Hero in Danger ---
 --->
 	function isInDanger(hero)
-        nEnemiesClose, nEnemiesFar = 0, 0
-        hpPercent = hero.health / hero.maxHealth
-        for _, enemy in pairs(enemyHeroes) do
-                if not enemy.dead and hero:GetDistance(enemy) <= 200 then
-                        nEnemiesClose = nEnemiesClose + 1
-                        if hpPercent < 0.5 and hpPercent < enemy.health / enemy.maxHealth then return true end
-                elseif not enemy.dead and hero:GetDistance(enemy) <= 1000 then
-                        nEnemiesFar = nEnemiesFar + 1
-                end
-        end
-       
-        if nEnemiesClose > 1 then return true end
-        if nEnemiesClose == 1 and nEnemiesFar > 1 then return true end
-        return false
+		nEnemiesClose, nEnemiesFar = 0, 0
+		hpPercent = hero.health / hero.maxHealth
+		for _, enemy in pairs(enemyHeroes) do
+				if not enemy.dead and hero:GetDistance(enemy) <= 200 then
+						nEnemiesClose = nEnemiesClose + 1
+						if hpPercent < 0.5 and hpPercent < enemy.health / enemy.maxHealth then return true end
+				elseif not enemy.dead and hero:GetDistance(enemy) <= 1000 then
+						nEnemiesFar = nEnemiesFar + 1
+				end
+		end
+	   
+		if nEnemiesClose > 1 then return true end
+		if nEnemiesClose == 1 and nEnemiesFar > 1 then return true end
+		return false
 	end
 ---<
 --- Checking if Hero in Danger ---
@@ -1101,13 +1099,13 @@ end
 --- Arrange Priorities 5v5 ---
 --->
 	function ArrangePriorities()
-    	for i, enemy in pairs(enemyHeroes) do
-        	SetPriority(priorityTable.AD_Carry, enemy, 1)
-        	SetPriority(priorityTable.AP, enemy, 2)
-        	SetPriority(priorityTable.Support, enemy, 3)
-        	SetPriority(priorityTable.Bruiser, enemy, 4)
-        	SetPriority(priorityTable.Tank, enemy, 5)
-    	end
+		for i, enemy in pairs(enemyHeroes) do
+			SetPriority(priorityTable.AD_Carry, enemy, 1)
+			SetPriority(priorityTable.AP, enemy, 2)
+			SetPriority(priorityTable.Support, enemy, 3)
+			SetPriority(priorityTable.Bruiser, enemy, 4)
+			SetPriority(priorityTable.Tank, enemy, 5)
+		end
 	end
 ---<
 --- Arrange Priorities 5v5 ---
@@ -1116,10 +1114,10 @@ end
 	function ArrangeTTPriorities()
 		for i, enemy in pairs(enemyHeroes) do
 			SetPriority(priorityTable.AD_Carry, enemy, 1)
-        	SetPriority(priorityTable.AP, enemy, 1)
-        	SetPriority(priorityTable.Support, enemy, 2)
-        	SetPriority(priorityTable.Bruiser, enemy, 2)
-        	SetPriority(priorityTable.Tank, enemy, 3)
+			SetPriority(priorityTable.AP, enemy, 1)
+			SetPriority(priorityTable.Support, enemy, 2)
+			SetPriority(priorityTable.Bruiser, enemy, 2)
+			SetPriority(priorityTable.Tank, enemy, 3)
 		end
 	end
 ---<
@@ -1127,11 +1125,11 @@ end
 --- Set Priorities ---
 --->
 	function SetPriority(table, hero, priority)
-    	for i=1, #table, 1 do
-        	if hero.charName:find(table[i]) ~= nil then
-            	TS_SetHeroPriority(priority, hero.charName)
-        	end
-    	end
+		for i=1, #table, 1 do
+			if hero.charName:find(table[i]) ~= nil then
+				TS_SetHeroPriority(priority, hero.charName)
+			end
+		end
 	end
 ---<
 --- Set Priorities ---
@@ -1191,7 +1189,7 @@ function OnCreateObj(obj)
 			if FocusJungleNames[obj.name] then
 				table.insert(JungleFocusMobs, obj)
 			elseif JungleMobNames[obj.name] then
-        		table.insert(JungleMobs, obj)
+				table.insert(JungleMobs, obj)
 			end
 		end
 	---<
@@ -1266,9 +1264,9 @@ function OnDraw()
 	--->
 		if KatarinaMenu.drawing.drawText then
 			for i = 1, heroManager.iCount do
-        		local enemy = heroManager:GetHero(i)
-        		if ValidTarget(enemy) then
-        			local barPos = WorldToScreen(D3DXVECTOR3(enemy.x, enemy.y, enemy.z)) --(Credit to Zikkah)
+				local enemy = heroManager:GetHero(i)
+				if ValidTarget(enemy) then
+					local barPos = WorldToScreen(D3DXVECTOR3(enemy.x, enemy.y, enemy.z)) --(Credit to Zikkah)
 					local PosX = barPos.x - 35
 					local PosY = barPos.y - 10
 					if KillText[i] ~= 10 then
@@ -1331,7 +1329,7 @@ end
 --- Check When Its Time To Attack ---
 --->
 	function TimeToAttack()
-    	return (GetTickCount() + GetLatency()/2 > lastAttack + lastAttackCD)
+		return (GetTickCount() + GetLatency()/2 > lastAttack + lastAttackCD)
 	end
 ---<
 --- Check When Its Time To Attack ---
@@ -1348,7 +1346,7 @@ end
 		if GetDistance(mousePos) then
 			local moveToPos = myHero + (Vector(mousePos) - myHero):normalized()*300
 			myHero:MoveTo(moveToPos.x, moveToPos.z)
-    	end        
+		end		
 	end
 ---<
 --- Move to Mouse ---
@@ -1544,11 +1542,11 @@ function Checks()
 	--- Checks if Health Pots / Mana Pots are Ready ---	
 	--- Checks if Wards are Ready ---
 	--->
-		Items.TrinketWard.ready      = (myHero:CanUseSpell(ITEM_7) == READY and myHero:getItem(ITEM_7).id == 3340) or (myHero:CanUseSpell(ITEM_7) == READY and myHero:getItem(ITEM_7).id == 3350) or (myHero:CanUseSpell(ITEM_7) == READY and myHero:getItem(ITEM_7).id == 3361) or (myHero:CanUseSpell(ITEM_7) == READY and myHero:getItem(ITEM_7).id == 3362)
+		Items.TrinketWard.ready	  = (myHero:CanUseSpell(ITEM_7) == READY and myHero:getItem(ITEM_7).id == 3340) or (myHero:CanUseSpell(ITEM_7) == READY and myHero:getItem(ITEM_7).id == 3350) or (myHero:CanUseSpell(ITEM_7) == READY and myHero:getItem(ITEM_7).id == 3361) or (myHero:CanUseSpell(ITEM_7) == READY and myHero:getItem(ITEM_7).id == 3362)
 		Items.RubySightStone.ready   = (rstSlot ~= nil and myHero:CanUseSpell(rstSlot) == READY)
-		Items.SightStone.ready       = (ssSlot ~= nil and myHero:CanUseSpell(ssSlot) == READY)
-		Items.SightWard.ready        = (swSlot ~= nil and myHero:CanUseSpell(swSlot) == READY)
-		Items.VisionWard.ready       = (vwSlot ~= nil and myHero:CanUseSpell(vwSlot) == READY)
+		Items.SightStone.ready	   = (ssSlot ~= nil and myHero:CanUseSpell(ssSlot) == READY)
+		Items.SightWard.ready		= (swSlot ~= nil and myHero:CanUseSpell(swSlot) == READY)
+		Items.VisionWard.ready	   = (vwSlot ~= nil and myHero:CanUseSpell(vwSlot) == READY)
 	---<
 	--- Checks if Wards are Ready ---
 	--- Updates Minions ---
