@@ -140,11 +140,11 @@
 		 - Fixed some logics about killsteal
 		 - Fixed some Logics about getting Distance
 		 - Improved Logics of the Script
-		 - Fixed Farming Bug - "Shunpo" (E)
    2.0.7 - Finally fixed Proc Q Mark
 		 - Changed some variables
 		 - Improved Ult Killsteal (Experimental)
 		 - Hopefully fixed Double-Ward Bug
+		 - Fixed farm with "Shunpo" (E)
   	]] --
 
 -- / Hero Name Check / --
@@ -618,7 +618,7 @@ function Farm()
 						if minion.health <= qMinionDmg and (GetDistance(minion) <= SkillQ.range) then
 							CastQ(minion)
 						end
-					elseif eFarmKey then
+					if eFarmKey then
 						if minion.health <= eMinionDmg and (GetDistance(minion) <= SkillE.range) then
 							CastE(minion)
 						end
