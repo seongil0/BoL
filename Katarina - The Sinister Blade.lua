@@ -618,6 +618,7 @@ function Farm()
 						if minion.health <= qMinionDmg and (GetDistance(minion) <= SkillQ.range) then
 							CastQ(minion)
 						end
+					end
 					if eFarmKey then
 						if minion.health <= eMinionDmg and (GetDistance(minion) <= SkillE.range) then
 							CastE(minion)
