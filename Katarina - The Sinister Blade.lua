@@ -3,13 +3,13 @@
 	
 		db   dD  .d8b.  d888888b  .d8b.  d8888b. d888888b d8b   db  .d8b.  
 		88 ,8P' d8' `8b `~~88~~' d8' `8b 88  `8D   `88'   888o  88 d8' `8b 
-		88,8P   88ooo88	88	88ooo88 88oobY'	88	88V8o 88 88ooo88 
-		88`8b   88~~~88	88	88~~~88 88`8b	  88	88 V8o88 88~~~88 
-		88 `88. 88   88	88	88   88 88 `88.   .88.   88  V888 88   88 
-		YP   YD YP   YP	YP	YP   YP 88   YD Y888888P VP   V8P YP   YP 
-																   
+		88,8P   88ooo88    88    88ooo88 88oobY'    88    88V8o 88 88ooo88 
+		88`8b   88~~~88    88    88~~~88 88`8b      88    88 V8o88 88~~~88 
+		88 `88. 88   88    88    88   88 88 `88.   .88.   88  V888 88   88 
+		YP   YD YP   YP    YP    YP   YP 88   YD Y888888P VP   V8P YP   YP 
 
-	Script - Katarina - The Sinister Blade 2.0.7 by Skeem
+
+	Script - Katarina - The Sinister Blade 2.0.7 by Skeem and Roach
 
 	Changelog :
    1.0	 - Initial Release
@@ -146,6 +146,7 @@
 		 - Hopefully fixed Double-Ward Bug
 		 - Fixed farm with "Shunpo" (E)
 		 - Fixed Sightstone not casting Bug
+		 - Fixed typo
   	]] --
 
 -- / Hero Name Check / --
