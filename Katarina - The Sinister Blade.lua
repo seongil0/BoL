@@ -145,6 +145,7 @@
 		 - Improved Ult Killsteal (Experimental)
 		 - Hopefully fixed Double-Ward Bug
 		 - Fixed farm with "Shunpo" (E)
+		 - Fixed Sightstone not casting Bug
   	]] --
 
 -- / Hero Name Check / --
@@ -818,7 +819,6 @@ function wardJump(x, y)
 					SkillWard.itemSlot = rstSlot
 				elseif Items.SightStone.ready then 
 					SkillWard.itemSlot = ssSlot
-					CastSpell(ssSlot, x, y)
 				elseif Items.SightWard.ready then
 					SkillWard.itemSlot = swSlot
 				elseif Items.VisionWard.ready then
