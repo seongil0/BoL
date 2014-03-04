@@ -147,18 +147,62 @@
 		 - Fixed farm with "Shunpo" (E)
 		 - Fixed Sightstone not casting Bug
 		 - Fixed typo
+		 - Added Auto-updater
+		 - Added Anti-Ult Breaking for MMA / SAC
   	]] --
 
 -- / Hero Name Check / --
 if myHero.charName ~= "Katarina" then return end
 -- / Hero Name Check / --
 
+-- / Auto-Update Function / --
+local Autoupdate =
+		{
+			enabled			= true,
+			scriptName		= "Katarina - The Sinister Blade",
+			host			= "github.com",
+			path			= "/UglyOldGuy/BoL/master/Katarina%20-%20The%20Sinister%20Blade.lua",
+			filePath		= SCRIPT_PATH..GetCurrentEnv().FILE_NAME,
+			url				= "https://"..UPDATE_HOST..UPDATE_PATH,
+			serverData		= nil,
+			scriptVersion	= "2.0.7",
+			serverVersion	= nil
+		}
+
+if Autoupdate.enabled then
+	GetAsyncWebResult(Autoupdate.host, Autoupdate.path, function(Data) Autoupdate.serverData = Data end)
+	function AutoUpdater()
+		if Autoupdate.scriptName ~= "" and Autoupdate.host ~= "" and Autoupdate.path ~= "" and Autoupdate.filePath ~= "" and Autoupdate.serverData ~= nil and Autoupdate.scriptVersion ~= "" then
+			local DataSend, DataTmp, DataStart = nil, string.find(Autoupdate.serverData, "scriptVersion	= \"")
+			
+			if DataStart then
+				DataSend, DataTmp = string.find(Autoupdate.serverData, "\"", DataStart + 1)
+			end
+			
+			if DataSend then
+				Autoupdate.serverVersion = tonumber(string.sub(Autoupdate.serverData, DataStart + 1, DataSend - 1))
+			end
+
+			if Autoupdate.serverVersion ~= nil and tonumber(Autoupdate.serverVersion) ~= nil and tonumber(Autoupdate.serverVersion) > tonumber(Autoupdate.scriptVersion) then
+				DownloadFile(Autoupdate.url.."?nocache"..myHero.charName..os.clock(), Autoupdate.filePath, function () print("<font color=\"#FF0000\"> >> "..Autoupdate.scriptName..": successfully updated. Reload (double F9) Please. ("..Autoupdate.scriptVersion.." => "..Autoupdate.serverVersion..")</font>") end)     
+			elseif Autoupdate.serverVersion then
+				print("<font color=\"#FF0000\"> >> "..Autoupdate.scriptName..": You have got the latest version: <b>"..Autoupdate.serverVersion.."</b></font>")
+			end		
+			Autoupdate.serverData = nil
+		else
+			PrintChat("<font color='#FF0000'> >> "..Autoupdate.scriptName..": You missed variables, the Update Class won't start</font>")
+		end
+	end
+	AddTickCallback(AutoUpdater)
+end
+-- / Auto-Update Function / --
+
 -- / Loading Function / --
 function OnLoad()
 	--->
 		Variables()
 		KatarinaMenu()
-		PrintChat("<font color='#FF0000'> >> Katarina - The Sinister Blade 2.0.7 Loaded <<</font>")
+		PrintChat("<font color='#FF0000'> >> "..Autoupdate.scriptName.." 2.0.7 Loaded <<</font>")
 	---<
 end
 -- / Loading Function / --
@@ -1562,6 +1606,41 @@ function Checks()
 	--->
 		if GetTickCount() <= SkillR.castDelay then SkillR.castingUlt = true end
 		if SkillQ.ready and SkillW.ready and SkillE.ready and not Target then SkillR.castingUlt = false end
+		if isChanneling("Spell4") or SkillR.castingUlt then
+			if AutoCarry then 
+				if AutoCarry.MainMenu ~= nil then
+						if AutoCarry.CanAttack ~= nil then
+							_G.AutoCarry.CanAttack = false
+							_G.AutoCarry.CanMove = false
+						end
+				elseif AutoCarry.Keys ~= nil then
+					if AutoCarry.MyHero ~= nil then
+						_G.AutoCarry.MyHero:MovementEnabled(false)
+						_G.AutoCarry.MyHero:AttacksEnabled(false)
+					end
+				end
+			elseif MMA_Loaded then
+				_G.MMA_AttackAvailable = false
+				_G.MMA_AbleToMove = false
+			end
+		else
+			if AutoCarry then 
+				if AutoCarry.MainMenu ~= nil then
+						if AutoCarry.CanAttack ~= nil then
+							_G.AutoCarry.CanAttack = true
+							_G.AutoCarry.CanMove = true
+						end
+				elseif AutoCarry.Keys ~= nil then
+					if AutoCarry.MyHero ~= nil then
+						_G.AutoCarry.MyHero:MovementEnabled(true)
+						_G.AutoCarry.MyHero:AttacksEnabled(true)
+					end
+				end
+			elseif MMA_Loaded then
+				_G.MMA_AttackAvailable = true
+				_G.MMA_AbleToMove = true
+			end
+		end
 	---<
 	--- Setting Cast of Ult ---
 end
