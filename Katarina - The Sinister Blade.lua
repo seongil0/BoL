@@ -156,44 +156,39 @@ if myHero.charName ~= "Katarina" then return end
 -- / Hero Name Check / --
 
 -- / Auto-Update Function / --
-local Autoupdate =
-		{
-			enabled			= true,
-			scriptName		= "Katarina - The Sinister Blade",
-			host			= "github.com",
-			path			= "/UglyOldGuy/BoL/master/Katarina%20-%20The%20Sinister%20Blade.lua",
-			filePath		= SCRIPT_PATH..GetCurrentEnv().FILE_NAME,
-			url				= "https://"..UPDATE_HOST..UPDATE_PATH,
-			serverData		= nil,
-			scriptVersion	= "2.0.7",
-			serverVersion	= nil
-		}
+local scriptAutoUpdate = true
 
-if Autoupdate.enabled then
-	GetAsyncWebResult(Autoupdate.host, Autoupdate.path, function(Data) Autoupdate.serverData = Data end)
-	function AutoUpdater()
-		if Autoupdate.scriptName ~= "" and Autoupdate.host ~= "" and Autoupdate.path ~= "" and Autoupdate.filePath ~= "" and Autoupdate.serverData ~= nil and Autoupdate.scriptVersion ~= "" then
-			local DataSend, DataTmp, DataStart = nil, string.find(Autoupdate.serverData, "scriptVersion	= \"")
-			
-			if DataStart then
-				DataSend, DataTmp = string.find(Autoupdate.serverData, "\"", DataStart + 1)
+local UPDATE_SCRIPT_NAME = "Katarina - The Sinister Blade"
+local UPDATE_HOST = "github.com"
+local UPDATE_PATH = "/UglyOldGuy/BoL/blob/master/Katarina%20-%20The%20Sinister%20Blade.lua"
+local UPDATE_FILE_PATH = SCRIPT_PATH..GetCurrentEnv().FILE_NAME
+local UPDATE_URL = "https://"..UPDATE_HOST..UPDATE_PATH
+
+local scriptVersion = "2.0.7"
+
+local serverData
+if scriptAutoUpdate then
+	GetAsyncWebResult(UPDATE_HOST, UPDATE_PATH, function(d) serverData = d end)
+	function AutoUpdate()
+		if serverData ~= nil then
+			local serverVersion
+			local send, tmp, sstart = nil, string.find(serverData, "local scriptVersion = \"")
+			if sstart then
+				send, tmp = string.find(serverData, "\"", sstart+1)
 			end
-			
-			if DataSend then
-				Autoupdate.serverVersion = tonumber(string.sub(Autoupdate.serverData, DataStart + 1, DataSend - 1))
+			if send then
+				serverVersion = tonumber(string.sub(serverData, sstart+1, send-1))
 			end
 
-			if Autoupdate.serverVersion ~= nil and tonumber(Autoupdate.serverVersion) ~= nil and tonumber(Autoupdate.serverVersion) > tonumber(Autoupdate.scriptVersion) then
-				DownloadFile(Autoupdate.url.."?nocache"..myHero.charName..os.clock(), Autoupdate.filePath, function () print("<font color=\"#FF0000\"> >> "..Autoupdate.scriptName..": successfully updated. Reload (double F9) Please. ("..Autoupdate.scriptVersion.." => "..Autoupdate.serverVersion..")</font>") end)     
-			elseif Autoupdate.serverVersion then
-				print("<font color=\"#FF0000\"> >> "..Autoupdate.scriptName..": You have got the latest version: <b>"..Autoupdate.serverVersion.."</b></font>")
+			if serverVersion ~= nil and tonumber(serverVersion) ~= nil and tonumber(serverVersion) > tonumber(scriptVersion) then
+				DownloadFile(UPDATE_URL, UPDATE_FILE_PATH, function () print("<font color=\"#FF0000\"><b>"..UPDATE_SCRIPT_NAME..":</b> successfully updated. Reload (double F9) Please. ("..scriptVersion.." => "..serverVersion..")</font>") end)     
+			elseif serverVersion then
+				print("<font color=\"#FF0000\"><b>"..UPDATE_SCRIPT_NAME..":</b> You have got the latest version: <u><b>"..serverVersion.."</b></u></font>")
 			end		
-			Autoupdate.serverData = nil
-		else
-			PrintChat("<font color='#FF0000'> >> "..Autoupdate.scriptName..": You missed variables, the Update Class won't start</font>")
+			serverData = nil
 		end
 	end
-	AddTickCallback(AutoUpdater)
+	AddTickCallback(AutoUpdate)
 end
 -- / Auto-Update Function / --
 
@@ -202,7 +197,7 @@ function OnLoad()
 	--->
 		Variables()
 		KatarinaMenu()
-		PrintChat("<font color='#FF0000'> >> "..Autoupdate.scriptName.." 2.0.7 Loaded <<</font>")
+		PrintChat("<font color='#FF0000'> >> "..UPDATE_SCRIPT_NAME.." 2.0.7 Loaded <<</font>")
 	---<
 end
 -- / Loading Function / --
