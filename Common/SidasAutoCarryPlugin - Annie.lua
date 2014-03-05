@@ -25,6 +25,7 @@
 	1.4   - Changed W Range
 	      - Fixed some issues with R
 	      - Added better support for revamped
+	1.4.1 - Added fix for casting W before R when stun is up
   	]] --
 
 
@@ -73,13 +74,7 @@ function bCombo()
 		if HXGREADY then CastSpell(hxgSlot, Target) end
 		if BWCREADY then CastSpell(bwcSlot, Target) end
 		if BRKREADY then CastSpell(brkSlot, Target) end
-		if RREADY then
-			if Menu.fTibbers then 
-				if GetDistance(Target) <= rRange then CastR(Target) end
-			elseif not Menu.fTibbers then
-				if GetDistance(Target) <= rRange and HaveStun then CastR(Target) end
-			end
-		end
+		if RREADY and GetDistance(Target) <= rRange and HaveStun then CastR(Target) end
 		if EREADY and GetDistance(Target) <= wRange then CastSpell(_E) end
 		if QREADY and GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
 		if WREADY and GetDistance(Target) <= wRange then CastW(Target) end
@@ -102,20 +97,20 @@ function CountEnemies(point, range)
 end
 
 function CastR(Target)
-	if RREADY then
-		local ultPos = GetAoESpellPosition(450, Target, 250)
-		if ultPos and GetDistance(ultPos) <= rRange then
-			if CountEnemies(ultPos, 450) > 1 then
-				CastSpell(_R, ultPos.x, ultPos.z)
-			end
-		else
-			if IsSACReborn then
-				SkillR:Cast(Target)
-			else
-				AutoCarry.CastSkillshot(SkillR, Target)
-			end
-		end
-	end
+    if RREADY then
+        local ultPos = GetAoESpellPosition(450, Target, 250)
+        if ultPos and GetDistance(ultPos) <= rRange then
+            if CountEnemies(ultPos, 450) >= 1 then
+                CastSpell(_R, ultPos.x, ultPos.z)
+            end
+        else
+            if IsSACReborn and TS_GetPriority(Target) <= 2 then
+                SkillR:Cast(Target)
+            else
+            	CastSpell(_R, Target.x, Target.z)
+            end
+        end
+    end 
 end 
 --[Skills that use MEC]--
 
