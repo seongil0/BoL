@@ -455,7 +455,7 @@ function KillSteal()
 				CastSpell(ignite, Target)
 				CastR(Target)
 			end
-		elseif GetDistance(Target)s <= rRange and rReady and Target.health <= rDmg then
+		elseif GetDistance(Target) <= rRange and rReady and Target.health <= rDmg then
 			if myMana > rMana then
 				CastR(Target)
 			end
