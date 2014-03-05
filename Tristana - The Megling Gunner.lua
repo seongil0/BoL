@@ -2,6 +2,7 @@
 		Changelog:
 		1.0   - First Release
 		1.0.1 - Added DFG to combo, improved KS functions
+		1.1 - Improved combo, added some insta burst combo if can kill target
 ]]
 
 -- Name Check -- 
@@ -243,13 +244,32 @@ function FullCombo()
 		end
 	end
 	if Target then
-		if TristanaMenu.combo.comboItems then UseItems(Target) end
-		if GetDistance(Target) <= eRange then CastSpell(_Q) end
-		CastE(Target)
-		if TristanaMenu.combo.wKillOnly then
-			if Target.health <= wDmg then CastW(Target) end
+		if Target.health <= eDmg + wDmg + rDmg then
+			if eReady and wReady and rReady then
+				if myMana > (eMana + wMana + rMana) then
+					CastW(Target)
+					CastE(Target)
+					CastR(Target)
+				end
+			end
+		elseif Target.health <= eDmg + wDmg + rDmg + itemsDmg then
+			if eReady and wReady and rReady then
+				if myMana > (eMana + wMana + rMana) then
+					UseItems(Target)
+					CastW(Target)
+					CastE(Target)
+					CastR(Target)
+				end
+			end
 		else
-			CastW(Target)
+			if TristanaMenu.combo.comboItems then UseItems(Target) end
+			if GetDistance(Target) <= eRange then CastSpell(_Q) end
+			CastE(Target)
+			if TristanaMenu.combo.wKillOnly then
+				if Target.health <= wDmg then CastW(Target) end
+			else
+				CastW(Target)
+			end
 		end
 	end
 end
@@ -313,7 +333,7 @@ function CastW(enemy)
 		enemy = Target 
 	end
 	if (countEnemiesAround(enemy) + 1) < TristanaMenu.ks.dontJump then
-		if ValidTarget(enemy) then
+		if ValidTarget(enemy) and GetDistance(Target) <= wRange then
 			if VIP_USER then
 				if wPos then
 					CastSpell(_W, wPos.x, wPos.z)
@@ -417,7 +437,7 @@ function KillSteal()
 			end
 		elseif GetDistance(Target) <= wRange and eReady and wReady and Target.health <= (wDmg + eDmg) then
 			if myMana > (wMana + eMana) then
-				CastW(Target)
+				CastE(Target)
 			end
 		elseif GetDistance(Target) <= wRange and wReady and rReady and Target.health <= (wDmg + rDmg) then
 			if myMana > (wMana + rMana) then
@@ -435,7 +455,7 @@ function KillSteal()
 				CastSpell(ignite, Target)
 				CastR(Target)
 			end
-		elseif GetDistance(Target) <= rRange and rReady and Target.health <= rDmg then
+		elseif GetDistance(Target)s <= rRange and rReady and Target.health <= rDmg then
 			if myMana > rMana then
 				CastR(Target)
 			end
@@ -827,7 +847,7 @@ function Checks()
 	fskReady = (fskSlot ~= nil and myHero:CanUseSpell(fskSlot) == READY)
 	
 	if VIP_USER then
-		if Target then
+		if Target and not Target.dead then
 			wPos = ProdictW:GetPrediction(Target)
 		end
 	end
