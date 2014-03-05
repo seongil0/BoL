@@ -1,3 +1,4 @@
+local scriptVersion = "2.0.7"
 --[[
 
 	
@@ -160,11 +161,9 @@ local scriptAutoUpdate = true
 
 local UPDATE_SCRIPT_NAME = "Katarina - The Sinister Blade"
 local UPDATE_HOST = "raw.github.com"
-local UPDATE_PATH = "/UglyOldGuy/BoL/master/Katarina%20-%20The%20Sinister%20Blade.lua"
+local UPDATE_PATH = "/UglyOldGuy/BoL/master/"..UPDATE_SCRIPT_NAME..".lua"
 local UPDATE_FILE_PATH = SCRIPT_PATH..GetCurrentEnv().FILE_NAME
 local UPDATE_URL = "https://"..UPDATE_HOST..UPDATE_PATH
-
-local scriptVersion = "2.0.7"
 
 local serverData
 if scriptAutoUpdate then
@@ -175,19 +174,21 @@ if scriptAutoUpdate then
 			local send, tmp, sstart = nil, string.find(serverData, "local scriptVersion = \"")
 			
 			if sstart then
-				send, tmp = string.find(serverData, "\"", sstart+1)
+				send, tmp = string.find(serverData, "\"", sstart + 1)
 			end
 			
 			if send then
-				serverVersion = tonumber(string.sub(serverData, sstart+1, send-1))
+				serverVersion = tonumber(string.sub(serverData, sstart + 1, send - 1))
 			end
 
 			if serverVersion ~= nil and tonumber(serverVersion) ~= nil and tonumber(serverVersion) > tonumber(scriptVersion) then
 				DownloadFile(UPDATE_URL, UPDATE_FILE_PATH, function () print("<font color=\"#FF0000\"> >> "..UPDATE_SCRIPT_NAME..": successfully updated. Reload (double F9) Please. ("..scriptVersion.." => "..serverVersion..")</font>") end)     
 			elseif serverVersion then
-				print("<font color=\"#FF0000\"> >> "..UPDATE_SCRIPT_NAME..": You have got the latest version: <b>"..serverVersion.."</b></font>")
+				PrintChat("<font color=\"#FF0000\"> >> "..UPDATE_SCRIPT_NAME..": You have got the latest version: <b>"..serverVersion.."</b></font>")
 			end		
 			serverData = nil
+		else
+			PrintChat("WAT")
 		end
 	end
 	AddTickCallback(AutoUpdate)
