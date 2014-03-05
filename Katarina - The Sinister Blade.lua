@@ -1,4 +1,4 @@
-local scriptVersion = "2.07"
+local version = "2.07"
 --[[
 
 	
@@ -156,42 +156,37 @@ local scriptVersion = "2.07"
 if myHero.charName ~= "Katarina" then return end
 -- / Hero Name Check / --
 
--- / Auto-Update Function / --
-local scriptAutoUpdate = true
-
+local autoupdateenabled = true
 local UPDATE_SCRIPT_NAME = "Katarina - The Sinister Blade"
 local UPDATE_HOST = "raw.github.com"
 local UPDATE_PATH = "/UglyOldGuy/BoL/master/Katarina%20-%20The%20Sinister%20Blade.lua"
 local UPDATE_FILE_PATH = SCRIPT_PATH..GetCurrentEnv().FILE_NAME
 local UPDATE_URL = "https://"..UPDATE_HOST..UPDATE_PATH
 
-local serverData
-if scriptAutoUpdate then
-	GetAsyncWebResult(UPDATE_HOST, UPDATE_PATH, function(d) serverData = d end)
-	function AutoUpdate()
-		if serverData ~= nil then
-			local serverVersion
-			local send, tmp, sstart = nil, string.find(serverData, "local scriptVersion = \"")
-			
+-- / Auto-Update Function / --
+local ServerData
+if autoupdateenabled then
+	GetAsyncWebResult(UPDATE_HOST, UPDATE_PATH, function(d) ServerData = d end)
+	function update()
+		if ServerData ~= nil then
+			local ServerVersion
+			local send, tmp, sstart = nil, string.find(ServerData, "local version = \"")
 			if sstart then
-				send, tmp = string.find(serverData, "\"", sstart + 1)
+				send, tmp = string.find(ServerData, "\"", sstart+1)
 			end
-			
 			if send then
-				serverVersion = tonumber(string.sub(serverData, sstart + 1, send - 1))
+				ServerVersion = tonumber(string.sub(ServerData, sstart+1, send-1))
 			end
 
-			if serverVersion ~= nil and tonumber(serverVersion) ~= nil and tonumber(serverVersion) > tonumber(scriptVersion) then
-				DownloadFile(UPDATE_URL, UPDATE_FILE_PATH, function () print("<font color=\"#FF0000\"> >> "..UPDATE_SCRIPT_NAME..": successfully updated. Reload (double F9) Please. ("..scriptVersion.." => "..serverVersion..")</font>") end)     
-			elseif serverVersion then
-				PrintChat("<font color=\"#FF0000\"> >> "..UPDATE_SCRIPT_NAME..": You have got the latest version: <b>"..serverVersion.."</b></font>")
+			if ServerVersion ~= nil and tonumber(ServerVersion) ~= nil and tonumber(ServerVersion) > tonumber(version) then
+				DownloadFile(UPDATE_URL.."?nocache"..myHero.charName..os.clock(), UPDATE_FILE_PATH, function () print("<font color=\"#FF0000\"> >> "..UPDATE_SCRIPT_NAME..": successfully updated. Reload (double F9) Please. ("..version.." => "..ServerVersion..")</font>") end)     
+			elseif ServerVersion then
+				print("<font color=\"#FF0000\"> >> "..UPDATE_SCRIPT_NAME..": You have got the latest version: <b>"..ServerVersion.."</b></font>")
 			end		
-			serverData = nil
-		else
-			PrintChat("WAT")
+			ServerData = nil
 		end
 	end
-	AddTickCallback(AutoUpdate)
+	AddTickCallback(update)
 end
 -- / Auto-Update Function / --
 
