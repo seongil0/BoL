@@ -1,4 +1,4 @@
-local scriptVersion = "2.0.7"
+local scriptVersion = "2.07"
 --[[
 
 	
@@ -161,7 +161,7 @@ local scriptAutoUpdate = true
 
 local UPDATE_SCRIPT_NAME = "Katarina - The Sinister Blade"
 local UPDATE_HOST = "raw.github.com"
-local UPDATE_PATH = "/UglyOldGuy/BoL/master/"..UPDATE_SCRIPT_NAME..".lua"
+local UPDATE_PATH = "/UglyOldGuy/BoL/master/Katarina%20-%20The%20Sinister%20Blade.lua"
 local UPDATE_FILE_PATH = SCRIPT_PATH..GetCurrentEnv().FILE_NAME
 local UPDATE_URL = "https://"..UPDATE_HOST..UPDATE_PATH
 
