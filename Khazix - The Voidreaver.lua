@@ -49,6 +49,7 @@
 			1.2 - More effective W Fix for non vips
 			1.2.1 - Fixed typo with W/E for nonvips
 			1.2.2 - Fixed minion Targetting
+			1.2.3 - Added a death check so it won't jump on dead targets
   ]]--
   
 -- Name Check --  
@@ -636,7 +637,7 @@ function Checks()
 	-- Updates Targets --
 	TargetSelector:update()
 	tsTarget = TargetSelector.target
-	if tsTarget and tsTarget.type == "obj_AI_Hero" then
+	if tsTarget and tsTarget.type == "obj_AI_Hero" and not tsTarget.dead then
 		Target = tsTarget
 	else
 		Target = nil
