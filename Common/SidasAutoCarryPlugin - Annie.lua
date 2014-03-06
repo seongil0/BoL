@@ -1,5 +1,5 @@
 --[[
-	AutoCarry Plugin - Annie Hastur, the Dark Child 1.3 by Skeem
+	AutoCarry Plugin - Annie Hastur, the Dark Child 1.4.2 by Skeem
 	With Code from Kain
 	Copyright 2013
 	Changelog :
@@ -26,6 +26,7 @@
 	      - Fixed some issues with R
 	      - Added better support for revamped
 	1.4.1 - Added fix for casting W before R when stun is up
+	1.4.2 - Fixed spamming E while Recalling & Tweaked DFG Usage
   	]] --
 
 
@@ -39,7 +40,7 @@ end
 
 --[Plugin OnTick]--
 function PluginOnTick()
-		if Recall then return end -- If we're recalling then won't run any combos
+		if Recalling then return end -- If we're recalling then won't run any combos
 		Checks()
 		SmartKS()
 		UseConsumables()
@@ -70,7 +71,7 @@ end
 --[Burst Combo Function]--
 function bCombo()
 	if Target then
-		if DFGREADY then CastSpell(dfgSlot, Target) end
+		if DFGREADY and GetDistance(Target) <= qRange then CastSpell(dfgSlot, Target) end
 		if HXGREADY then CastSpell(hxgSlot, Target) end
 		if BWCREADY then CastSpell(bwcSlot, Target) end
 		if BRKREADY then CastSpell(brkSlot, Target) end
