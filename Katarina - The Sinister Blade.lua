@@ -1,4 +1,4 @@
-local version = "2.07"
+local version = "2.071"
 --[[
 
 	
@@ -150,6 +150,7 @@ local version = "2.07"
 		 - Fixed typo
 		 - Added Auto-updater
 		 - Added Anti-Ult Breaking for MMA / SAC
+		 - Fixed Ult Breaking for Free / VIP Users
   	]] --
 
 -- / Hero Name Check / --
@@ -533,9 +534,6 @@ end
 function FullCombo()
 	--- Combo While Not Channeling --
 	--->
-		if SkillR.castDelay == 0 then
-			SkillR.castingUlt = false
-		end
 		if KatarinaMenu.combo.detonateQ and (GetTickCount() >= (SkillQ.timeToHit + SkillQ.markDelay) or SkillQ.ready) then
 			SkillQ.timeToHit = 0
 		end
@@ -801,7 +799,7 @@ function CastR(enemy)
 		end
 		if ValidTarget(enemy) and (not isChanneling("Spell4") and not SkillR.castingUlt) then
 			CastSpell(_R) 
-			SkillR.castDelay = GetTickCount()+250
+			SkillR.castDelay = GetTickCount() + 180
 		end
 	---<
 	--- Dymanic R Cast --
@@ -1209,7 +1207,7 @@ function OnCreateObj(obj)
 		if obj ~= nil then
 			if (obj.name:find("katarina_deathLotus_mis.troy") or obj.name:find("katarina_deathLotus_tar.troy")) then
 				if GetDistance(obj, myHero) <= 70 then
-					SkillR.castDelay = GetTickCount()+250
+					SkillR.castDelay = GetTickCount() + 180
 				end
 			end
 			if (obj.name:find("katarina_deathlotus_success.troy") or obj.name:find("Katarina_deathLotus_empty.troy")) then
