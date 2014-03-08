@@ -1,4 +1,4 @@
-local version = "2.071"
+local version = "2.072"
 --[[
 
 	
@@ -546,10 +546,10 @@ function FullCombo()
 					UseItems(Target)
 				end
 				CastQ(Target)
-				if KatarinaMenu.combo.detonateQ and GetTickCount() >= SkillQ.timeToHit then
+				if KatarinaMenu.combo.detonateQ and (GetTickCount() >= SkillQ.timeToHit or SkillQ.timeToHit == 0) then
 					if not SkillQ.ready then CastE(Target) end
 					if not SkillE.ready then CastW(Target) end
-				else
+				elseif not KatarinaMenu.combo.detonateQ then
 					CastE(Target)
 					CastW(Target)
 				end
@@ -579,10 +579,10 @@ function HarassCombo()
 			--- Harass Mode 1 Q+W+E ---
 			if KatarinaMenu.harass.hMode == 1 then
 				CastQ(Target)
-				if KatarinaMenu.harass.detonateQ and GetTickCount() >= SkillQ.timeToHit then
+				if KatarinaMenu.harass.detonateQ and (GetTickCount() >= SkillQ.timeToHit or SkillQ.timeToHit == 0) then
 					if not SkillQ.ready then CastE(Target) end
 					if not SkillE.ready then CastW(Target) end
-				else
+				elseif not KatarinaMenu.harass.detonateQ then
 					CastE(Target)
 					CastW(Target)
 				end
@@ -741,7 +741,7 @@ function CastQ(enemy)
 				CastSpell(_Q, enemy)
 				return true
 			end
-			if SkillQ.timeToHit == 0 then
+			if SkillQ.timeToHit == 0 or GetTickCount() >= SkillQ.timeToHit then
 				SkillQ.timeToHit = GetTickCount() + (SkillQ.delay + (GetDistance(myHero, enemy) / SkillQ.projSpeed))
 			end
 		end
