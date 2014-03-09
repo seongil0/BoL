@@ -240,9 +240,15 @@ function OnTick()
 			local WardPos = GetDistance(mousePos) <= SkillWard.range and mousePos or getMousePos()
 			wardJump(WardPos.x, WardPos.z)
 		end
-		if KatarinaMenu.killsteal.smartKS then KillSteal() end
-		if KatarinaMenu.misc.AutoLevelSkills then autoLevelSetSequence(levelSequence) end
-		if KatarinaMenu.misc.jumpAllies then DangerCheck() end
+		if KatarinaMenu.killsteal.smartKS then
+			KillSteal()
+		end
+		if KatarinaMenu.misc.AutoLevelSkills then
+			autoLevelSetSequence(levelSequence)
+		end
+		if KatarinaMenu.misc.jumpAllies then
+			DangerCheck()
+		end
 	---<
 end
 -- / Tick Function / --
@@ -255,7 +261,7 @@ function Variables()
 		SkillW =	{range = 375, name = "Sinister Steel",	ready = false,																			color = ARGB(255, 32,178,170)	}
 		SkillE =	{range = 700, name = "Shunpo",			ready = false,																			color = ARGB(255,128, 0 ,128)	}
 		SkillR =	{range = 550, name = "Death Lotus",		ready = false,	castDelay = 0,	castingUlt = false																		}
-		SkillWard = {range = 600, lastPlaced = 0,			itemSlot = nil																											}
+		SkillWard = {range = 600, lastJump = 0,			itemSlot = nil																											}
 	---<
 	--- Skills Vars ---
 	--- Items Vars ---
@@ -478,7 +484,7 @@ function KatarinaMenu()
 		---> KillSteal Menu
 		KatarinaMenu:addSubMenu("["..myHero.charName.." - KillSteal Settings]", "killsteal")
 			KatarinaMenu.killsteal:addParam("smartKS", "Use Smart Kill Steal", SCRIPT_PARAM_ONOFF, true)
-			KatarinaMenu.killsteal:addParam("wardKS", "Use Wards to KS", SCRIPT_PARAM_ONOFF, true)
+			-- KatarinaMenu.killsteal:addParam("wardKS", "Use Wards to KS", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.killsteal:addParam("ultKS", "Use "..SkillR.name.." (R) to KS", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.killsteal:addParam("itemsKS", "Use Items to KS", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.killsteal:addParam("Ignite", "Auto Ignite", SCRIPT_PARAM_ONOFF, true)
@@ -512,7 +518,7 @@ function KatarinaMenu()
 			KatarinaMenu.misc:permaShow("wardJumpKey")
 		---<
 		---> Target Selector		
-			TargetSelector = TargetSelector(TARGET_LESS_CAST, SkillE.range, DAMAGE_MAGIC)
+			TargetSelector = TargetSelector(TARGET_LESS_CAST, SkillE.range, DAMAGE_MAGIC, false)
 			TargetSelector.name = "Katarina"
 			KatarinaMenu:addTS(TargetSelector)
 		---<
@@ -537,7 +543,7 @@ function FullCombo()
 		if KatarinaMenu.combo.detonateQ and (GetTickCount() >= (SkillQ.timeToHit + SkillQ.markDelay) or SkillQ.ready) then
 			SkillQ.timeToHit = 0
 		end
-		if (not isChanneling("Spell4") and not SkillR.castingUlt) then
+		if not isChanneling("Spell4") and not SkillR.castingUlt then
 			if Target then
 				if KatarinaMenu.combo.comboOrbwalk then
 					OrbWalking(Target)
@@ -810,30 +816,32 @@ end
 function wardJump(x, y)
 	--->
 		if SkillE.ready then
-			local WardUsed = false
+			local Jumped = false
 			local WardDistance = 300
-			local MinionWard, AllyWard = false, false
 			for _, ally in pairs(allyHeroes) do
 				if ValidTarget(ally, SkillE.range, false) then
 					if GetDistance(ally, mousePos) <= WardDistance then
-						AllyWard = true
 						CastSpell(_E, ally)
+						Jumped = true
+						SkillWard.lastJump = GetTickCount() + 2000
 					end
 				end
 			end
 			for _, minion in pairs(allyMinions.objects) do
 				if ValidTarget(minion, SkillE.range, false) then
 					if GetDistance(minion, mousePos) <= WardDistance then
-						MinionWard = true
 						CastSpell(_E, minion)
+						Jumped = true
+						SkillWard.lastJump = GetTickCount() + 2000
 					end
 				end
 			end
 			for _, minion in pairs(enemyMinions.objects) do
 				if ValidTarget(minion, SkillE.range, false) then
 					if GetDistance(minion, mousePos) <= WardDistance then
-						MinionWard = true
 						CastSpell(_E, minion)
+						Jumped = true
+						SkillWard.lastJump = GetTickCount() + 2000
 					end
 				end
 			end
@@ -843,12 +851,14 @@ function wardJump(x, y)
 						MousePos = getMousePos()
 						if GetDistance(obj, MousePos) <= WardDistance then
 							CastSpell(_E, obj)
+							Jumped = true
+							SkillWard.lastJump = GetTickCount() + 2000
 						 end
 					end
 				end
 			end
 			
-			if (not WardUsed or not MinionWard or not AllyWard) and GetTickCount() > SkillWard.lastPlaced then
+			if not Jumped and GetTickCount() >= SkillWard.lastJump then
 				if Items.TrinketWard.ready then
 					SkillWard.itemSlot = ITEM_7
 				elseif Items.RubySightStone.ready then
@@ -863,8 +873,8 @@ function wardJump(x, y)
 				
 				if SkillWard.itemSlot ~= nil then
 					CastSpell(SkillWard.itemSlot, x, y)
-					WardUsed = true
-					SkillWard.lastPlaced = GetTickCount() + 2000
+					Jumped = true
+					SkillWard.lastJump = GetTickCount() + 2000
 					SkillWard.itemSlot = nil
 				end
 			end
