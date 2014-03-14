@@ -1,4 +1,4 @@
-local version = "2.073"
+local version = "2.08"
 --[[
 
 	
@@ -10,7 +10,7 @@ local version = "2.073"
 		YP   YD YP   YP    YP    YP   YP 88   YD Y888888P VP   V8P YP   YP 
 
 
-	Script - Katarina - The Sinister Blade 2.0.7 by Skeem and Roach
+	Script - Katarina - The Sinister Blade 2.0.8 by Skeem and Roach
 
 	Changelog :
    1.0	 - Initial Release
@@ -151,6 +151,10 @@ local version = "2.073"
 		 - Added Auto-updater
 		 - Added Anti-Ult Breaking for MMA / SAC
 		 - Fixed Ult Breaking for Free / VIP Users
+   2.0.8 - Fixed Ignite Bug while Ult (VIP Users Bug)
+		 - Fixed Auto-W Bug while Ult
+		 - Added Auto-E at Max Range while Ult (Option in Combo Menu)
+		 - Changed Harass Menu
   	]] --
 
 -- / Hero Name Check / --
@@ -196,7 +200,7 @@ function OnLoad()
 	--->
 		Variables()
 		KatarinaMenu()
-		PrintChat("<font color='#FF0000'> >> "..UPDATE_SCRIPT_NAME.." 2.0.7 Loaded <<</font>")
+		PrintChat("<font color='#FF0000'> >> "..UPDATE_SCRIPT_NAME.." 2.0.8 Loaded <<</font>")
 	---<
 end
 -- / Loading Function / --
@@ -212,6 +216,13 @@ function OnTick()
 			if KatarinaMenu.harass.wharass and (not isChanneling("Spell4") and not SkillR.castingUlt) then CastW(Target) end
 			if KatarinaMenu.killsteal.Ignite then AutoIgnite(Target) end
 		end
+		
+		for _, enemy in pairs(enemyHeroes) do
+			if GetDistance(enemy) > SkillR.range and (isChanneling("Spell4") or SkillR.castingUlt) then
+				CastE(Target)
+			end
+		end
+		
 	---<
 	-- Menu Variables --
 	--->
@@ -319,8 +330,6 @@ function Variables()
 	--- Drawing Vars ---
 	--- Misc Vars ---
 	--->
-		lastWardUsed = 0
-		wardObject = nil
 		levelSequence = { 1,3,2,2,2,4,2,1,2,1,4,1,1,3,3,4,3,3 }
 		UsingHPot = false
 		gameState = GetGame()
@@ -448,6 +457,7 @@ function KatarinaMenu()
 		KatarinaMenu:addSubMenu("["..myHero.charName.." - Combo Settings]", "combo")
 			KatarinaMenu.combo:addParam("comboKey", "Full Combo Key (X)", SCRIPT_PARAM_ONKEYDOWN, false, 88)
 			KatarinaMenu.combo:addParam("stopUlt", "Stop "..SkillR.name.." (R) If Target Can Die", SCRIPT_PARAM_ONOFF, false)
+			KatarinaMenu.combo:addParam("autoE", "Auto E if not in "..SkillR.name.." (R) Range while Ult", SCRIPT_PARAM_ONOFF, false)
 			KatarinaMenu.combo:addParam("detonateQ", "Try to Proc "..SkillQ.name.." (Q) Mark", SCRIPT_PARAM_ONOFF, false)
 			KatarinaMenu.combo:addParam("comboItems", "Use Items with Burst", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.combo:addParam("comboOrbwalk", "Orbwalk in Combo", SCRIPT_PARAM_ONOFF, true)
@@ -455,10 +465,10 @@ function KatarinaMenu()
 		---<
 		---> Harass Menu
 		KatarinaMenu:addSubMenu("["..myHero.charName.." - Harass Settings]", "harass")
-			KatarinaMenu.harass:addParam("detonateQ", "Proc Q Mark", SCRIPT_PARAM_ONOFF, true)
-			KatarinaMenu.harass:addParam("hMode", "Harass Mode",SCRIPT_PARAM_SLICE, 1, 1, 2, 0)
 			KatarinaMenu.harass:addParam("harassKey", "Harass Hotkey (T)", SCRIPT_PARAM_ONKEYDOWN, false, 84)
-			KatarinaMenu.harass:addParam("wharass", "Always "..SkillW.name.." ((W)", SCRIPT_PARAM_ONOFF, true)
+			KatarinaMenu.harass:addParam("hMode", "Harass Mode", SCRIPT_PARAM_LIST, 1, { "Q+E+W", "Q+W" })
+			KatarinaMenu.harass:addParam("detonateQ", "Proc Q Mark", SCRIPT_PARAM_ONOFF, true)
+			KatarinaMenu.harass:addParam("wharass", "Always "..SkillW.name.." (W)", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.harass:addParam("harassOrbwalk", "Orbwalk in Harass", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.harass:permaShow("harassKey")
 		---<
@@ -1187,21 +1197,17 @@ end
 function OnSendPacket(packet)
 	-- Block Packets if Channeling --
 	--->
-		for _, enemy in pairs(enemyHeroes) do
-			if (isChanneling("Spell4") or SkillR.castingUlt) then
-				local packet = Packet(packet)
-				if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' and packet:get('sourceNetworkId') == myHero.networkID then
-					if KatarinaMenu.combo.stopUlt then
-						if Target and GetDistance(Target) <= SkillR.range then
-							if not SkillQ.ready and SkillW.ready and SkillE.ready and Target.health > (qDmg + wDmg + eDmg) then
-								packet:block()
-							end
-						end
-					else
-						if Target and GetDistance(Target) <= SkillR.range then
+		if (isChanneling("Spell4") or SkillR.castingUlt) then
+			local packet = Packet(packet)
+			if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' and packet:get('sourceNetworkId') == myHero.networkID and not packet.value.spellId == ignite then
+				if KatarinaMenu.combo.stopUlt then
+					if Target and GetDistance(Target) <= SkillR.range then
+						if not SkillQ.ready and SkillW.ready and SkillE.ready and Target.health > (qDmg + wDmg + eDmg) then
 							packet:block()
 						end
 					end
+				else
+					packet:block()
 				end
 			end
 		end
@@ -1362,13 +1368,11 @@ end
 --- Orbwalking Target ---
 --->
 	function OrbWalking(Target)
-		for _, enemy in pairs(enemyHeroes) do
-			if (not isChanneling("Spell4") and not SkillR.castingUlt) then
-				if TimeToAttack() and GetDistance(Target) <= myHero.range + GetDistance(myHero.minBBox) then
-					myHero:Attack(Target)
-				elseif heroCanMove() then
-					moveToCursor()
-				end
+		if (not isChanneling("Spell4") and not SkillR.castingUlt) then
+			if TimeToAttack() and GetDistance(Target) <= myHero.range + GetDistance(myHero.minBBox) then
+				myHero:Attack(Target)
+			elseif heroCanMove() then
+				moveToCursor()
 			end
 		end
 	end
