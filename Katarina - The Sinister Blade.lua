@@ -166,7 +166,7 @@ if myHero.charName ~= "Katarina" then return end
 local autoupdateenabled = true
 local UPDATE_SCRIPT_NAME = "Katarina - The Sinister Blade"
 local UPDATE_HOST = "raw.github.com"
-local UPDATE_PATH = "/UglyOldGuy/BoL/master/Katarina%20-%20The%20Sinister%20Blade.lua"
+local UPDATE_PATH = "/UglyOldGuy/BoL/master/Katarina%20-%20The%20Sinister%20Blade.lua?chunk="..math.random(1, 1000)
 local UPDATE_FILE_PATH = SCRIPT_PATH..GetCurrentEnv().FILE_NAME
 local UPDATE_URL = "https://"..UPDATE_HOST..UPDATE_PATH
 
