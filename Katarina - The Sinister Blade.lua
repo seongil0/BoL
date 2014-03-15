@@ -1,4 +1,4 @@
-local version = "2.08"
+local version = "2.081"
 --[[
 
 	
@@ -217,9 +217,11 @@ function OnTick()
 			if KatarinaMenu.killsteal.Ignite then AutoIgnite(Target) end
 		end
 		
-		for _, enemy in pairs(enemyHeroes) do
-			if GetDistance(enemy) > SkillR.range and (isChanneling("Spell4") or SkillR.castingUlt) then
-				CastE(Target)
+		if KatarinaMenu.combo.autoE then
+			for _, enemy in pairs(enemyHeroes) do
+				if GetDistance(enemy) > SkillR.range and (isChanneling("Spell4") or SkillR.castingUlt) then
+					CastE(Target)
+				end
 			end
 		end
 		
@@ -1198,13 +1200,10 @@ function OnSendPacket(packet)
 	-- Block Packets if Channeling --
 	--->
 		if (isChanneling("Spell4") or SkillR.castingUlt) then
-			local packet = Packet(packet)
-			if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' and packet:get('sourceNetworkId') == myHero.networkID and not packet.value.spellId == ignite then
+			if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' and packet:get('sourceNetworkId') == myHero.networkID then
 				if KatarinaMenu.combo.stopUlt then
-					if Target and GetDistance(Target) <= SkillR.range then
-						if not SkillQ.ready and SkillW.ready and SkillE.ready and Target.health > (qDmg + wDmg + eDmg) then
-							packet:block()
-						end
+					if not SkillQ.ready and SkillW.ready and SkillE.ready and Target.health > (qDmg + wDmg + eDmg) then
+						packet:block()
 					end
 				else
 					packet:block()
