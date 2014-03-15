@@ -115,7 +115,7 @@ local version = "2.081"
 		 - Fixed a little bug where the Ward-Jump function didn't jumped on Minions
 		 - 'colorText' is now Yellow every time, because other colors can be hard to see
 		 - Fixed a bug where, if you were a Free User, the Lag Free Cicrcles Started to Spam errors
-   2.0.4 - Fixed a bug where "Sinister Steel" (W) was used even if Katarina was Channelling her Ultimate
+   2.0.4 - Fixed a bug where 'Sinister Steel' (W) was used even if Katarina was Channelling her Ultimate
 		 - Fixed Range Draws blinking by adding a new option to Enable/Disable TickManager/FPS Improver in 'Misc Menu' (Default: OFF)
 		 - Using ARGB Function for the Draw Ranges
 		 - Fixed a bug where E Range was not seen
@@ -145,7 +145,7 @@ local version = "2.081"
 		 - Changed some variables
 		 - Improved Ult Killsteal (Experimental)
 		 - Hopefully fixed Double-Ward Bug
-		 - Fixed farm with "Shunpo" (E)
+		 - Fixed farm with 'Shunpo' (E)
 		 - Fixed Sightstone not casting Bug
 		 - Fixed typo
 		 - Added Auto-updater
@@ -161,6 +161,7 @@ local version = "2.081"
 if myHero.charName ~= "Katarina" then return end
 -- / Hero Name Check / --
 
+-- / Auto-Update Function / --
 local autoupdateenabled = true
 local UPDATE_SCRIPT_NAME = "Katarina - The Sinister Blade"
 local UPDATE_HOST = "raw.github.com"
@@ -168,7 +169,6 @@ local UPDATE_PATH = "/UglyOldGuy/BoL/master/Katarina%20-%20The%20Sinister%20Blad
 local UPDATE_FILE_PATH = SCRIPT_PATH..GetCurrentEnv().FILE_NAME
 local UPDATE_URL = "https://"..UPDATE_HOST..UPDATE_PATH
 
--- / Auto-Update Function / --
 local ServerData
 if autoupdateenabled then
 	GetAsyncWebResult(UPDATE_HOST, UPDATE_PATH, function(d) ServerData = d end)
@@ -184,9 +184,9 @@ if autoupdateenabled then
 			end
 
 			if ServerVersion ~= nil and tonumber(ServerVersion) ~= nil and tonumber(ServerVersion) > tonumber(version) then
-				DownloadFile(UPDATE_URL.."?nocache"..myHero.charName..os.clock(), UPDATE_FILE_PATH, function () print("<font color=\"#FF0000\"> >> "..UPDATE_SCRIPT_NAME..": successfully updated. Reload (double F9) Please. ("..version.." => "..ServerVersion..")</font>") end)     
+				DownloadFile(UPDATE_URL.."?nocache"..myHero.charName..os.clock(), UPDATE_FILE_PATH, function () print("<font color=\"#FF0000\"> >> "..UPDATE_SCRIPT_NAME..": successfully updated. Reload (double F9) Please.</font>") end)     
 			elseif ServerVersion then
-				print("<font color=\"#FF0000\"> >> "..UPDATE_SCRIPT_NAME..": You have got the latest version: <b>"..ServerVersion.."</b></font>")
+				print("<font color=\"#FF0000\"> >> "..UPDATE_SCRIPT_NAME..": You have got the latest version of the script.</font>")
 			end		
 			ServerData = nil
 		end
