@@ -1,4 +1,5 @@
 local version = "2.081"
+
 --[[
 
 	
@@ -171,16 +172,18 @@ local UPDATE_URL = "https://"..UPDATE_HOST..UPDATE_PATH
 
 local ServerData
 if autoupdateenabled then
-	GetAsyncWebResult(UPDATE_HOST, UPDATE_PATH, function(d) ServerData = d end)
+	GetAsyncWebResult(UPDATE_HOST, UPDATE_PATH, function(d) PrintChat(d) end)
 	function update()
 		if ServerData ~= nil then
 			local ServerVersion
 			local send, tmp, sstart = nil, string.find(ServerData, "local version = \"")
 			if sstart then
-				send, tmp = string.find(ServerData, "\"", sstart+1)
+				send, tmp = string.find(ServerData, "\"", sstart + 1)
+				PrintChat("Debug1")
 			end
 			if send then
-				ServerVersion = tonumber(string.sub(ServerData, sstart+1, send-1))
+				ServerVersion = tonumber(string.sub(ServerData, sstart + 1, send - 1))
+				PrintChat("Debug2")
 			end
 
 			if ServerVersion ~= nil and tonumber(ServerVersion) ~= nil and tonumber(ServerVersion) > tonumber(version) then
