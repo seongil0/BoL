@@ -1,4 +1,4 @@
-local version = "2.081"
+local version = "2.082"
 
 --[[
 
@@ -156,6 +156,7 @@ local version = "2.081"
 		 - Fixed Auto-W Bug while Ult
 		 - Added Auto-E at Max Range while Ult (Option in Combo Menu)
 		 - Changed Harass Menu
+		 - Fixed Packet Spamming Errors
   	]] --
 
 -- / Hero Name Check / --
@@ -275,20 +276,20 @@ function Variables()
 		SkillW =	{range = 375, name = "Sinister Steel",	ready = false,																			color = ARGB(255, 32,178,170)	}
 		SkillE =	{range = 700, name = "Shunpo",			ready = false,																			color = ARGB(255,128, 0 ,128)	}
 		SkillR =	{range = 550, name = "Death Lotus",		ready = false,	castDelay = 0,	castingUlt = false																		}
-		SkillWard = {range = 600, lastJump = 0,			itemSlot = nil																											}
+		SkillWard = {range = 600, lastJump = 0,				itemSlot = nil																											}
 	---<
 	--- Skills Vars ---
 	--- Items Vars ---
 	--->
 		Items =
 		{
-					HealthPot	  = {ready = false},
-					FlaskPot	   = {ready = false},
-					TrinketWard	= {ready = false},
-					RubySightStone = {ready = false},
-					SightStone	 = {ready = false},
-					SightWard	  = {ready = false},
-					VisionWard	 = {ready = false}
+					HealthPot		= {ready = false},
+					FlaskPot		= {ready = false},
+					TrinketWard		= {ready = false},
+					RubySightStone	= {ready = false},
+					SightStone		= {ready = false},
+					SightWard		= {ready = false},
+					VisionWard		= {ready = false}
 		}
 	---<
 	--- Items Vars ---
@@ -1201,6 +1202,7 @@ function OnSendPacket(packet)
 	-- Block Packets if Channeling --
 	--->
 		if (isChanneling("Spell4") or SkillR.castingUlt) then
+			local packet = Packet(packet)
 			if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' and packet:get('sourceNetworkId') == myHero.networkID then
 				if KatarinaMenu.combo.stopUlt then
 					if not SkillQ.ready and SkillW.ready and SkillE.ready and Target.health > (qDmg + wDmg + eDmg) then
