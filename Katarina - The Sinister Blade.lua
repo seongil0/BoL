@@ -1,4 +1,4 @@
-local version = "2.083"
+local version = "2.084"
 
 --[[
 
@@ -159,6 +159,7 @@ local version = "2.083"
 		 - Fixed Packet Spamming Errors
 		 - Improved Proc Q Mark
 		 - Hopefully fixed Spamming Errors
+		 - Improved Ult Functionality
   	]] --
 
 -- / Hero Name Check / --
@@ -816,10 +817,10 @@ end
 function CastR(enemy)
 	--- Dynamic R Cast ---
 	--->
-		if (SkillQ.ready or SkillW.ready or SkillE.ready or (GetDistance(enemy) > SkillR.range)) or not SkillR.ready then
+		if (SkillQ.ready or SkillW.ready or SkillE.ready or GetDistance(enemy) > SkillR.range or (isChanneling("Spell4") or SkillR.castingUlt)) or not SkillR.ready then
 			return false
 		end
-		if ValidTarget(enemy) and (not isChanneling("Spell4") and not SkillR.castingUlt) then
+		if ValidTarget(enemy) then
 			CastSpell(_R) 
 			SkillR.castDelay = GetTickCount() + 180
 		end
