@@ -1,4 +1,4 @@
-local version = "2.082"
+local version = "2.083"
 
 --[[
 
@@ -157,6 +157,8 @@ local version = "2.082"
 		 - Added Auto-E at Max Range while Ult (Option in Combo Menu)
 		 - Changed Harass Menu
 		 - Fixed Packet Spamming Errors
+		 - Improved Proc Q Mark
+		 - Hopefully fixed Spamming Errors
   	]] --
 
 -- / Hero Name Check / --
@@ -558,7 +560,7 @@ function FullCombo()
 			SkillQ.timeToHit = 0
 		end
 		if not isChanneling("Spell4") and not SkillR.castingUlt then
-			if Target then
+			if ValidTarget(Target) then
 				if KatarinaMenu.combo.comboOrbwalk then
 					OrbWalking(Target)
 				end
@@ -566,7 +568,7 @@ function FullCombo()
 					UseItems(Target)
 				end
 				CastQ(Target)
-				if KatarinaMenu.combo.detonateQ and (GetTickCount() >= SkillQ.timeToHit or SkillQ.timeToHit == 0) then
+				if KatarinaMenu.combo.detonateQ and GetTickCount() >= SkillQ.timeToHit then
 					if not SkillQ.ready then CastE(Target) end
 					if not SkillE.ready then CastW(Target) end
 				elseif not KatarinaMenu.combo.detonateQ then
@@ -592,14 +594,14 @@ function HarassCombo()
 		if KatarinaMenu.harass.detonateQ and (GetTickCount() >= (SkillQ.timeToHit + SkillQ.markDelay) or SkillQ.ready) then
 			SkillQ.timeToHit = 0
 		end
-		if Target then
+		if ValidTarget(Target) then
 			if KatarinaMenu.harass.harassOrbwalk then
 				OrbWalking(Target)
 			end
 			--- Harass Mode 1 Q+W+E ---
 			if KatarinaMenu.harass.hMode == 1 then
 				CastQ(Target)
-				if KatarinaMenu.harass.detonateQ and (GetTickCount() >= SkillQ.timeToHit or SkillQ.timeToHit == 0) then
+				if KatarinaMenu.harass.detonateQ and GetTickCount() >= SkillQ.timeToHit then
 					if not SkillQ.ready then CastE(Target) end
 					if not SkillE.ready then CastW(Target) end
 				elseif not KatarinaMenu.harass.detonateQ then
