@@ -1,4 +1,4 @@
-local version = "2.085"
+local version = "2.086"
 
 --[[
 
@@ -162,6 +162,7 @@ local version = "2.085"
 		 - Improved Ult Functionality
 		 - Improved Damage Calculation
 		 - Improved Orbwalker
+		 - Fixed Ward-Jump Bug when Ult
   	]] --
 
 -- / Hero Name Check / --
@@ -1206,7 +1207,7 @@ end
 function OnSendPacket(packet)
 	-- Block Packets if Channeling --
 	--->
-		if (isChanneling("Spell4") or SkillR.castingUlt) then
+		if (isChanneling("Spell4") or SkillR.castingUlt) and not WardJumpKey then
 			local packet = Packet(packet)
 			if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' and packet:get('sourceNetworkId') == myHero.networkID then
 				if KatarinaMenu.combo.stopUlt then
