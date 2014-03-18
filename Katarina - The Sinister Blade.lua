@@ -1,4 +1,4 @@
-local version = "2.084"
+local version = "2.085"
 
 --[[
 
@@ -160,6 +160,8 @@ local version = "2.084"
 		 - Improved Proc Q Mark
 		 - Hopefully fixed Spamming Errors
 		 - Improved Ult Functionality
+		 - Improved Damage Calculation
+		 - Improved Orbwalker
   	]] --
 
 -- / Hero Name Check / --
@@ -956,24 +958,24 @@ function DamageCalculation()
 		local enemy = heroManager:GetHero(i)
 			if ValidTarget(enemy) then
 				dfgDmg, hxgDmg, bwcDmg, iDmg, bftDmg, liandrysDmg = 0, 0, 0, 0, 0, 0
-				pDmg = (SkillQ.ready and getDmg("Q", enemy, myHero, 2) or 0)
-				qDmg = (SkillQ.ready and getDmg("Q",enemy,myHero) or 0)
-				wDmg = (SkillW.ready and getDmg("W",enemy,myHero) or 0)
-				eDmg = (SkillE.ready and getDmg("E",enemy,myHero) or 0)
+				pDmg = ((SkillQ.ready and getDmg("Q", enemy, myHero, 2)) or 0)
+				qDmg = ((SkillQ.ready and getDmg("Q",enemy,myHero)) or 0)
+				wDmg = ((SkillW.ready and getDmg("W",enemy,myHero)) or 0)
+				eDmg = ((SkillE.ready and getDmg("E",enemy,myHero)) or 0)
 				rDmg = getDmg("R",enemy,myHero,3)
-				dfgDmg = (dfgReady and getDmg("DFG", enemy, myHero) or 0)
-				hxgDmg = (hxgReady and getDmg("HXG", enemy, myHero) or 0)
-				bwcDmg = (bwcReady and getDmg("BWC", enemy, myHero) or 0)
-				bftdmg = (bftReady and getDmg("BLACKFIRE", enemy, myHero) or 0)
-				liandrysDmg = (liandrysReady and getDmg("LIANDRYS", enemy, myHero) or 0)
-				iDmg = (ignite and getDmg("IGNITE",enemy,myHero) or 0)
+				dfgDmg = ((dfgReady and getDmg("DFG", enemy, myHero)) or 0)
+				hxgDmg = ((hxgReady and getDmg("HXG", enemy, myHero)) or 0)
+				bwcDmg = ((bwcReady and getDmg("BWC", enemy, myHero)) or 0)
+				bftdmg = ((bftReady and getDmg("BLACKFIRE", enemy, myHero)) or 0)
+				liandrysDmg = ((liandrysReady and getDmg("LIANDRYS", enemy, myHero)) or 0)
+				iDmg = ((ignite and getDmg("IGNITE", enemy, myHero)) or 0)
 				onspellDmg = liandrysDmg + bftDmg
 				itemsDmg = dfgDmg + hxgDmg + bwcDmg + iDmg + onspellDmg
 	---<
 	--- Calculate our Damage On Enemies ---
 	--- Setting KillText Color & Text ---
 	--->
-				if enemy.health > (pDmg + qDmg + eDmg + wDmg + rDmg + itemsDmg) then
+				if enemy.health > (pDmg + qDmg + eDmg + wDmg + rDmg + itemsDmg) and itemsDmg ~= 0 then
 					KillText[i] = 1
 				elseif enemy.health <= qDmg then
 					if SkillQ.ready then
@@ -1386,14 +1388,14 @@ end
 --- Check When Its Time To Attack ---
 --->
 	function TimeToAttack()
-		return (GetTickCount() + GetLatency()/2 > lastAttack + lastAttackCD)
+		return (GetTickCount() + GetLatency()*0.5 > lastAttack + lastAttackCD)
 	end
 ---<
 --- Check When Its Time To Attack ---
 --- Prevent AA Canceling ---
 --->
 	function heroCanMove()
-		return (GetTickCount() + GetLatency()/2 > lastAttack + lastWindUpTime + 20)
+		return (GetTickCount() + GetLatency()*0.5 > lastAttack + lastWindUpTime + 20)
 	end
 ---<
 --- Prevent AA Canceling ---
@@ -1402,7 +1404,11 @@ end
 	function moveToCursor()
 		if GetDistance(mousePos) then
 			local moveToPos = myHero + (Vector(mousePos) - myHero):normalized()*300
-			myHero:MoveTo(moveToPos.x, moveToPos.z)
+			if not VIP_USER then
+				myHero:MoveTo(moveToPos.x, moveToPos.z)
+			else
+				Packet('S_MOVE', {x = moveToPos.x, y = moveToPos.z}):send()
+			end
 		end		
 	end
 ---<
