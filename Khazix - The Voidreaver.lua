@@ -1,4 +1,4 @@
---[[ Kha'zix - The Voidreaver by Skeem 1.2.2
+--[[ Kha'zix - The Voidreaver by Skeem 1.2.4
 	
 	Features:
 			- Prodiction for VIPs, NonVIP prediction
@@ -50,6 +50,7 @@
 			1.2.1 - Fixed typo with W/E for nonvips
 			1.2.2 - Fixed minion Targetting
 			1.2.3 - Added a death check so it won't jump on dead targets
+			1.2.4 - Added Tiamat/Hydra to Jungle Clear
   ]]--
   
 -- Name Check --  
@@ -64,7 +65,7 @@ end
 function OnLoad()
 	Variables()
 	KhazixMenu()
-	PrintChat("<font color='#0000FF'> >> Kha'zix - The Voidreaver 1.2.2 Loaded!! <<</font>")
+	PrintChat("<font color='#0000FF'> >> Kha'zix - The Voidreaver 1.2.4 Loaded!! <<</font>")
 end
 
 -- Tick Function --
@@ -303,6 +304,8 @@ function JungleClear()
 		end
 	end
 	if JungleMob ~= nil then
+		if tmtReady and GetDistance(JungleMob) <= 185 then CastSpell(tmtSlot) end
+		if hdrReady and GetDistance(JungleMob) <= 185 then CastSpell(hdrSlot) end
 		if KhazixMenu.jungle.jungleQ and GetDistance(JungleMob) <= qRange then CastSpell(_Q, JungleMob) end
 		if KhazixMenu.jungle.jungleW and GetDistance(JungleMob) <= wRange then CastSpell(_W, JungleMob.x, JungleMob.z) end
 		if KhazixMenu.jungle.jungleE and GetDistance(JungleMob) <= eRange then CastSpell(_E, JungleMob.x, JungleMob.z) end
