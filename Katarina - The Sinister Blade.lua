@@ -1,4 +1,4 @@
-local version = "2.087"
+local version = "2.088"
 
 --[[
 
@@ -1545,7 +1545,7 @@ function Checks()
 	end
 	--- Updates & Checks if Target is Valid ---
 	--->
-		tsTarget = TargetSelector.target
+		tsTarget = GetTarget()
 		if tsTarget and tsTarget.type == "obj_AI_Hero" then
 			Target = tsTarget
 		else
@@ -1699,4 +1699,4 @@ function GetTarget()
     TargetSelector:update()
     return TargetSelector.target
 end
--- / GetMMATarget Function / --
+-- / GetTarget Function / --
