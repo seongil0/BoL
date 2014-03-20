@@ -1,4 +1,4 @@
-local version = "2.088"
+local version = "2.089"
 
 --[[
 
@@ -1212,7 +1212,7 @@ function OnSendPacket(packet)
 	--->
 		if (isChanneling("Spell4") or SkillR.castingUlt) and not WardJumpKey then
 			local packet = Packet(packet)
-			if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' and packet:get('sourceNetworkId') == myHero.networkID then
+			if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' and packet:get('spellId') ~= ignite and packet:get('sourceNetworkId') == myHero.networkID then
 				if KatarinaMenu.combo.stopUlt then
 					if not SkillQ.ready and SkillW.ready and SkillE.ready and Target.health > (qDmg + wDmg + eDmg) then
 						packet:block()
