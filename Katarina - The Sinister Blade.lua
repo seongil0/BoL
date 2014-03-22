@@ -1,4 +1,4 @@
-local version = "2.0894"
+local version = "2.0895"
 
 --[[
 
@@ -568,7 +568,7 @@ function FullCombo()
 			SkillQ.timeToHit = 0
 		end
 		if not isChanneling("Spell4") and not SkillR.castingUlt then
-			if ValidTarget(Target) then
+			if ValidTarget(Target) and Target ~= nil then
 				if KatarinaMenu.combo.comboOrbwalk then
 					OrbWalking(Target)
 				end
@@ -693,7 +693,7 @@ function Farm()
 					end
 				end
 			end
-			break									
+			break
 		end
 		--- Farming Minions ---
 	---<
@@ -831,8 +831,8 @@ function CastR()
 			if (SkillQ.ready or SkillW.ready or SkillE.ready or (isChanneling("Spell4") or SkillR.castingUlt)) or not SkillR.ready then
 				return false
 			end
-			if ValidTarget(enemy) then
-				CastSpell(_R) 
+			if ValidTarget(enemy) and enemy ~= nil then
+				CastSpell(_R)
 				SkillR.castDelay = GetTickCount() + 180
 				return true
 			end
@@ -1632,7 +1632,7 @@ function Checks()
 	--- Setting Cast of Ult ---
 	--->
 		if GetTickCount() <= SkillR.castDelay then SkillR.castingUlt = true end
-		if SkillQ.ready and SkillW.ready and SkillE.ready and not Target then SkillR.castingUlt = false end
+		if SkillQ.ready and SkillW.ready and SkillE.ready and not Target and not isChanneling("Spell4") then SkillR.castingUlt = false end
 		if (isChanneling("Spell4") or SkillR.castingUlt) and not WardJumpKey then
 			if _G.AutoCarry then 
 				if _G.AutoCarry.MainMenu ~= nil then
