@@ -1,4 +1,4 @@
-local version = "2.0892"
+local version = "2.0893"
 
 --[[
 
@@ -773,6 +773,7 @@ function CastQ(enemy)
 			end
 			if SkillQ.timeToHit == 0 or GetTickCount() >= SkillQ.timeToHit then
 				SkillQ.timeToHit = GetTickCount() + (SkillQ.delay + (GetDistance(myHero, enemy) / SkillQ.projSpeed))
+				return true
 			end
 		end
 		return false
@@ -833,8 +834,10 @@ function CastR()
 			if ValidTarget(enemy) then
 				CastSpell(_R) 
 				SkillR.castDelay = GetTickCount() + 180
+				return true
 			end
 		end
+		return false
 	---<
 	--- Dymanic R Cast --
 end
