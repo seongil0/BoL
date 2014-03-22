@@ -1,4 +1,4 @@
-local version = "2.089"
+local version = "2.0891"
 
 --[[
 
@@ -166,6 +166,7 @@ local version = "2.089"
 		 - Fixed MMA Blocking Issues for Free Users
 		 - Added Support for MMA Target Selector
 		 - Fixed Combo Stuttering
+		 - Fixed Ult Stuttering
   	]] --
 
 -- / Hero Name Check / --
@@ -582,7 +583,7 @@ function FullCombo()
 					CastE(Target)
 					CastW(Target)
 				end
-				CastR(Target)
+				CastR()
 			else
 				if KatarinaMenu.combo.comboOrbwalk then
 					moveToCursor()
@@ -820,15 +821,17 @@ end
 -- / Casting W Function / --
 
 -- / Casting R Function / --
-function CastR(enemy)
+function CastR()
 	--- Dynamic R Cast ---
 	--->
-		if (SkillQ.ready or SkillW.ready or SkillE.ready or GetDistance(enemy) > SkillR.range or (isChanneling("Spell4") or SkillR.castingUlt)) or not SkillR.ready then
-			return false
-		end
-		if ValidTarget(enemy) then
-			CastSpell(_R) 
-			SkillR.castDelay = GetTickCount() + 180
+		for _, enemy in pairs(enemyHeroes) do
+			if (SkillQ.ready or SkillW.ready or SkillE.ready or GetDistance(enemy) > SkillR.range or (isChanneling("Spell4") or SkillR.castingUlt)) or not SkillR.ready then
+				return false
+			end
+			if ValidTarget(enemy) then
+				CastSpell(_R) 
+				SkillR.castDelay = GetTickCount() + 180
+			end
 		end
 	---<
 	--- Dymanic R Cast --
@@ -1069,10 +1072,10 @@ function KillSteal()
 					CastE(Target)
 					CastQ(Target)
 					CastW(Target)
-					CastR(Target)
+					CastR()
 				end
 				if health <= rDmg and distance <= (SkillR.range - 100) then
-					CastR(Target)
+					CastR()
 				end
 			elseif KatarinaMenu.killsteal.itemsKS then
 				if health <= (qDmg + pDmg + wDmg + eDmg + rDmg + itemsDmg) then
