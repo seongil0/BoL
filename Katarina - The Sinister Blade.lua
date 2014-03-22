@@ -1,4 +1,4 @@
-local version = "2.0893"
+local version = "2.0894"
 
 --[[
 
@@ -828,7 +828,7 @@ function CastR()
 		for i = 1, heroManager.iCount do
 			local enemy = heroManager:GetHero(i)
 			
-			if (SkillQ.ready or SkillW.ready or SkillE.ready or GetDistance(enemy) > SkillR.range or (isChanneling("Spell4") or SkillR.castingUlt)) or not SkillR.ready then
+			if (SkillQ.ready or SkillW.ready or SkillE.ready or (isChanneling("Spell4") or SkillR.castingUlt)) or not SkillR.ready then
 				return false
 			end
 			if ValidTarget(enemy) then
