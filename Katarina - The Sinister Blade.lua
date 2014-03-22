@@ -1,4 +1,4 @@
-local version = "2.0895"
+local version = "2.09"
 
 --[[
 
@@ -167,6 +167,12 @@ local version = "2.0895"
 		 - Added Support for MMA Target Selector
 		 - Fixed Combo Stuttering
 		 - Fixed Ult Stuttering
+   2.0.9 - Fixed Spamming Errors when Using Ult
+		 - Fixed MMA Breaking Ult
+		 - Added Summoner Spells as an Exception at Blocking Packets while Kata is Channeling Ult (VIP USERS)
+		 - Improved Combo Functionality
+		 - Fixed Combo Stuttering
+		 - Fixed Typos about Ult
   	]] --
 
 -- / Hero Name Check / --
@@ -1204,7 +1210,7 @@ end
 --- Set Priorities ---
 --->
 	function SetPriority(table, hero, priority)
-		for i=1, #table, 1 do
+		for i = 1, #table, 1 do
 			if hero.charName:find(table[i]) ~= nil then
 				TS_SetHeroPriority(priority, hero.charName)
 			end
@@ -1220,9 +1226,9 @@ function OnSendPacket(packet)
 	--->
 		if (isChanneling("Spell4") or SkillR.castingUlt) and not WardJumpKey then
 			local packet = Packet(packet)
-			if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' and packet:get('spellId') ~= ignite and packet:get('sourceNetworkId') == myHero.networkID then
+			if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' and (packet:get('spellId') ~= SUMMONER_1 and packet:get('spellId') ~= SUMMONER_2) and packet:get('sourceNetworkId') == myHero.networkID then
 				if KatarinaMenu.combo.stopUlt then
-					if not SkillQ.ready and SkillW.ready and SkillE.ready and Target.health > (qDmg + wDmg + eDmg) then
+					if (not (SkillQ.ready and SkillW.ready and SkillE.ready) and Target.health > (qDmg + wDmg + eDmg)) then
 						packet:block()
 					end
 				else
@@ -1647,8 +1653,7 @@ function Checks()
 					end
 				end
 			elseif _G.MMA_Loaded then
-				_G.MMA_AttackAvailable = false
-				_G.MMA_AbleToMove = false
+				_G.MMA_Orbwalker = false
 			end
 		elseif not isChanneling("Spell4") and not SkillR.castingUlt then
 			if _G.AutoCarry then 
@@ -1663,9 +1668,6 @@ function Checks()
 						_G.AutoCarry.MyHero:AttacksEnabled(true)
 					end
 				end
-			elseif _G.MMA_Loaded then
-				_G.MMA_AttackAvailable = true
-				_G.MMA_AbleToMove = true
 			end
 		end
 	---<
