@@ -1,4 +1,4 @@
-local version = "2.0891"
+local version = "2.0892"
 
 --[[
 
@@ -824,7 +824,9 @@ end
 function CastR()
 	--- Dynamic R Cast ---
 	--->
-		for _, enemy in pairs(enemyHeroes) do
+		for i = 1, heroManager.iCount do
+			local enemy = heroManager:GetHero(i)
+			
 			if (SkillQ.ready or SkillW.ready or SkillE.ready or GetDistance(enemy) > SkillR.range or (isChanneling("Spell4") or SkillR.castingUlt)) or not SkillR.ready then
 				return false
 			end
