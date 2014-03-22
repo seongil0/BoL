@@ -1,4 +1,4 @@
-local version = "2.09"
+local version = "2.091"
 
 --[[
 
@@ -11,7 +11,7 @@ local version = "2.09"
 		YP   YD YP   YP    YP    YP   YP 88   YD Y888888P VP   V8P YP   YP 
 
 
-	Script - Katarina - The Sinister Blade 2.0.8 by Skeem and Roach
+	Script - Katarina - The Sinister Blade 2.0.9 by Skeem and Roach
 
 	Changelog :
    1.0	 - Initial Release
@@ -173,6 +173,7 @@ local version = "2.09"
 		 - Improved Combo Functionality
 		 - Fixed Combo Stuttering
 		 - Fixed Typos about Ult
+		 - Added Support for SAC Target Selector
   	]] --
 
 -- / Hero Name Check / --
@@ -218,7 +219,7 @@ function OnLoad()
 	--->
 		Variables()
 		KatarinaMenu()
-		PrintChat("<font color='#FF0000'> >> "..UPDATE_SCRIPT_NAME.." 2.0.8 Loaded <<</font>")
+		PrintChat("<font color='#FF0000'> >> "..UPDATE_SCRIPT_NAME.." 2.0.9 Loaded <<</font>")
 	---<
 end
 -- / Loading Function / --
@@ -1704,9 +1705,11 @@ end
 
 -- / GetTarget Function / --
 function GetTarget()
-    if _G.MMA_Target ~= nil and _G.MMA_Target.type:lower() == "obj_ai_hero" then return _G.MMA_Target end
-	
-    TargetSelector:update()
+	TargetSelector:update()
+    
+    if _G.MMA_Target and _G.MMA_Target.type == myHero.type then return _G.MMA_Target end
+    if _G.AutoCarry and _G.AutoCarry.Crosshair and _G.AutoCarry.Attack_Crosshair and _G.AutoCarry.Attack_Crosshair.target and _G.AutoCarry.Attack_Crosshair.target.type == myHero.type then return _G.AutoCarry.Attack_Crosshair.target end
+    
     return TargetSelector.target
 end
 -- / GetTarget Function / --
