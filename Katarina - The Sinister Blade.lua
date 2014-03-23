@@ -1,4 +1,4 @@
-local version = "2.092"
+local version = "2.093"
 
 --[[
 
@@ -176,6 +176,7 @@ local version = "2.092"
 		 - Added Support for SAC Target Selector
 		 - Fixed some 'nil' values arount the Script
 		 - Improved Auto-E Functionality
+		 - Implemented right-click to Interrupt the Ult
   	]] --
 
 -- / Hero Name Check / --
@@ -294,7 +295,7 @@ function Variables()
 		SkillQ =	{range = 675, name = "Bouncing Blades",	ready = false,	delay = 400,	projSpeed = 1400,	timeToHit = 0,	markDelay = 4000,	color = ARGB(255,178, 0 , 0 )	}
 		SkillW =	{range = 375, name = "Sinister Steel",	ready = false,																			color = ARGB(255, 32,178,170)	}
 		SkillE =	{range = 700, name = "Shunpo",			ready = false,																			color = ARGB(255,128, 0 ,128)	}
-		SkillR =	{range = 550, name = "Death Lotus",		ready = false,	castDelay = 0,	castingUlt = false																		}
+		SkillR =	{range = 550, name = "Death Lotus",		ready = false,	castDelay = 0,	castingUlt = false, rightClicked = false												}
 		SkillWard = {range = 600, lastJump = 0,				itemSlot = nil																											}
 	---<
 	--- Skills Vars ---
@@ -1230,16 +1231,18 @@ function OnSendPacket(packet)
 		if (isChanneling("Spell4") or SkillR.castingUlt) and not WardJumpKey then
 			local packet = Packet(packet)
 			if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' and (packet:get('spellId') ~= SUMMONER_1 and packet:get('spellId') ~= SUMMONER_2) and packet:get('sourceNetworkId') == myHero.networkID then
-				if KatarinaMenu.combo.stopUlt then
-					if not SkillQ.ready and not SkillW.ready and not SkillE.ready and ValidTarget(Target) and Target ~= nil and Target.health > (qDmg + wDmg + eDmg) then
+				if not SkillR.rightClicked then
+					if KatarinaMenu.combo.stopUlt then
+						if not SkillQ.ready and not SkillW.ready and not SkillE.ready and ValidTarget(Target) and Target ~= nil and Target.health > (qDmg + wDmg + eDmg) then
+							packet:block()
+						end
+					elseif KatarinaMenu.combo.autoE then
+						if packet:get('spellId') ~= SPELL_3 then
+							packet:block()
+						end
+					else
 						packet:block()
 					end
-				elseif KatarinaMenu.combo.autoE then
-					if packet:get('spellId') ~= SPELL_3 then
-						packet:block()
-					end
-				else
-					packet:block()
 				end
 			end
 		end
@@ -1322,7 +1325,7 @@ end
 --- All The Objects in The World Literally ---
 -- / On Delete Obj Function / --
 
--- / Plugin On Draw / --
+-- / On Draw Function / --
 function OnDraw()
 	--- Tick Manager Check ---
 	--->
@@ -1394,7 +1397,17 @@ function OnDraw()
 	---<
 	--- Draw Ward Jump Range and Mouse ---
 end
--- / Plugin On Draw / --
+-- / On Draw Function / --
+
+-- / OnWndMsg Function / --
+function OnWndMsg(msg)
+	if msg == WM_RBUTTONDOWN then 
+		SkillR.rightClicked = true
+	elseif msg == WM_RBUTTONUP then 
+		SkillR.rightClicked = false
+	end
+end
+-- / OnWndMsg Function / --
 
 -- / OrbWalking Functions / --
 --- Orbwalking Target ---
