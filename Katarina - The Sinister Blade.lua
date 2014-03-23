@@ -1,4 +1,4 @@
-local version = "2.091"
+local version = "2.092"
 
 --[[
 
@@ -174,6 +174,8 @@ local version = "2.091"
 		 - Fixed Combo Stuttering
 		 - Fixed Typos about Ult
 		 - Added Support for SAC Target Selector
+		 - Fixed some 'nil' values arount the Script
+		 - Improved Auto-E Functionality
   	]] --
 
 -- / Hero Name Check / --
@@ -238,8 +240,8 @@ function OnTick()
 		
 		if KatarinaMenu.combo.autoE then
 			for _, enemy in pairs(enemyHeroes) do
-				if GetDistance(enemy) > SkillR.range and (isChanneling("Spell4") or SkillR.castingUlt) then
-					CastE(Target)
+				if ValidTarget(enemy) and enemy ~= nil and GetDistance(enemy) > SkillR.range and GetDistance(enemy) <= SkillE.range and (isChanneling("Spell4") or SkillR.castingUlt) then
+					CastE(enemy)
 				end
 			end
 		end
@@ -609,7 +611,7 @@ function HarassCombo()
 		if KatarinaMenu.harass.detonateQ and (GetTickCount() >= (SkillQ.timeToHit + SkillQ.markDelay) or SkillQ.ready) then
 			SkillQ.timeToHit = 0
 		end
-		if ValidTarget(Target) then
+		if ValidTarget(Target) and Target ~= nil then
 			if KatarinaMenu.harass.harassOrbwalk then
 				OrbWalking(Target)
 			end
@@ -657,7 +659,7 @@ function Farm()
 			local eFarmKey = KatarinaMenu.farming.eFarm
 			--- Minion Keys ---
 			--- Farming Minions ---
-			if ValidTarget(minion) then
+			if ValidTarget(minion) and minion ~= nil then
 				if GetDistance(minion) <= SkillW.range then
 					if qFarmKey and wFarmKey then
 						if SkillQ.ready and SkillW.ready then
@@ -738,7 +740,7 @@ function MixedClear()
 	--->
 		if KatarinaMenu.clear.ClearLane then
 			for _, minion in pairs(enemyMinions.objects) do
-				if  ValidTarget(minion) then
+				if  ValidTarget(minion) and minion ~= nil then
 					if KatarinaMenu.clear.clearOrbM then
 						OrbWalking(minion)
 					end
@@ -770,7 +772,7 @@ function CastQ(enemy)
 		if not SkillQ.ready or (GetDistance(enemy) > SkillQ.range) then
 			return false
 		end
-		if ValidTarget(enemy) then 
+		if ValidTarget(enemy) and enemy ~= nil then 
 			if VIP_USER then
 				Packet("S_CAST", {spellId = _Q, targetNetworkId = enemy.networkID}):send()
 				return true
@@ -796,7 +798,7 @@ function CastE(enemy)
 		if not SkillE.ready or (GetDistance(enemy) > SkillE.range) then
 			return false
 		end
-		if ValidTarget(enemy) then 
+		if ValidTarget(enemy) and enemy ~= nil then 
 			if VIP_USER then
 				Packet("S_CAST", {spellId = _E, targetNetworkId = enemy.networkID}):send()
 				return true
@@ -818,7 +820,7 @@ function CastW(enemy)
 		if not SkillW.ready or (GetDistance(enemy) > SkillW.range) then
 			return false
 		end
-		if ValidTarget(enemy) then
+		if ValidTarget(enemy) and enemy ~= nil then
 			CastSpell(_W)
 			return true
 		end
@@ -857,7 +859,7 @@ function wardJump(x, y)
 			local Jumped = false
 			local WardDistance = 300
 			for _, ally in pairs(allyHeroes) do
-				if ValidTarget(ally, SkillE.range, false) then
+				if ValidTarget(ally, SkillE.range, false) and ally ~= nil then
 					if GetDistance(ally, mousePos) <= WardDistance then
 						CastSpell(_E, ally)
 						Jumped = true
@@ -866,7 +868,7 @@ function wardJump(x, y)
 				end
 			end
 			for _, minion in pairs(allyMinions.objects) do
-				if ValidTarget(minion, SkillE.range, false) then
+				if ValidTarget(minion, SkillE.range, false) and minion ~= nil then
 					if GetDistance(minion, mousePos) <= WardDistance then
 						CastSpell(_E, minion)
 						Jumped = true
@@ -875,7 +877,7 @@ function wardJump(x, y)
 				end
 			end
 			for _, minion in pairs(enemyMinions.objects) do
-				if ValidTarget(minion, SkillE.range, false) then
+				if ValidTarget(minion, SkillE.range, false) and minion ~= nil then
 					if GetDistance(minion, mousePos) <= WardDistance then
 						CastSpell(_E, minion)
 						Jumped = true
@@ -928,7 +930,7 @@ function UseItems(enemy)
 		if not enemy then
 			enemy = Target
 		end
-		if ValidTarget(enemy) then
+		if ValidTarget(enemy) and enemy ~= nil then
 			if dfgReady and GetDistance(enemy) <= 600 then CastSpell(dfgSlot, enemy) end
 			if bftReady and GetDistance(enemy) <= 600 then CastSpell(bftSlot, enemy) end
 			if hxgReady and GetDistance(enemy) <= 600 then CastSpell(hxgSlot, enemy) end
@@ -975,7 +977,7 @@ function DamageCalculation()
 	--->
  		for i=1, heroManager.iCount do
 		local enemy = heroManager:GetHero(i)
-			if ValidTarget(enemy) then
+			if ValidTarget(enemy) and enemy ~= nil then
 				dfgDmg, hxgDmg, bwcDmg, iDmg, bftDmg, liandrysDmg = 0, 0, 0, 0, 0, 0
 				pDmg = ((SkillQ.ready and getDmg("Q", enemy, myHero, 2)) or 0)
 				qDmg = ((SkillQ.ready and getDmg("Q",enemy,myHero)) or 0)
@@ -1112,7 +1114,7 @@ end
 	function DangerCheck()
 		if isInDanger(myHero) and Target then
 			for _, ally in pairs(allyHeroes) do
-				if ValidTarget(Ally, SkillE.range, false) then
+				if ValidTarget(Ally, SkillE.range, false) and Ally ~= nil then
 					if GetDistance(Ally, Target) <= GetDistance(myHero, Target) then
 						if SkillE.ready then CastSpell(_E, ally) end
 					end
@@ -1229,7 +1231,11 @@ function OnSendPacket(packet)
 			local packet = Packet(packet)
 			if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' and (packet:get('spellId') ~= SUMMONER_1 and packet:get('spellId') ~= SUMMONER_2) and packet:get('sourceNetworkId') == myHero.networkID then
 				if KatarinaMenu.combo.stopUlt then
-					if (not (SkillQ.ready and SkillW.ready and SkillE.ready) and Target.health > (qDmg + wDmg + eDmg)) then
+					if not SkillQ.ready and not SkillW.ready and not SkillE.ready and ValidTarget(Target) and Target ~= nil and Target.health > (qDmg + wDmg + eDmg) then
+						packet:block()
+					end
+				elseif KatarinaMenu.combo.autoE then
+					if packet:get('spellId') ~= SPELL_3 then
 						packet:block()
 					end
 				else
@@ -1345,7 +1351,7 @@ function OnDraw()
 		if KatarinaMenu.drawing.drawText then
 			for i = 1, heroManager.iCount do
 				local enemy = heroManager:GetHero(i)
-				if ValidTarget(enemy) then
+				if ValidTarget(enemy) and enemy ~= nil then
 					local barPos = WorldToScreen(D3DXVECTOR3(enemy.x, enemy.y, enemy.z)) --(Credit to Zikkah)
 					local PosX = barPos.x - 35
 					local PosY = barPos.y - 10
