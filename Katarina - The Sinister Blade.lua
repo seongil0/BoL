@@ -1,4 +1,4 @@
-local version = "2.093"
+local version = "2.095"
 
 --[[
 
@@ -177,6 +177,8 @@ local version = "2.093"
 		 - Fixed some 'nil' values arount the Script
 		 - Improved Auto-E Functionality
 		 - Implemented right-click to Interrupt the Ult
+		 - Improved 'Proc Q Mark Option'
+		 - Fixed 'Not Casting Ult' Bug
   	]] --
 
 -- / Hero Name Check / --
@@ -574,9 +576,6 @@ end
 function FullCombo()
 	--- Combo While Not Channeling --
 	--->
-		if KatarinaMenu.combo.detonateQ and (GetTickCount() >= (SkillQ.timeToHit + SkillQ.markDelay) or SkillQ.ready) then
-			SkillQ.timeToHit = 0
-		end
 		if not isChanneling("Spell4") and not SkillR.castingUlt then
 			if ValidTarget(Target) and Target ~= nil then
 				if KatarinaMenu.combo.comboOrbwalk then
@@ -609,9 +608,6 @@ end
 function HarassCombo()
 	--- Smart Harass --
 	--->
-		if KatarinaMenu.harass.detonateQ and (GetTickCount() >= (SkillQ.timeToHit + SkillQ.markDelay) or SkillQ.ready) then
-			SkillQ.timeToHit = 0
-		end
 		if ValidTarget(Target) and Target ~= nil then
 			if KatarinaMenu.harass.harassOrbwalk then
 				OrbWalking(Target)
@@ -835,19 +831,13 @@ end
 function CastR()
 	--- Dynamic R Cast ---
 	--->
-		for i = 1, heroManager.iCount do
-			local enemy = heroManager:GetHero(i)
-			
-			if (SkillQ.ready or SkillW.ready or SkillE.ready or (isChanneling("Spell4") or SkillR.castingUlt)) or not SkillR.ready then
-				return false
-			end
-			if ValidTarget(enemy) and enemy ~= nil then
-				CastSpell(_R)
-				SkillR.castDelay = GetTickCount() + 180
-				return true
-			end
+		if (SkillQ.ready or SkillW.ready or SkillE.ready or (isChanneling("Spell4") or SkillR.castingUlt)) or not SkillR.ready then
+			return false
 		end
-		return false
+		if CountEnemyHeroInRange(SkillR.range) >= 1 then
+			CastSpell(_R)
+			SkillR.castDelay = GetTickCount() + 180
+		end
 	---<
 	--- Dymanic R Cast --
 end
@@ -1692,6 +1682,13 @@ function Checks()
 		end
 	---<
 	--- Setting Cast of Ult ---
+	--- Setting Proc Q Mark ---
+	--->
+		if GetTickCount() >= (SkillQ.timeToHit + SkillQ.markDelay) or SkillQ.ready == true then
+			SkillQ.timeToHit = 0
+		end
+	---<
+	--- Setting Proc Q Mark ---
 end
 -- / Checks Function / --
 
