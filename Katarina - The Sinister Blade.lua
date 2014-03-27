@@ -1,4 +1,4 @@
-local version = "2.095"
+local version = "2.096"
 
 --[[
 
@@ -179,6 +179,7 @@ local version = "2.095"
 		 - Implemented right-click to Interrupt the Ult
 		 - Improved 'Proc Q Mark Option'
 		 - Fixed 'Not Casting Ult' Bug
+		 - Fixed Auto-E Bugs and Hopefully Right-Click to Interrupt Bug
   	]] --
 
 -- / Hero Name Check / --
@@ -1226,11 +1227,13 @@ function OnSendPacket(packet)
 						if not SkillQ.ready and not SkillW.ready and not SkillE.ready and ValidTarget(Target) and Target ~= nil and Target.health > (qDmg + wDmg + eDmg) then
 							packet:block()
 						end
-					elseif KatarinaMenu.combo.autoE then
+					end
+					if KatarinaMenu.combo.autoE then
 						if packet:get('spellId') ~= SPELL_3 then
 							packet:block()
 						end
-					else
+					end
+					if not KatarinaMenu.combo.stopUlt and not KatarinaMenu.combo.autoE then
 						packet:block()
 					end
 				end
