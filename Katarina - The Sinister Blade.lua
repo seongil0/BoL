@@ -286,7 +286,7 @@ function OnTick()
 		end
 		if KatarinaMenu.misc.AutoLevelSkills == 1 then
 			autoLevelSetSequence(levelSequence.prioritiseQ)
-		elseif KatarinaMenu.misc.AutoLevelSkills == 2
+		elseif KatarinaMenu.misc.AutoLevelSkills == 2 then
 			autoLevelSetSequence(levelSequence.prioritiseW)
 		end
 		if KatarinaMenu.misc.jumpAllies then
