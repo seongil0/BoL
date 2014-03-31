@@ -1,4 +1,4 @@
-local version = "2.096"
+local version = "2.10"
 
 --[[
 
@@ -11,7 +11,7 @@ local version = "2.096"
 		YP   YD YP   YP    YP    YP   YP 88   YD Y888888P VP   V8P YP   YP 
 
 
-	Script - Katarina - The Sinister Blade 2.0.9 by Skeem and Roach
+	Script - Katarina - The Sinister Blade 2.1.0 by Skeem and Roach
 
 	Changelog :
    1.0	 - Initial Release
@@ -180,6 +180,9 @@ local version = "2.096"
 		 - Improved 'Proc Q Mark Option'
 		 - Fixed 'Not Casting Ult' Bug
 		 - Fixed Auto-E Bugs and Hopefully Right-Click to Interrupt Bug
+   2.1.0 - Added another Level Sequence (Prioritise Q)
+   		 - Changed 'Auto Level Skills' Menu
+   		 - Improved Packet Checks for VIPs
   	]] --
 
 -- / Hero Name Check / --
@@ -225,7 +228,7 @@ function OnLoad()
 	--->
 		Variables()
 		KatarinaMenu()
-		PrintChat("<font color='#FF0000'> >> "..UPDATE_SCRIPT_NAME.." 2.0.9 Loaded <<</font>")
+		PrintChat("<font color='#FF0000'> >> "..UPDATE_SCRIPT_NAME.." 2.1.0 Loaded <<</font>")
 	---<
 end
 -- / Loading Function / --
@@ -281,8 +284,10 @@ function OnTick()
 		if KatarinaMenu.killsteal.smartKS then
 			KillSteal()
 		end
-		if KatarinaMenu.misc.AutoLevelSkills then
-			autoLevelSetSequence(levelSequence)
+		if KatarinaMenu.misc.AutoLevelSkills == 1 then
+			autoLevelSetSequence(levelSequence.prioritiseQ)
+		elseif KatarinaMenu.misc.AutoLevelSkills == 2
+			autoLevelSetSequence(levelSequence.prioritiseW)
 		end
 		if KatarinaMenu.misc.jumpAllies then
 			DangerCheck()
@@ -357,7 +362,10 @@ function Variables()
 	--- Drawing Vars ---
 	--- Misc Vars ---
 	--->
-		levelSequence = { 1,3,2,2,2,4,2,1,2,1,4,1,1,3,3,4,3,3 }
+		levelSequence = {
+			prioritiseQ = { 1,3,2,1,1,4,1,2,1,2,4,2,2,3,3,4,3,3 },
+			prioritiseW = { 1,3,2,2,2,4,2,1,2,1,4,1,1,3,3,4,3,3 }
+		}
 		UsingHPot = false
 		gameState = GetGame()
 		if gameState.map.shortName == "twistedTreeline" then
@@ -551,7 +559,7 @@ function KatarinaMenu()
 			KatarinaMenu.misc:addParam("aHP", "Auto Health Pots", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.misc:addParam("HPHealth", "Min % for Health Pots", SCRIPT_PARAM_SLICE, 50, 0, 100, -1)
 			KatarinaMenu.misc:addParam("uTM", "Use Tick Manager/FPS Improver",SCRIPT_PARAM_ONOFF, false)
-			KatarinaMenu.misc:addParam("AutoLevelSkills", "Auto Level Skills (Requires Reload)", SCRIPT_PARAM_ONOFF, true)
+			KatarinaMenu.misc:addParam("AutoLevelSkills", "Auto Level Skills (Requires Reload)", SCRIPT_PARAM_LIST, 2, { "Prioritise Q", "Prioritise W" })
 			KatarinaMenu.misc:permaShow("wardJumpKey")
 		---<
 		---> Target Selector		
@@ -1216,25 +1224,24 @@ end
 -- / Misc Functions / --
 
 -- / On Send Packet Function / --
-function OnSendPacket(packet)
+function OnSendPacket(p)
 	-- Block Packets if Channeling --
 	--->
 		if (isChanneling("Spell4") or SkillR.castingUlt) and not WardJumpKey then
-			local packet = Packet(packet)
-			if packet:get('name') == 'S_MOVE' or packet:get('name') == 'S_CAST' and (packet:get('spellId') ~= SUMMONER_1 and packet:get('spellId') ~= SUMMONER_2) and packet:get('sourceNetworkId') == myHero.networkID then
+			if (p.header == Packet.headers.S_MOVE or p.header == Packet.headers.S_CAST) and (Packet(p):get('spellId') ~= SUMMONER_1 and Packet(p):get('spellId') ~= SUMMONER_2) then
 				if not SkillR.rightClicked then
 					if KatarinaMenu.combo.stopUlt then
 						if not SkillQ.ready and not SkillW.ready and not SkillE.ready and ValidTarget(Target) and Target ~= nil and Target.health > (qDmg + wDmg + eDmg) then
-							packet:block()
+							p:block()
 						end
 					end
 					if KatarinaMenu.combo.autoE then
-						if packet:get('spellId') ~= SPELL_3 then
-							packet:block()
+						if Packet(p):get('spellId') ~= SPELL_3 then
+							p:block()
 						end
 					end
 					if not KatarinaMenu.combo.stopUlt and not KatarinaMenu.combo.autoE then
-						packet:block()
+						p:block()
 					end
 				end
 			end
@@ -1393,7 +1400,7 @@ end
 -- / On Draw Function / --
 
 -- / OnWndMsg Function / --
-function OnWndMsg(msg)
+function OnWndMsg(msg, key)
 	if msg == WM_RBUTTONDOWN then 
 		SkillR.rightClicked = true
 	elseif msg == WM_RBUTTONUP then 
