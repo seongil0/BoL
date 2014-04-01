@@ -1,4 +1,4 @@
-local version = "2.116"
+local version = "2.117"
 
 --[[
 
@@ -189,6 +189,7 @@ local version = "2.116"
    		 - Improved Killsteal Function
    		 - Re-arranged 'Auto Level Skills' Menu
    		 - Fixed Ult Cancelling
+   		 - Brought a Fix for MMA (Cancelling Ult)
   	]] --
 
 -- / Hero Name Check / --
@@ -1693,7 +1694,10 @@ function Checks()
 					end
 				end
 			elseif _G.MMA_Loaded then
-				_G.MMA_Orbwalker = false
+				_G.MMA_Orbwalker	= false
+				_G.MMA_HybridMode	= false
+				_G.MMA_LaneClear	= false
+				_G.MMA_LastHit		= false
 			end
 		elseif not SkillR.castingUlt then
 			if _G.AutoCarry then 
