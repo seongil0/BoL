@@ -1,4 +1,4 @@
---[[ Kha'zix - The Voidreaver by Skeem 1.2.4
+--[[ Kha'zix - The Voidreaver by Skeem 1.3
 	
 	Features:
 			- Prodiction for VIPs, NonVIP prediction
@@ -40,17 +40,20 @@
 			- Everyone at the KKK crew who tested this script and gave awesome suggestions!
 			
 		Changelog:
-			1.0 - First Release!
-			1.1 - Added ult usage:
+			1.0     - First Release!
+			1.1     - Added ult usage:
 			        - Always ult toggle (Always ults in combo)
 			        - Smart Ult (Only ults if enemy can die from ult passive + skills)
 			        - Fixed jumping at random minions..
 			        - Fixed W for non VIPS
-			1.2 - More effective W Fix for non vips
-			1.2.1 - Fixed typo with W/E for nonvips
-			1.2.2 - Fixed minion Targetting
-			1.2.3 - Added a death check so it won't jump on dead targets
-			1.2.4 - Added Tiamat/Hydra to Jungle Clear
+			1.2     - More effective W Fix for non vips
+			1.2.1   - Fixed typo with W/E for nonvips
+			1.2.2   - Fixed minion Targetting
+			1.2.3   - Added a death check so it won't jump on dead targets
+			1.2.4   - Added Tiamat/Hydra to Jungle Clear
+			1.3     - Added vPrediction in misc menu
+			        - Recoded Auto KS / Combo a little
+			        - Added option to disable E in Combo
   ]]--
   
 -- Name Check --  
@@ -59,13 +62,19 @@ if myHero.charName ~= "Khazix" then return end
 if VIP_USER then 
 	require "Prodiction" 
 	require "Collision"
+	if FileExist(LIB_PATH..'VPrediction.lua') then
+		vPredictionExists = true
+    	require "VPrediction"
+	else -- safety check in case file was deleted.
+		vPredictionExists = false
+	end
 end
 
 -- Loading Function --
 function OnLoad()
 	Variables()
 	KhazixMenu()
-	PrintChat("<font color='#0000FF'> >> Kha'zix - The Voidreaver 1.2.4 Loaded!! <<</font>")
+	PrintChat("<font color='#0000FF'> >> Kha'zix - The Voidreaver 1.2.3 Loaded!! <<</font>")
 end
 
 -- Tick Function --
@@ -97,10 +106,12 @@ function Variables()
 	eSpeed, eDelay, eWidth = math.huge, .250, 100
 	wSpeed, wDelay, wWidth = 828.5, 0.225, 100
 	if VIP_USER then
-		wPos, ePos = nil, nil
 		Prodict = ProdictManager.GetInstance()
 		ProdictW = Prodict:AddProdictionObject(_W, wRange, wSpeed, wDelay, wWidth, myHero)
 		ProdictE = Prodict:AddProdictionObject(_E, eRange, eSpeed, eDelay, eWidth, myHero)
+		if vPredictionExists then
+			vPred = VPrediction()
+		end
 	end
 	hpReady, mpReady, fskReady, Recalling = false, false, false, false
 	TextList = {"Harass him!!", "Q+W+E KILL!!", "x2Q+W+E KILL!", "ult+Q+W+E KILL!"}
@@ -179,6 +190,7 @@ function KhazixMenu()
 		KhazixMenu.combo:addParam("comboItems", "Use Items with Burst", SCRIPT_PARAM_ONOFF, true)
 		KhazixMenu.combo:addParam("comboAlwaysUlt", "Always Ult in Combo", SCRIPT_PARAM_ONOFF, false)
 		KhazixMenu.combo:addParam("comboSmartUlt", "Use Ult on Killable enemies", SCRIPT_PARAM_ONOFF, true)
+		KhazixMenu.combo:addParam("useE", "Use E in Combo", SCRIPT_PARAM_ONOFF, true)
 		KhazixMenu.combo:addParam("comboOrbwalk", "OrbWalk on Combo", SCRIPT_PARAM_ONOFF, true)
 		KhazixMenu.combo:permaShow("comboKey") 
 	
@@ -218,6 +230,7 @@ function KhazixMenu()
 		KhazixMenu.misc:addParam("aMP", "Auto Mana Pots", SCRIPT_PARAM_ONOFF, true)
 		KhazixMenu.misc:addParam("aHP", "Auto Health Pots", SCRIPT_PARAM_ONOFF, true)
 		KhazixMenu.misc:addParam("HPHealth", "Min % for Health Pots", SCRIPT_PARAM_SLICE, 50, 0, 100, -1)
+		KhazixMenu.misc:addParam("predType", "Prediction Type", SCRIPT_PARAM_LIST, 1, { "Prodiction", "VPrediction" })
 		
 	TargetSelector = TargetSelector(TARGET_LOW_HP, wRange,DAMAGE_PHYSICAL)
 	TargetSelector.name = "Khazix"
@@ -248,9 +261,9 @@ function FullCombo()
 			end
 		end
 		if not MuramanaIsActive() and GetDistance(Target) <= wRange then MuramanaOn() end
-		if qReady and GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
-		if wReady and GetDistance(Target) <= wRange then CastW(Target) end
-		if eReady and GetDistance(Target) >= KhazixMenu.combo.comboERange and GetDistance(Target) <= eRange then CastE(Target) end
+		CastQ(Target)
+		CastW(Target)
+		if KhazixMenu.combo.useE and GetDistance(Target) >= KhazixMenu.combo.comboERange then CastE(Target) end
 	else
 		if MuramanaIsActive() then MuramanaOff() end
 	end
@@ -265,8 +278,8 @@ function HarassCombo()
 		end
 	end
 	if Target ~= nil then
-		if qReady and GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
-		if KhazixMenu.harass.harassW and wReady and GetDistance(Target) <= wRange then CastW(Target) end
+		CastQ(Target)
+		CastW(Target)
 	end
 end
 
@@ -322,18 +335,43 @@ function GetJungleMob()
         end
 end
 
+-- Casting Q into Enemies ---
+function CastQ(enemy)
+	if not qReady or (GetDistance(enemy) > qRange) then
+		return false
+	end
+	if ValidTarget(enemy) then 
+		if VIP_USER then
+			Packet("S_CAST", {spellId = _Q, targetNetworkId = enemy.networkID}):send()
+		else
+			CastSpell(_Q, enemy)
+		end
+	end
+end
+
 -- Casting W into Enemies --
 function CastW(enemy)
-	if not enemy then 
-		enemy = Target 
+	if not wReady or (GetDistance(enemy) > wRange) then
+			return false
 	end
 	if ValidTarget(enemy) then
 		if VIP_USER then
-			if wPos ~= nil then
-				if not CollisionW:GetMinionCollision(wPos, myHero) then
-					CastSpell(_W, wPos.x, wPos.z)
+			if KhazixMenu.misc.predType == 1 then
+				local wPos = ProdictW:GetPrediction(Target)
+				local CollisionW = Collision(wRange, wSpeed, wDelay, wWidth)
+				if wPos ~= nil then
+					if not CollisionW:GetMinionCollision(wPos, myHero) then
+						CastSpell(_W, wPos.x, wPos.z)
+					end
 				end
-			end
+			else
+				if vPredictionExists then
+					local CastPosition, HitChance, Pos = vPred:GetLineCastPosition(enemy, wDelay, wWidth, wRange, wSpeed, myHero, true)
+					if HitChance >= 2 then
+						CastSpell(_W, CastPosition.x, CastPosition.z)
+					end
+				end
+			end				
 		else
 			local wPred = TargetPrediction(wRange, wSpeed, wDelay, wWidth)
 			local wPrediction = wPred:GetPrediction(enemy)
@@ -345,13 +383,23 @@ function CastW(enemy)
 end
 
 function CastE(enemy)
-	if not enemy then
-		enemy = Target
+	if not eReady or (GetDistance(enemy) > eRange) then
+			return false
 	end
 	if ValidTarget(enemy) then
 		if VIP_USER then
-			if ePos ~= nil then
-				CastSpell(_E, ePos.x, ePos.z)
+			if KhazixMenu.misc.predType == 1 then
+				local ePos = ProdictE:GetPrediction(Target)
+				if ePos ~= nil then
+					CastSpell(_E, ePos.x, ePos.z)
+				end
+			else
+				if vPredictionExists then
+					local CastPosition,  HitChance,  Position = vPred:GetCircularCastPosition(enemy, eDelay, eWidth, eRange)
+					if HitChance >= 2 then
+						CastSpell(_E, CastPosition.x, CastPosition.z)
+					end
+				end
 			end
 		else
 			CastSpell(_E, enemy.x, enemy.z)
@@ -375,25 +423,25 @@ end
 -- KillSteal function --
 function KillSteal()
 	if ValidTarget(Target) then
-		if qReady and Target.health <= qDmg and GetDistance(Target) <= qRange then 
-			CastSpell(_Q, Target)
-		elseif eReady and Target.health <= eDmg and GetDistance(Target) <= eRange then
+		if Target.health <= qDmg then 
+			CastQ(Target)
+		elseif Target.health <= eDmg then
 			CastE(Target)
 		elseif wReady and Target.health <= wDmg and GetDistance(Target) <= wRange then
 			CastW(Target)
-		elseif qReady and eReady and Target.health <= (qDmg + eDmg) and GetDistance(Target) <= eRange then
+		elseif qReady and eReady and Target.health <= (qDmg + eDmg) then
 			CastE(Target)
-			CastSpell(_Q, Target)
-		elseif qReady and wReady and Target.health <= (qDmg + wDmg) and GetDistance(Target) <= qRange then
+			CastQ(Target)
+		elseif qReady and wReady and Target.health <= (qDmg + wDmg) then
 			CastW(Target)
-			CastSpell(_Q, Target)
-		elseif eReady and wReady and Target.health <= (eDmg + wDmg) and GetDistance(Target) <= eRange then
-			CastW(Target)
-			CastE(Target)
-		elseif qReady and eReady and wReady and Target.health <= (qDmg + eDmg + wDmg) and GetDistance(Target) <= wRange then
+			CastQ(Target)
+		elseif eReady and wReady and Target.health <= (eDmg + wDmg) then
 			CastW(Target)
 			CastE(Target)
-			CastSpell(_Q, Target)
+		elseif qReady and eReady and wReady and Target.health <= (qDmg + eDmg + wDmg) then
+			CastW(Target)
+			CastE(Target)
+			CastQ(Target)
 		end
 	end
 end
@@ -694,11 +742,4 @@ function Checks()
 	
 	-- Updates Minions --
 	enemyMinions:update()
-	if VIP_USER then
-		if ValidTarget(Target) then
-			wPos = ProdictW:GetPrediction(Target)
-			ePos = ProdictE:GetPrediction(Target)
-			CollisionW =  Collision(wRange, wSpeed, wDelay, wWidth)
-		end
-	end
 end
