@@ -1,4 +1,4 @@
-local version = "2.111"
+local version = "2.112"
 
 --[[
 
@@ -188,6 +188,7 @@ local version = "2.111"
    		 - Added usage for 'OnGainBuff' and 'OnLoseBuff' (VIP)
    		 - Improved Killsteal Function
    		 - Re-arranged 'Auto Level Skills' Menu
+   		 - Fixed Ult Cancelling
   	]] --
 
 -- / Hero Name Check / --
@@ -1264,7 +1265,7 @@ function OnCreateObj(obj)
 			end
 			if (obj.name:find("katarina_deathlotus_success.troy") or obj.name:find("Katarina_deathLotus_empty.troy")) then
 				if GetDistance(obj, myHero) <= 70 then
-					SkillR.castingUlt = false
+					SkillR.castingUlt = true
 				end
 			end
 			if obj.name:find("Global_Item_HealthPotion.troy") then
@@ -1420,7 +1421,7 @@ end
 -- / OnLoseBuff Function / --
 function OnLoseBuff(unit, buff)
 	if unit.isMe and buff.name == "katarinarsound" then
-		SkillR.castingUlt = true
+		SkillR.castingUlt = false
 	end
 end
 -- / OnLoseBuff Function / --
