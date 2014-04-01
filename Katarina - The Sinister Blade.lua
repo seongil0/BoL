@@ -1,4 +1,4 @@
-local version = "2.11"
+local version = "2.111"
 
 --[[
 
@@ -184,6 +184,10 @@ local version = "2.11"
    		 - Changed 'Auto Level Skills' Menu
    		 - Improved Packet Checks (VIP)
    		 - Fixed Packet Problems (VIP)
+   		 - Fixed Jungle Clear Bug (Not using Spells neither Attack)
+   		 - Added usage for 'OnGainBuff' and 'OnLoseBuff' (VIP)
+   		 - Improved Killsteal Function
+   		 - Re-arranged 'Auto Level Skills' Menu
   	]] --
 
 -- / Hero Name Check / --
@@ -242,13 +246,13 @@ function OnTick()
 		UseConsumables()
 
 		if Target then
-			if KatarinaMenu.harass.wharass and (not isChanneling("Spell4") and not SkillR.castingUlt) then CastW(Target) end
+			if KatarinaMenu.harass.wharass and not SkillR.castingUlt then CastW(Target) end
 			if KatarinaMenu.killsteal.Ignite then AutoIgnite(Target) end
 		end
 		
 		if KatarinaMenu.combo.autoE then
 			for _, enemy in pairs(enemyHeroes) do
-				if ValidTarget(enemy) and enemy ~= nil and GetDistance(enemy) > SkillR.range and GetDistance(enemy) <= SkillE.range and (isChanneling("Spell4") or SkillR.castingUlt) then
+				if ValidTarget(enemy) and enemy ~= nil and GetDistance(enemy) > SkillR.range and GetDistance(enemy) <= SkillE.range and SkillR.castingUlt then
 					CastE(enemy)
 				end
 			end
@@ -285,9 +289,9 @@ function OnTick()
 		if KatarinaMenu.killsteal.smartKS then
 			KillSteal()
 		end
-		if KatarinaMenu.misc.AutoLevelSkills == 1 then
+		if KatarinaMenu.misc.AutoLevelSkills == 2 then
 			autoLevelSetSequence(levelSequence.prioritiseQ)
-		elseif KatarinaMenu.misc.AutoLevelSkills == 2 then
+		elseif KatarinaMenu.misc.AutoLevelSkills == 3 then
 			autoLevelSetSequence(levelSequence.prioritiseW)
 		end
 		if KatarinaMenu.misc.jumpAllies then
@@ -304,7 +308,7 @@ function Variables()
 		SkillQ =	{range = 675, name = "Bouncing Blades",	ready = false,	delay = 400,	projSpeed = 1400,	timeToHit = 0,	markDelay = 4000,	color = ARGB(255,178, 0 , 0 )	}
 		SkillW =	{range = 375, name = "Sinister Steel",	ready = false,																			color = ARGB(255, 32,178,170)	}
 		SkillE =	{range = 700, name = "Shunpo",			ready = false,																			color = ARGB(255,128, 0 ,128)	}
-		SkillR =	{range = 550, name = "Death Lotus",		ready = false,	castDelay = 0,	castingUlt = false, rightClicked = false												}
+		SkillR =	{range = 550, name = "Death Lotus",		ready = false,					castingUlt = false, rightClicked = false												}
 		SkillWard = {range = 600, lastJump = 0,				itemSlot = nil																											}
 	---<
 	--- Skills Vars ---
@@ -560,7 +564,7 @@ function KatarinaMenu()
 			KatarinaMenu.misc:addParam("aHP", "Auto Health Pots", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.misc:addParam("HPHealth", "Min % for Health Pots", SCRIPT_PARAM_SLICE, 50, 0, 100, -1)
 			KatarinaMenu.misc:addParam("uTM", "Use Tick Manager/FPS Improver",SCRIPT_PARAM_ONOFF, false)
-			KatarinaMenu.misc:addParam("AutoLevelSkills", "Auto Level Skills (Requires Reload)", SCRIPT_PARAM_LIST, 2, { "Prioritise Q", "Prioritise W", "No" })
+			KatarinaMenu.misc:addParam("AutoLevelSkills", "Auto Level Skills (Requires Reload)", SCRIPT_PARAM_LIST, 1, { "No", "Prioritise Q", "Prioritise W"  })
 			KatarinaMenu.misc:permaShow("wardJumpKey")
 		---<
 		---> Target Selector		
@@ -586,7 +590,7 @@ end
 function FullCombo()
 	--- Combo While Not Channeling --
 	--->
-		if not isChanneling("Spell4") and not SkillR.castingUlt then
+		if not SkillR.castingUlt then
 			if ValidTarget(Target) and Target ~= nil then
 				if KatarinaMenu.combo.comboOrbwalk then
 					OrbWalking(Target)
@@ -841,12 +845,12 @@ end
 function CastR()
 	--- Dynamic R Cast ---
 	--->
-		if (SkillQ.ready or SkillW.ready or SkillE.ready or (isChanneling("Spell4") or SkillR.castingUlt)) or not SkillR.ready then
+		if (SkillQ.ready or SkillW.ready or SkillE.ready or SkillR.castingUlt) or not SkillR.ready then
 			return false
 		end
 		if CountEnemyHeroInRange(SkillR.range) >= 1 then
 			CastSpell(_R)
-			SkillR.castDelay = GetTickCount() + 180
+			SkillR.castingUlt = true
 		end
 	---<
 	--- Dymanic R Cast --
@@ -1065,41 +1069,43 @@ end
 function KillSteal()
 	--- KillSteal No Wards ---
 	--->
-		if Target then
-			local distance = GetDistance(Target)
-			local health = Target.health
-			if health <= qDmg and SkillQ.ready and (distance <= SkillQ.range) then
-				CastQ(Target)
-			elseif health <= wDmg and SkillW.ready and (distance <= SkillW.range) then
-				CastW(Target)
-			elseif health <= eDmg and SkillE.ready and (distance <= SkillE.range) then
-				CastE(Target)
-			elseif health <= (qDmg + wDmg) and SkillQ.ready and SkillW.ready and (distance <= SkillW.range) then
-				CastW(Target)
-			elseif health <= (qDmg + eDmg) and SkillQ.ready and SkillE.ready and (distance <= SkillE.range) then
-				CastE(Target)
-			elseif health <= (wDmg + eDmg) and SkillW.ready and SkillE.ready and (distance <= SkillW.range) then
-				CastW(Target)
-			elseif health <= (qDmg + wDmg + eDmg) and SkillQ.ready and SkillW.ready and SkillE.ready and (distance <= SkillE.range) then
-				CastE(Target)
-			elseif KatarinaMenu.killsteal.ultKS then
-				if health <= (qDmg + pDmg + wDmg + eDmg + rDmg) and SkillQ.ready and SkillW.ready and SkillE.ready and SkillR.ready and (distance <= SkillE.range) then
-					CastE(Target)
-					CastQ(Target)
-					CastW(Target)
-					CastR()
-				end
-				if health <= rDmg and distance <= (SkillR.range - 100) then
-					CastR()
-				end
-			elseif KatarinaMenu.killsteal.itemsKS then
-				if health <= (qDmg + pDmg + wDmg + eDmg + rDmg + itemsDmg) then
-					if SkillQ.ready and SkillW.ready and SkillE.ready and SkillR.ready then
-						UseItems(Target)
+		for _, enemy in pairs(enemyHeroes) do
+			if enemy ~= nil and ValidTarget(enemy) then
+				local distance = GetDistance(enemy)
+				local health = enemy.health
+				if health <= qDmg and SkillQ.ready and (distance <= SkillQ.range) then
+					CastQ(enemy)
+				elseif health <= wDmg and SkillW.ready and (distance <= SkillW.range) then
+					CastW(enemy)
+				elseif health <= eDmg and SkillE.ready and (distance <= SkillE.range) then
+					CastE(enemy)
+				elseif health <= (qDmg + wDmg) and SkillQ.ready and SkillW.ready and (distance <= SkillW.range) then
+					CastW(enemy)
+				elseif health <= (qDmg + eDmg) and SkillQ.ready and SkillE.ready and (distance <= SkillE.range) then
+					CastE(enemy)
+				elseif health <= (wDmg + eDmg) and SkillW.ready and SkillE.ready and (distance <= SkillW.range) then
+					CastW(enemy)
+				elseif health <= (qDmg + wDmg + eDmg) and SkillQ.ready and SkillW.ready and SkillE.ready and (distance <= SkillE.range) then
+					CastE(enemy)
+				elseif KatarinaMenu.killsteal.ultKS then
+					if health <= (qDmg + pDmg + wDmg + eDmg + rDmg) and SkillQ.ready and SkillW.ready and SkillE.ready and SkillR.ready and (distance <= SkillE.range) then
+						CastE(enemy)
+						CastQ(enemy)
+						CastW(enemy)
+						CastR()
 					end
-				elseif health <= (qDmg + wDmg + eDmg + itemsDmg) and health >= (qDmg + wDmg + eDmg) then
-					if SkillQ.ready and SkillW.ready and SkillE.ready then
-						UseItems(Target)
+					if health <= rDmg and distance <= (SkillR.range - 100) then
+						CastR()
+					end
+				elseif KatarinaMenu.killsteal.itemsKS then
+					if health <= (qDmg + pDmg + wDmg + eDmg + rDmg + itemsDmg) then
+						if SkillQ.ready and SkillW.ready and SkillE.ready and SkillR.ready then
+							UseItems(enemy)
+						end
+					elseif health <= (qDmg + wDmg + eDmg + itemsDmg) and health >= (qDmg + wDmg + eDmg) then
+						if SkillQ.ready and SkillW.ready and SkillE.ready then
+							UseItems(enemy)
+						end
 					end
 				end
 			end
@@ -1138,21 +1144,12 @@ end
 --- On Animation (Setting our last Animation) ---
 --->
 	function OnAnimation(unit, animationName)
-		if unit.isMe and lastAnimation ~= animationName then lastAnimation = animationName end
-	end
----<
---- On Animation (Setting our last Animation) ---
---- isChanneling Function (Checks if Animation is Channeling) ---
---->
-	function isChanneling(animationName)
-		if lastAnimation == animationName then
-			return true
-		else
-			return false
+		if unit.isMe and animationName ~= "Spell4" and SkillR.castingUlt then 
+			SkillR.castingUlt = false
 		end
 	end
 ---<
---- isChanneling Function (Checks if Animation is Channeling) ---
+--- On Animation (Setting our last Animation) ---
 --- Checking if Hero in Danger ---
 --->
 	function isInDanger(hero)
@@ -1177,10 +1174,10 @@ end
 --->
 	function GetJungleMob()
 		for _, Mob in pairs(JungleFocusMobs) do
-			if ValidTarget(Mob, q1Range) then return Mob end
+			if ValidTarget(Mob, SkillQ.range) then return Mob end
 		end
 		for _, Mob in pairs(JungleMobs) do
-			if ValidTarget(Mob, q1Range) then return Mob end
+			if ValidTarget(Mob, SkillQ.range) then return Mob end
 		end
 	end
 ---<
@@ -1228,20 +1225,23 @@ end
 function OnSendPacket(p)
 	-- Block Packets if Channeling --
 	--->
-		if (isChanneling("Spell4") or SkillR.castingUlt) and not WardJumpKey then
-			if (p.header == Packet.headers.S_MOVE or p.header == Packet.headers.S_CAST) and (Packet(p):get('spellId') ~= SUMMONER_1 and Packet(p):get('spellId') ~= SUMMONER_2) then
+		if SkillR.castingUlt and not WardJumpKey then
+			if (p.header == S_MOVE or p.header == S_CAST) and (p:get('spellId') ~= SUMMONER_1 and p:get('spellId') ~= SUMMONER_2) then
 				if not SkillR.rightClicked then
 					if KatarinaMenu.combo.stopUlt then
 						if not SkillQ.ready and not SkillW.ready and not SkillE.ready and ValidTarget(Target) and Target ~= nil and Target.health > (qDmg + wDmg + eDmg) then
+							-- PrintChat("Debug 1")
 							p:Block()
 						end
 					end
 					if KatarinaMenu.combo.autoE then
-						if Packet(p):get('spellId') ~= SPELL_3 then
+						if p:get('spellId') ~= SPELL_3 then
+							-- PrintChat("Debug 2")
 							p:Block()
 						end
 					end
 					if not KatarinaMenu.combo.stopUlt and not KatarinaMenu.combo.autoE then
+						-- PrintChat("Debug 3")
 						p:Block()
 					end
 				end
@@ -1259,12 +1259,11 @@ function OnCreateObj(obj)
 		if obj ~= nil then
 			if (obj.name:find("katarina_deathLotus_mis.troy") or obj.name:find("katarina_deathLotus_tar.troy")) then
 				if GetDistance(obj, myHero) <= 70 then
-					SkillR.castDelay = GetTickCount() + 180
+					SkillR.castingUlt = true
 				end
 			end
 			if (obj.name:find("katarina_deathlotus_success.troy") or obj.name:find("Katarina_deathLotus_empty.troy")) then
 				if GetDistance(obj, myHero) <= 70 then
-					SkillR.castDelay = 0
 					SkillR.castingUlt = false
 				end
 			end
@@ -1410,11 +1409,27 @@ function OnWndMsg(msg, key)
 end
 -- / OnWndMsg Function / --
 
+-- / OnGainBuff Function / --
+function OnGainBuff(unit, buff)
+	if unit.isMe and buff.name == "katarinarsound" then
+		SkillR.castingUlt = true
+	end
+end
+-- / OnGainBuff Function / --
+
+-- / OnLoseBuff Function / --
+function OnLoseBuff(unit, buff)
+	if unit.isMe and buff.name == "katarinarsound" then
+		SkillR.castingUlt = true
+	end
+end
+-- / OnLoseBuff Function / --
+
 -- / OrbWalking Functions / --
 --- Orbwalking Target ---
 --->
 	function OrbWalking(Target)
-		if (not isChanneling("Spell4") and not SkillR.castingUlt) then
+		if not SkillR.castingUlt then
 			if TimeToAttack() and GetDistance(Target) <= myHero.range + GetDistance(myHero.minBBox) then
 				myHero:Attack(Target)
 			elseif heroCanMove() then
@@ -1658,9 +1673,7 @@ function Checks()
 	--- Updates Minions ---
 	--- Setting Cast of Ult ---
 	--->
-		if GetTickCount() <= SkillR.castDelay then SkillR.castingUlt = true end
-		if SkillQ.ready and SkillW.ready and SkillE.ready and not Target and not isChanneling("Spell4") then SkillR.castingUlt = false end
-		if (isChanneling("Spell4") or SkillR.castingUlt) and not WardJumpKey then
+		if SkillR.castingUlt and not WardJumpKey then
 			if _G.AutoCarry then 
 				if _G.AutoCarry.MainMenu ~= nil then
 						if _G.AutoCarry.CanAttack ~= nil then
@@ -1676,7 +1689,7 @@ function Checks()
 			elseif _G.MMA_Loaded then
 				_G.MMA_Orbwalker = false
 			end
-		elseif not isChanneling("Spell4") and not SkillR.castingUlt then
+		elseif not SkillR.castingUlt then
 			if _G.AutoCarry then 
 				if _G.AutoCarry.MainMenu ~= nil then
 						if _G.AutoCarry.CanAttack ~= nil then
