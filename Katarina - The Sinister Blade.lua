@@ -1,4 +1,4 @@
-local version = "2.113"
+local version = "2.114"
 
 --[[
 
@@ -1294,12 +1294,6 @@ function OnDeleteObj(obj)
 	--- All of Our Objects (CLEAR) --
 	--->
 		if obj ~= nil then
-			if (obj.name:find("katarina_deathlotus_success.troy") or obj.name:find("Katarina_deathLotus_empty.troy")) then
-				SkillR.castingUlt = false
-			end
-			if (obj.name:find("katarina_deathLotus_mis.troy") or obj.name:find("katarina_deathLotus_tar.troy")) then
-				SkillR.castingUlt = false
-			end
 			if obj.name:find("TeleportHome.troy") then
 				Recall = false
 			end
