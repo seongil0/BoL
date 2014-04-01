@@ -1,4 +1,4 @@
-local version = "2.112"
+local version = "2.113"
 
 --[[
 
@@ -1145,7 +1145,9 @@ end
 --- On Animation (Setting our last Animation) ---
 --->
 	function OnAnimation(unit, animationName)
-		if unit.isMe and animationName ~= "Spell4" and SkillR.castingUlt then 
+		if unit.isMe and animationName == "Spell4" and not SkillR.castingUlt then 
+			SkillR.castingUlt = true
+		else if unit.isMe and animationName ~= "Spell4" and SkillR.castingUlt then 
 			SkillR.castingUlt = false
 		end
 	end
