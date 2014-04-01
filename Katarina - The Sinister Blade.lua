@@ -1,4 +1,4 @@
-local version = "2.115"
+local version = "2.116"
 
 --[[
 
@@ -1147,12 +1147,10 @@ end
 --->
 	function OnAnimation(unit, animationName)
 		if unit == myHero then
-			if animationName == "Spell4" and not SkillR.castingUlt then 
+			if animationName == "Spell4" then 
 				SkillR.castingUlt = true
-				PrintChat("OnAnimation: Casting Ult")
-			elseif animationName ~= "Spell4" and SkillR.castingUlt then 
+			else
 				SkillR.castingUlt = false
-				PrintChat("OnAnimation: Loosing Ult")
 			end
 		end
 	end
