@@ -1,4 +1,4 @@
-local version = "2.114"
+local version = "2.115"
 
 --[[
 
@@ -852,6 +852,7 @@ function CastR()
 		if CountEnemyHeroInRange(SkillR.range) >= 1 then
 			CastSpell(_R)
 			SkillR.castingUlt = true
+			PrintChat("CastR: Casting Ult")
 		end
 	---<
 	--- Dymanic R Cast --
@@ -1145,10 +1146,14 @@ end
 --- On Animation (Setting our last Animation) ---
 --->
 	function OnAnimation(unit, animationName)
-		if unit.isMe and animationName == "Spell4" and not SkillR.castingUlt then 
-			SkillR.castingUlt = true
-		elseif unit.isMe and animationName ~= "Spell4" and SkillR.castingUlt then 
-			SkillR.castingUlt = false
+		if unit == myHero then
+			if animationName == "Spell4" and not SkillR.castingUlt then 
+				SkillR.castingUlt = true
+				PrintChat("OnAnimation: Casting Ult")
+			elseif animationName ~= "Spell4" and SkillR.castingUlt then 
+				SkillR.castingUlt = false
+				PrintChat("OnAnimation: Loosing Ult")
+			end
 		end
 	end
 ---<
@@ -1263,11 +1268,13 @@ function OnCreateObj(obj)
 			if (obj.name:find("katarina_deathLotus_mis.troy") or obj.name:find("katarina_deathLotus_tar.troy")) then
 				if GetDistance(obj, myHero) <= 70 then
 					SkillR.castingUlt = true
+					PrintChat("OnCreateObject: Casting Ult")
 				end
 			end
 			if (obj.name:find("katarina_deathlotus_success.troy") or obj.name:find("Katarina_deathLotus_empty.troy")) then
 				if GetDistance(obj, myHero) <= 70 then
 					SkillR.castingUlt = true
+					PrintChat("OnCreateObject: Casting Ult")
 				end
 			end
 			if obj.name:find("Global_Item_HealthPotion.troy") then
@@ -1473,6 +1480,10 @@ end
 		---<
 		--->
 			if object == myHero then
+				if spell.name:lower():find("katarinar") then
+					SkillR.castingUlt = true
+				end
+
 				if spell.name:lower():find("attack") then
 					lastAttack = GetTickCount() - GetLatency()/2
 					lastWindUpTime = spell.windUpTime*1000
