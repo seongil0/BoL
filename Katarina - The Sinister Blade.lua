@@ -1,4 +1,4 @@
-local version = "2.10"
+local version = "2.11"
 
 --[[
 
@@ -182,7 +182,8 @@ local version = "2.10"
 		 - Fixed Auto-E Bugs and Hopefully Right-Click to Interrupt Bug
    2.1.0 - Added another Level Sequence (Prioritise Q)
    		 - Changed 'Auto Level Skills' Menu
-   		 - Improved Packet Checks for VIPs
+   		 - Improved Packet Checks (VIP)
+   		 - Fixed Packet Problems (VIP)
   	]] --
 
 -- / Hero Name Check / --
@@ -1232,16 +1233,16 @@ function OnSendPacket(p)
 				if not SkillR.rightClicked then
 					if KatarinaMenu.combo.stopUlt then
 						if not SkillQ.ready and not SkillW.ready and not SkillE.ready and ValidTarget(Target) and Target ~= nil and Target.health > (qDmg + wDmg + eDmg) then
-							p:block()
+							p:Block()
 						end
 					end
 					if KatarinaMenu.combo.autoE then
 						if Packet(p):get('spellId') ~= SPELL_3 then
-							p:block()
+							p:Block()
 						end
 					end
 					if not KatarinaMenu.combo.stopUlt and not KatarinaMenu.combo.autoE then
-						p:block()
+						p:Block()
 					end
 				end
 			end
