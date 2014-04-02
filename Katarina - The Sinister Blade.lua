@@ -1,4 +1,4 @@
-local version = "2.117"
+local version = "2.118"
 
 --[[
 
@@ -235,7 +235,7 @@ function OnLoad()
 	--->
 		Variables()
 		KatarinaMenu()
-		PrintChat("<font color='#FF0000'> >> "..UPDATE_SCRIPT_NAME.." 2.1.0 Loaded <<</font>")
+		PrintChat("<font color='#FF0000'> >> "..UPDATE_SCRIPT_NAME.." 2.118 Loaded <<</font>")
 	---<
 end
 -- / Loading Function / --
