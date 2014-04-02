@@ -853,7 +853,7 @@ function CastR()
 		if CountEnemyHeroInRange(SkillR.range) >= 1 then
 			CastSpell(_R)
 			SkillR.castingUlt = true
-			PrintChat("CastR: Casting Ult")
+			--PrintChat("CastR: Casting Ult")
 		end
 	---<
 	--- Dymanic R Cast --
@@ -1267,13 +1267,13 @@ function OnCreateObj(obj)
 			if (obj.name:find("katarina_deathLotus_mis.troy") or obj.name:find("katarina_deathLotus_tar.troy")) then
 				if GetDistance(obj, myHero) <= 70 then
 					SkillR.castingUlt = true
-					PrintChat("OnCreateObject: Casting Ult")
+					--PrintChat("OnCreateObject: Casting Ult")
 				end
 			end
 			if (obj.name:find("katarina_deathlotus_success.troy") or obj.name:find("Katarina_deathLotus_empty.troy")) then
 				if GetDistance(obj, myHero) <= 70 then
 					SkillR.castingUlt = true
-					PrintChat("OnCreateObject: Casting Ult")
+					--PrintChat("OnCreateObject: Casting Ult")
 				end
 			end
 			if obj.name:find("Global_Item_HealthPotion.troy") then
