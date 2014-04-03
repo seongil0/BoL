@@ -1,5 +1,5 @@
 --[[
-	[Script] Swain - The Master Tactician 1.2 by Skeem
+	[Script] Swain - The Master Tactician 1.3 by Skeem
 	
 		Features:
 			- Prodiction for VIPs, NonVIP prediction
@@ -69,6 +69,8 @@
 			1.2   - Added AoE W
 			      - Prodiction tweaks
 			1.2.1 - Added own tweaks to prediction
+			1.3   - Added vPrediction
+			      - Some minor tweaks
 	
 	]]--
 
@@ -76,14 +78,20 @@ if myHero.charName ~= "Swain" then return end
 
 -- Prodiction for VIPs --
 if VIP_USER then 
-	require "Prodiction" 
+	require "Prodiction"
+	if FileExist(LIB_PATH..'VPrediction.lua') then
+		vPredictionExists = true
+    	require "VPrediction"
+	else -- safety check in case file was deleted.
+		vPredictionExists = false
+	end
 end
 
 -- Loading Function --
 function OnLoad()
 	Variables()
 	SwainMenu()
-	PrintChat("<font color='#00FF00'> >> Swain - The Master Tactician 1.2.1 Loaded!! <<</font>")
+	PrintChat("<font color='#00FF00'> >> Swain - The Master Tactician 1.3 Loaded!! <<</font>")
 end
 
 -- Tick Function --
@@ -112,11 +120,13 @@ function Variables()
 	qRange, wRange, eRange, rRange = 625, 900, 625, 700
 	qName, wName, eName, rName = "Decrepify", "Nevermove", "Torment", "Ravenous Flock"
 	qReady, wReady, eReady, rReady = false, false, false, false
+	wSpeed, wDelay, wWidth = 2000, .700, 250
 	if VIP_USER then
-		wSpeed, wDelay, wWidth = math.huge, .85, 250
-		wPos = nil
 		Prodict = ProdictManager.GetInstance()
 		ProdictW = Prodict:AddProdictionObject(_W, wRange, wSpeed, wDelay, wWidth, myHero)
+		if vPredictionExists then
+			vPred = VPrediction()
+		end
 	end
 	hpReady, mpReady, fskReady, Recalling = false, false, false, false
 	TextList = {"Harass him!!", "Q+W+E KILL!!", "FULL COMBO KILL!"}
@@ -248,7 +258,8 @@ function SwainMenu()
 		SwainMenu.misc:addParam("aMP", "Auto Mana Pots", SCRIPT_PARAM_ONOFF, true)
 		SwainMenu.misc:addParam("aHP", "Auto Health Pots", SCRIPT_PARAM_ONOFF, true)
 		SwainMenu.misc:addParam("HPHealth", "Min % for Health Pots", SCRIPT_PARAM_SLICE, 50, 0, 100, -1)
-		
+		SwainMenu.misc:addParam("predType", "Prediction Type", SCRIPT_PARAM_LIST, 1, { "Prodiction", "VPrediction" })
+
 	TargetSelector = TargetSelector(TARGET_LOW_HP, wRange,DAMAGE_MAGIC)
 	TargetSelector.name = "Swain"
 	SwainMenu:addTS(TargetSelector)
@@ -263,10 +274,10 @@ function FullCombo()
 			moveToCursor()
 		end
 	end
-	if Target ~= nil then
-		if eReady and GetDistance(Target) <= eRange then CastSpell(_E, Target) end
-		if qReady and GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
-		if SwainMenu.combo.comboW and wReady and GetDistance(Target) <= wRange then CastW(Target) end
+	if ValidTarget(Target) then
+		CastQ(Target)
+		CastE(Target)
+		CastW(Target)
 		if rReady and GetDistance(Target) <= rRange and not usingUlt then
 			CastSpell(_R)
 			rManual = false
@@ -275,48 +286,88 @@ function FullCombo()
 	end
 end
 
--- Casting W into Enemies --
-function CastW(enemy)
-	if not enemy then 
-		enemy = Target 
+-- Casting Q into Enemies ---
+function CastQ(enemy)
+	if not qReady or (GetDistance(enemy) > qRange) then
+		return false
 	end
-	if Target ~= nil then
+	if ValidTarget(enemy) then 
 		if VIP_USER then
-			local wAoEPos = GetAoESpellPosition(250, enemy, 250)
-			if wAoEPos and GetDistance(wAoEPos) <= wRange then
-				if CountEnemies(wAoEPos, 250) > 1 then
-					CastSpell(_W, wAoEPos.x, wAoEPos.z)
-					if debugMode then PrintChat("AoE W") end
-				elseif CountEnemies(wAoEPos, 250) < 2 then
-					if wPos ~= nil then
-						CastSpell(_W, wPos.x, wPos.z)
-						if debugMode then PrintChat("W Normal ELSE") end
-					end
-				end
-			elseif wPos ~= nil then
-				if GetDistance(enemy, wPos) <= (wWidth - 100) then
-					CastSpell(_W, wPos.x, wPos.z)
-					if debugMode then PrintChat("W Normal") end
-				end
-			end
+			Packet("S_CAST", {spellId = _Q, targetNetworkId = enemy.networkID}):send()
 		else
-			CastSpell(_W, enemy.x, enemy.z)
+			CastSpell(_Q, enemy)
 		end
 	end
 end
 
+-- Casting W into Enemies --
+function CastW(enemy)
+	if not wReady or (GetDistance(enemy) > wRange) then
+			return false
+	end
+	if ValidTarget(enemy) then
+		if VIP_USER then
+			if SwainMenu.misc.predType == 1 then
+				local wAoEPos = GetAoESpellPosition(250, enemy, 250)
+				if wAoEPos and GetDistance(wAoEPos) <= wRange then
+					if CountEnemies(wAoEPos, 250) > 1 then
+						CastSpell(_W, wAoEPos.x, wAoEPos.z)
+						if debugMode then PrintChat("AoE W") end
+					elseif CountEnemies(wAoEPos, 250) < 2 then
+						if wPos ~= nil then
+							CastSpell(_W, wPos.x, wPos.z)
+							if debugMode then PrintChat("W Normal ELSE") end
+						end
+					end
+				else 
+					if wPos then
+						CastSpell(_W, wPos.x, wPos.z)
+						if debugMode then PrintChat("W Normal VIP") end
+					end
+				end
+			else
+				if vPredictionExists then
+					local CastPosition,  HitChance,  Position = vPred:GetCircularCastPosition(enemy, wDelay, wWidth, wRange)
+					if HitChance >= 2 then
+						CastSpell(_W, CastPosition.x, CastPosition.z)
+						if debugMode then PrintChat("W vPred") end
+					end
+				end
+			end
+		else
+			CastSpell(_W, enemy.x, enemy.z)
+			if debugMode then PrintChat("W Free") end
+		end
+	end
+end
+
+-- Casting E into Enemies ---
+function CastE(enemy)
+	if not eReady or (GetDistance(enemy) > eRange) then
+		return false
+	end
+	if ValidTarget(enemy) then 
+		if VIP_USER then
+			Packet("S_CAST", {spellId = _E, targetNetworkId = enemy.networkID}):send()
+		else
+			CastSpell(_E, enemy)
+		end
+	end
+end
+
+
 -- Harass Combo --
 function HarassCombo()
 	if SwainMenu.harass.harassOrbwalk then
-		if Target ~= nil then
+		if ValidTarget(Target) then
 			OrbWalking(Target)
 		else
 			moveToCursor()
 		end
 	end
-	if Target ~= nil then
-		if eReady and GetDistance(Target) <= eRange then CastSpell(_E, Target) end
-		if qReady and GetDistance(Target) <= qRange then CastSpell(_Q, Target) end
+	if ValidTarget(Target) then
+		CastE(Target)
+		CastQ(Target)
 	end
 end
 
