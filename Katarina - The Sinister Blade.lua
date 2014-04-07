@@ -1,4 +1,4 @@
-local version = "2.118"
+local version = "2.119"
 
 --[[
 
@@ -190,6 +190,7 @@ local version = "2.118"
    		 - Re-arranged 'Auto Level Skills' Menu
    		 - Fixed Ult Cancelling
    		 - Brought a Fix for MMA (Cancelling Ult)
+   		 - Brought a Fix for SAC (Cancelling Ult)
   	]] --
 
 -- / Hero Name Check / --
@@ -1445,14 +1446,14 @@ end
 --- Check When Its Time To Attack ---
 --->
 	function TimeToAttack()
-		return (GetTickCount() + GetLatency()*0.5 > lastAttack + lastAttackCD)
+		return (os.clock() + GetLatency() / 2000 > lastAttack + lastAttackCD)
 	end
 ---<
 --- Check When Its Time To Attack ---
 --- Prevent AA Canceling ---
 --->
 	function heroCanMove()
-		return (GetTickCount() + GetLatency()*0.5 > lastAttack + lastWindUpTime + 20)
+		return (os.clock() + GetLatency() / 2000 > lastAttack + lastWindUpTime + 20)
 	end
 ---<
 --- Prevent AA Canceling ---
@@ -1681,7 +1682,8 @@ function Checks()
 	--- Setting Cast of Ult ---
 	--->
 		if SkillR.castingUlt and not WardJumpKey then
-			if _G.AutoCarry then 
+			if _G.AutoCarry then
+				_G.AutoCarry.Orbwalker = false
 				if _G.AutoCarry.MainMenu ~= nil then
 						if _G.AutoCarry.CanAttack ~= nil then
 							_G.AutoCarry.CanAttack = false
@@ -1693,7 +1695,8 @@ function Checks()
 						_G.AutoCarry.MyHero:AttacksEnabled(false)
 					end
 				end
-			elseif _G.MMA_Loaded then
+			end
+			if _G.MMA_Loaded then
 				_G.MMA_Orbwalker	= false
 				_G.MMA_HybridMode	= false
 				_G.MMA_LaneClear	= false
