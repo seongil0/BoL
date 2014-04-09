@@ -1,4 +1,4 @@
-local version = "2.119"
+local version = "2.1191"
 
 --[[
 
@@ -191,6 +191,7 @@ local version = "2.119"
    		 - Fixed Ult Cancelling
    		 - Brought a Fix for MMA (Cancelling Ult)
    		 - Brought a Fix for SAC (Cancelling Ult)
+   2.1.1 - Fixed SAC Errors
   	]] --
 
 -- / Hero Name Check / --
@@ -1683,7 +1684,6 @@ function Checks()
 	--->
 		if SkillR.castingUlt and not WardJumpKey then
 			if _G.AutoCarry then
-				_G.AutoCarry.Orbwalker = false
 				if _G.AutoCarry.MainMenu ~= nil then
 						if _G.AutoCarry.CanAttack ~= nil then
 							_G.AutoCarry.CanAttack = false
