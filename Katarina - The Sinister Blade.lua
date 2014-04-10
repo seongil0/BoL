@@ -1,4 +1,4 @@
-local version = "2.1192"
+local version = "2.1193"
 
 --[[
 
@@ -194,6 +194,7 @@ local version = "2.1192"
    2.1.1 - Fixed SAC Errors
 		 - Fixed Orbwalker not Orbwalking(lel)
 		 - Improved Orbwalker
+		 - Fixed Spamming Infos about Ult
   	]] --
 
 -- / Hero Name Check / --
@@ -1726,11 +1727,6 @@ function Checks()
 		end
 	---<
 	--- Setting Proc Q Mark ---
-	if SkillR.castingUlt then
-		PrintChat("Casting Ult true")
-	elseif not SkillR.castingUlt then
-		PrintChat("Casting Ult false")
-	end
 end
 -- / Checks Function / --
 
