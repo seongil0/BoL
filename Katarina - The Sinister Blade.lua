@@ -1,4 +1,4 @@
-local version = "2.1191"
+local version = "2.1192"
 
 --[[
 
@@ -181,17 +181,19 @@ local version = "2.1191"
 		 - Fixed 'Not Casting Ult' Bug
 		 - Fixed Auto-E Bugs and Hopefully Right-Click to Interrupt Bug
    2.1.0 - Added another Level Sequence (Prioritise Q)
-   		 - Changed 'Auto Level Skills' Menu
-   		 - Improved Packet Checks (VIP)
-   		 - Fixed Packet Problems (VIP)
-   		 - Fixed Jungle Clear Bug (Not using Spells neither Attack)
-   		 - Added usage for 'OnGainBuff' and 'OnLoseBuff' (VIP)
-   		 - Improved Killsteal Function
-   		 - Re-arranged 'Auto Level Skills' Menu
-   		 - Fixed Ult Cancelling
-   		 - Brought a Fix for MMA (Cancelling Ult)
-   		 - Brought a Fix for SAC (Cancelling Ult)
+		 - Changed 'Auto Level Skills' Menu
+		 - Improved Packet Checks (VIP)
+		 - Fixed Packet Problems (VIP)
+		 - Fixed Jungle Clear Bug (Not using Spells neither Attack)
+		 - Added usage for 'OnGainBuff' and 'OnLoseBuff' (VIP)
+		 - Improved Killsteal Function
+		 - Re-arranged 'Auto Level Skills' Menu
+		 - Fixed Ult Cancelling
+		 - Brought a Fix for MMA (Cancelling Ult)
+		 - Brought a Fix for SAC (Cancelling Ult)
    2.1.1 - Fixed SAC Errors
+		 - Fixed Orbwalker not Orbwalking(lel)
+		 - Improved Orbwalker
   	]] --
 
 -- / Hero Name Check / --
@@ -237,7 +239,7 @@ function OnLoad()
 	--->
 		Variables()
 		KatarinaMenu()
-		PrintChat("<font color='#FF0000'> >> "..UPDATE_SCRIPT_NAME.." 2.118 Loaded <<</font>")
+		PrintChat("<font color='#FF0000'> >> "..UPDATE_SCRIPT_NAME.." 2.1.1 Loaded <<</font>")
 	---<
 end
 -- / Loading Function / --
@@ -854,8 +856,6 @@ function CastR()
 		end
 		if CountEnemyHeroInRange(SkillR.range) >= 1 then
 			CastSpell(_R)
-			SkillR.castingUlt = true
-			--PrintChat("CastR: Casting Ult")
 		end
 	---<
 	--- Dymanic R Cast --
@@ -1447,14 +1447,14 @@ end
 --- Check When Its Time To Attack ---
 --->
 	function TimeToAttack()
-		return (os.clock() + GetLatency() / 2000 > lastAttack + lastAttackCD)
+		return (GetTickCount() + GetLatency() * .5 > lastAttack + lastAttackCD)
 	end
 ---<
 --- Check When Its Time To Attack ---
 --- Prevent AA Canceling ---
 --->
 	function heroCanMove()
-		return (os.clock() + GetLatency() / 2000 > lastAttack + lastWindUpTime + 20)
+		return (GetTickCount() + GetLatency() * .5 > lastAttack + lastWindUpTime + 20)
 	end
 ---<
 --- Prevent AA Canceling ---
@@ -1726,6 +1726,11 @@ function Checks()
 		end
 	---<
 	--- Setting Proc Q Mark ---
+	if SkillR.castingUlt then
+		PrintChat("Casting Ult true")
+	elseif not SkillR.castingUlt then
+		PrintChat("Casting Ult false")
+	end
 end
 -- / Checks Function / --
 
