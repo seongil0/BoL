@@ -1,4 +1,4 @@
-local version = "2.1197"
+local version = "2.1198"
 
 --[[
 
@@ -197,6 +197,7 @@ local version = "2.1197"
 		 - Fixed Spamming Infos about Ult
 		 - Improved Lua Script Performance
 		 - Fixed Cancelling Ult
+		 - Fixed Spamming Errors
   	]] --
 
 -- / Hero Name Check / --
@@ -1169,10 +1170,10 @@ end
 		nEnemiesClose, nEnemiesFar = 0, 0
 		hpPercent = hero.health / hero.maxHealth
 		for _, enemy in pairs(enemyHeroes) do
-				if not enemy.dead and hero:GetDistanceSqr(enemy) <= 200*200 then
+				if not enemy.dead and hero:GetDistance(enemy) <= 200 then
 						nEnemiesClose = nEnemiesClose + 1
 						if hpPercent < 0.5 and hpPercent < enemy.health / enemy.maxHealth then return true end
-				elseif not enemy.dead and hero:GetDistanceSqr(enemy) <= 1000*1000 then
+				elseif not enemy.dead and hero:GetDistance(enemy) <= 1000 then
 						nEnemiesFar = nEnemiesFar + 1
 				end
 		end
