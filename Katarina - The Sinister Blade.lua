@@ -1,4 +1,4 @@
-local version = "2.1194"
+local version = "2.1195"
 
 --[[
 
@@ -196,6 +196,7 @@ local version = "2.1194"
 		 - Improved Orbwalker
 		 - Fixed Spamming Infos about Ult
 		 - Improved Lua Script Performance
+		 - Fixed Cancelling Ult
   	]] --
 
 -- / Hero Name Check / --
@@ -1237,25 +1238,23 @@ end
 function OnSendPacket(p)
 	-- Block Packets if Channeling --
 	--->
-		if SkillR.castingUlt and not WardJumpKey then
-			if (p.header == S_MOVE or p.header == S_CAST) and (p:get('spellId') ~= SUMMONER_1 and p:get('spellId') ~= SUMMONER_2) then
-				if not SkillR.rightClicked then
-					if KatarinaMenu.combo.stopUlt then
-						if not SkillQ.ready and not SkillW.ready and not SkillE.ready and ValidTarget(Target) and Target ~= nil and Target.health > (qDmg + wDmg + eDmg) then
-							-- PrintChat("Debug 1")
-							p:Block()
-						end
-					end
-					if KatarinaMenu.combo.autoE then
-						if p:get('spellId') ~= SPELL_3 then
-							-- PrintChat("Debug 2")
-							p:Block()
-						end
-					end
-					if not KatarinaMenu.combo.stopUlt and not KatarinaMenu.combo.autoE then
-						-- PrintChat("Debug 3")
+		if SkillR.castingUlt and not (SkillR.rightClicked and WardJumpKey) then
+			if (p.header == Packet.headers.S_MOVE or p.header == Packet.headers.S_CAST) and (p:get('spellId') ~= SUMMONER_1 and p:get('spellId') ~= SUMMONER_2) then
+				if KatarinaMenu.combo.stopUlt then
+					if not SkillQ.ready and not SkillW.ready and not SkillE.ready and ValidTarget(Target) and Target ~= nil and Target.health > (qDmg + wDmg + eDmg) then
+						-- PrintChat("Debug 1")
 						p:Block()
 					end
+				end
+				if KatarinaMenu.combo.autoE then
+					if p:get('spellId') ~= SPELL_3 then
+						-- PrintChat("Debug 2")
+						p:Block()
+					end
+				end
+				if not KatarinaMenu.combo.stopUlt and not KatarinaMenu.combo.autoE then
+					-- PrintChat("Debug 3")
+					p:Block()
 				end
 			end
 		end
