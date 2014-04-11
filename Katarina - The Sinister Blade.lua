@@ -1,4 +1,4 @@
-local version = "2.1195"
+local version = "2.1196"
 
 --[[
 
@@ -261,7 +261,7 @@ function OnTick()
 		
 		if KatarinaMenu.combo.autoE then
 			for _, enemy in pairs(enemyHeroes) do
-				if ValidTarget(enemy) and enemy ~= nil and GetDistance(enemy) > SkillR.range and GetDistance(enemy) <= SkillE.range and SkillR.castingUlt then
+				if ValidTarget(enemy) and enemy ~= nil and GetDistanceSqr(enemy) > SkillR.range*SkillR.range and GetDistanceSqr(enemy) <= SkillE.range*SkillE.range and SkillR.castingUlt then
 					CastE(enemy)
 				end
 			end
@@ -292,7 +292,7 @@ function OnTick()
 		end	
 		if WardJumpKey then
 			moveToCursor()
-			local WardPos = GetDistance(mousePos) <= SkillWard.range and mousePos or getMousePos()
+			local WardPos = GetDistanceSqr(mousePos) <= SkillWard.range*SkillWard.range and mousePos or getMousePos()
 			wardJump(WardPos.x, WardPos.z)
 		end
 		if KatarinaMenu.killsteal.smartKS then
@@ -681,7 +681,7 @@ function Farm()
 			--- Minion Keys ---
 			--- Farming Minions ---
 			if ValidTarget(minion) and minion ~= nil then
-				if GetDistance(minion) <= SkillW.range then
+				if GetDistanceSqr(minion) <= SkillW.range*SkillW.range then
 					if qFarmKey and wFarmKey then
 						if SkillQ.ready and SkillW.ready then
 							if minion.health <= (pMinionDmg + qMinionDmg + wMinionDmg) and minion.health > wMinionDmg then
@@ -710,14 +710,14 @@ function Farm()
 							end
 						end
 					end
-				elseif (GetDistance(minion) > SkillW.range) then
+				elseif (GetDistanceSqr(minion) > SkillW.range*SkillW.range) then
 					if qFarmKey then
-						if minion.health <= qMinionDmg and (GetDistance(minion) <= SkillQ.range) then
+						if minion.health <= qMinionDmg and (GetDistanceSqr(minion) <= SkillQ.range*SkillQ.range) then
 							CastQ(minion)
 						end
 					end
 					if eFarmKey then
-						if minion.health <= eMinionDmg and (GetDistance(minion) <= SkillE.range) then
+						if minion.health <= eMinionDmg and (GetDistanceSqr(minion) <= SkillE.range*SkillE.range) then
 							CastE(minion)
 						end
 					end
@@ -740,13 +740,13 @@ function MixedClear()
 				if KatarinaMenu.clear.clearOrbJ then
 					OrbWalking(JungleMob)
 				end
-				if KatarinaMenu.clear.clearQ and SkillQ.ready and GetDistance(JungleMob) <= SkillQ.range then
+				if KatarinaMenu.clear.clearQ and SkillQ.ready and GetDistanceSqr(JungleMob) <= SkillQ.range*SkillQ.range then
 					CastQ(JungleMob)
 				end
-				if KatarinaMenu.clear.clearW and SkillW.ready and GetDistance(JungleMob) <= SkillW.range then
+				if KatarinaMenu.clear.clearW and SkillW.ready and GetDistanceSqr(JungleMob) <= SkillW.range*SkillW.range then
 					CastSpell(_W)
 				end
-				if KatarinaMenu.clear.clearE and SkillE.ready and GetDistance(JungleMob) <= SkillE.range then
+				if KatarinaMenu.clear.clearE and SkillE.ready and GetDistanceSqr(JungleMob) <= SkillE.range*SkillE.range then
 					CastE(JungleMob)
 				end
 			else
@@ -765,13 +765,13 @@ function MixedClear()
 					if KatarinaMenu.clear.clearOrbM then
 						OrbWalking(minion)
 					end
-					if KatarinaMenu.clear.clearQ and SkillQ.ready and GetDistance(minion) <= SkillQ.range then
+					if KatarinaMenu.clear.clearQ and SkillQ.ready and GetDistanceSqr(minion) <= SkillQ.range*SkillQ.range then
 						CastQ(minion)
 					end
-					if KatarinaMenu.clear.clearW and SkillW.ready and GetDistance(minion) <= SkillW.range then
+					if KatarinaMenu.clear.clearW and SkillW.ready and GetDistanceSqr(minion) <= SkillW.range*SkillW.range then
 						CastSpell(_W)
 					end
-					if KatarinaMenu.clear.clearE and SkillE.ready and GetDistance(minion) <= SkillE.range then 
+					if KatarinaMenu.clear.clearE and SkillE.ready and GetDistanceSqr(minion) <= SkillE.range*SkillE.range then 
 						CastE(minion)
 					end
 				else
@@ -790,7 +790,7 @@ end
 function CastQ(enemy)
 	--- Dynamic Q Cast ---
 	--->
-		if not SkillQ.ready or (GetDistance(enemy) > SkillQ.range) then
+		if not SkillQ.ready or (GetDistanceSqr(enemy) > SkillQ.range*SkillQ.range) then
 			return false
 		end
 		if ValidTarget(enemy) and enemy ~= nil then 
@@ -816,7 +816,7 @@ end
 function CastE(enemy)
 	--- Dynamic E Cast ---
 	--->
-		if not SkillE.ready or (GetDistance(enemy) > SkillE.range) then
+		if not SkillE.ready or (GetDistanceSqr(enemy) > SkillE.range*SkillE.range) then
 			return false
 		end
 		if ValidTarget(enemy) and enemy ~= nil then 
@@ -838,7 +838,7 @@ end
 function CastW(enemy)
 	--- Dynamic W Cast ---
 	--->
-		if not SkillW.ready or (GetDistance(enemy) > SkillW.range) then
+		if not SkillW.ready or (GetDistanceSqr(enemy) > SkillW.range*SkillW.range) then
 			return false
 		end
 		if ValidTarget(enemy) and enemy ~= nil then
@@ -874,7 +874,7 @@ function wardJump(x, y)
 			local WardDistance = 300
 			for _, ally in pairs(allyHeroes) do
 				if ValidTarget(ally, SkillE.range, false) and ally ~= nil then
-					if GetDistance(ally, mousePos) <= WardDistance then
+					if GetDistanceSqr(ally, mousePos) <= WardDistance*WardDistance then
 						CastSpell(_E, ally)
 						Jumped = true
 						SkillWard.lastJump = GetTickCount() + 2000
@@ -883,7 +883,7 @@ function wardJump(x, y)
 			end
 			for _, minion in pairs(allyMinions.objects) do
 				if ValidTarget(minion, SkillE.range, false) and minion ~= nil then
-					if GetDistance(minion, mousePos) <= WardDistance then
+					if GetDistanceSqr(minion, mousePos) <= WardDistance*WardDistance then
 						CastSpell(_E, minion)
 						Jumped = true
 						SkillWard.lastJump = GetTickCount() + 2000
@@ -892,7 +892,7 @@ function wardJump(x, y)
 			end
 			for _, minion in pairs(enemyMinions.objects) do
 				if ValidTarget(minion, SkillE.range, false) and minion ~= nil then
-					if GetDistance(minion, mousePos) <= WardDistance then
+					if GetDistanceSqr(minion, mousePos) <= WardDistance*WardDistance then
 						CastSpell(_E, minion)
 						Jumped = true
 						SkillWard.lastJump = GetTickCount() + 2000
@@ -903,7 +903,7 @@ function wardJump(x, y)
 				for i, obj in pairs(Wards) do 
 					if obj.valid then
 						MousePos = getMousePos()
-						if GetDistance(obj, MousePos) <= WardDistance then
+						if GetDistanceSqr(obj, MousePos) <= WardDistance*WardDistance then
 							CastSpell(_E, obj)
 							Jumped = true
 							SkillWard.lastJump = GetTickCount() + 2000
@@ -945,11 +945,11 @@ function UseItems(enemy)
 			enemy = Target
 		end
 		if ValidTarget(enemy) and enemy ~= nil then
-			if dfgReady and GetDistance(enemy) <= 600 then CastSpell(dfgSlot, enemy) end
-			if bftReady and GetDistance(enemy) <= 600 then CastSpell(bftSlot, enemy) end
-			if hxgReady and GetDistance(enemy) <= 600 then CastSpell(hxgSlot, enemy) end
-			if bwcReady and GetDistance(enemy) <= 450 then CastSpell(bwcSlot, enemy) end
-			if brkReady and GetDistance(enemy) <= 450 then CastSpell(brkSlot, enemy) end
+			if dfgReady and GetDistanceSqr(enemy) <= 600*600 then CastSpell(dfgSlot, enemy) end
+			if bftReady and GetDistanceSqr(enemy) <= 600*600 then CastSpell(bftSlot, enemy) end
+			if hxgReady and GetDistanceSqr(enemy) <= 600*600 then CastSpell(hxgSlot, enemy) end
+			if bwcReady and GetDistanceSqr(enemy) <= 450*450 then CastSpell(bwcSlot, enemy) end
+			if brkReady and GetDistanceSqr(enemy) <= 450*450 then CastSpell(brkSlot, enemy) end
 		end
 	---<
 	--- Use Items ---
@@ -977,7 +977,7 @@ end
 function AutoIgnite(enemy)
 	--- Simple Auto Ignite ---
 	--->
-		if enemy.health <= iDmg and GetDistance(enemy) <= 600 then
+		if enemy.health <= iDmg and GetDistanceSqr(enemy) <= 600*600 then
 			if iReady then CastSpell(ignite, enemy) end
 		end
 	---<
@@ -1080,30 +1080,30 @@ function KillSteal()
 	--->
 		for _, enemy in pairs(enemyHeroes) do
 			if enemy ~= nil and ValidTarget(enemy) then
-				local distance = GetDistance(enemy)
+				local distance = GetDistanceSqr(enemy)
 				local health = enemy.health
-				if health <= qDmg and SkillQ.ready and (distance <= SkillQ.range) then
+				if health <= qDmg and SkillQ.ready and (distance <= SkillQ.range*SkillQ.range) then
 					CastQ(enemy)
-				elseif health <= wDmg and SkillW.ready and (distance <= SkillW.range) then
+				elseif health <= wDmg and SkillW.ready and (distance <= SkillW.range*SkillW.range) then
 					CastW(enemy)
-				elseif health <= eDmg and SkillE.ready and (distance <= SkillE.range) then
+				elseif health <= eDmg and SkillE.ready and (distance <= SkillE.range*SkillE.range) then
 					CastE(enemy)
-				elseif health <= (qDmg + wDmg) and SkillQ.ready and SkillW.ready and (distance <= SkillW.range) then
+				elseif health <= (qDmg + wDmg) and SkillQ.ready and SkillW.ready and (distance <= SkillW.range*SkillW.range) then
 					CastW(enemy)
-				elseif health <= (qDmg + eDmg) and SkillQ.ready and SkillE.ready and (distance <= SkillE.range) then
+				elseif health <= (qDmg + eDmg) and SkillQ.ready and SkillE.ready and (distance <= SkillE.range*SkillE.range) then
 					CastE(enemy)
-				elseif health <= (wDmg + eDmg) and SkillW.ready and SkillE.ready and (distance <= SkillW.range) then
+				elseif health <= (wDmg + eDmg) and SkillW.ready and SkillE.ready and (distance <= SkillW.range*SkillW.range) then
 					CastW(enemy)
-				elseif health <= (qDmg + wDmg + eDmg) and SkillQ.ready and SkillW.ready and SkillE.ready and (distance <= SkillE.range) then
+				elseif health <= (qDmg + wDmg + eDmg) and SkillQ.ready and SkillW.ready and SkillE.ready and (distance <= SkillE.range*SkillE.range) then
 					CastE(enemy)
 				elseif KatarinaMenu.killsteal.ultKS then
-					if health <= (qDmg + pDmg + wDmg + eDmg + rDmg) and SkillQ.ready and SkillW.ready and SkillE.ready and SkillR.ready and (distance <= SkillE.range) then
+					if health <= (qDmg + pDmg + wDmg + eDmg + rDmg) and SkillQ.ready and SkillW.ready and SkillE.ready and SkillR.ready and (distance <= SkillE.range*SkillE.range) then
 						CastE(enemy)
 						CastQ(enemy)
 						CastW(enemy)
 						CastR()
 					end
-					if health <= rDmg and distance <= (SkillR.range - 100) then
+					if health <= rDmg and distance <= ((SkillR.range*SkillR.range) - 100) then
 						CastR()
 					end
 				elseif KatarinaMenu.killsteal.itemsKS then
@@ -1131,7 +1131,7 @@ end
 		if isInDanger(myHero) and Target then
 			for _, ally in pairs(allyHeroes) do
 				if ValidTarget(Ally, SkillE.range, false) and Ally ~= nil then
-					if GetDistance(Ally, Target) <= GetDistance(myHero, Target) then
+					if GetDistanceSqr(Ally, Target) <= GetDistanceSqr(myHero, Target) then
 						if SkillE.ready then CastSpell(_E, ally) end
 					end
 				end
@@ -1169,10 +1169,10 @@ end
 		nEnemiesClose, nEnemiesFar = 0, 0
 		hpPercent = hero.health / hero.maxHealth
 		for _, enemy in pairs(enemyHeroes) do
-				if not enemy.dead and hero:GetDistance(enemy) <= 200 then
+				if not enemy.dead and hero:GetDistanceSqr(enemy) <= 200*200 then
 						nEnemiesClose = nEnemiesClose + 1
 						if hpPercent < 0.5 and hpPercent < enemy.health / enemy.maxHealth then return true end
-				elseif not enemy.dead and hero:GetDistance(enemy) <= 1000 then
+				elseif not enemy.dead and hero:GetDistanceSqr(enemy) <= 1000*1000 then
 						nEnemiesFar = nEnemiesFar + 1
 				end
 		end
@@ -1269,19 +1269,19 @@ function OnCreateObj(obj)
 	-->
 		if obj ~= nil then
 			if (obj.name:find("katarina_deathLotus_mis.troy") or obj.name:find("katarina_deathLotus_tar.troy")) then
-				if GetDistance(obj, myHero) <= 70 then
+				if GetDistanceSqr(obj, myHero) <= 70*70 then
 					SkillR.castingUlt = true
 					--PrintChat("OnCreateObject: Casting Ult")
 				end
 			end
 			if (obj.name:find("katarina_deathlotus_success.troy") or obj.name:find("Katarina_deathLotus_empty.troy")) then
-				if GetDistance(obj, myHero) <= 70 then
+				if GetDistanceSqr(obj, myHero) <= 70*70 then
 					SkillR.castingUlt = true
 					--PrintChat("OnCreateObject: Casting Ult")
 				end
 			end
 			if obj.name:find("Global_Item_HealthPotion.troy") then
-				if GetDistance(obj, myHero) <= 70 then
+				if GetDistanceSqr(obj, myHero) <= 70*70 then
 					UsingHPot = true
 				end
 			end
@@ -1389,12 +1389,12 @@ function OnDraw()
 		if WardJumpKey then
 			if SkillE.ready then
 				DrawCircle3D(myHero.x, myHero.y, myHero.z, SkillWard.range, 2, wardColor.available, 50)
-				if GetDistance(mousePos) <= SkillWard.range then
+				if GetDistanceSqr(mousePos) <= SkillWard.range*SkillWard.range then
 					DrawCircle3D(mousePos.x, mousePos.y, mousePos.z, 50, 2, wardColor.available, 20)
 				else
 					DrawCircle3D(mousePos.x, mousePos.y, mousePos.z, 50, 2, wardColor.unavailable, 20)
 				end
-				if (GetDistance(mousePos) <= 700 and GetDistance(mousePos) > SkillWard.range) or not (Items.TrinketWard.ready or Items.RubySightStone.ready or Items.SightStone.ready or Items.VisionWard.ready) then
+				if (GetDistanceSqr(mousePos) <= 700*700 and GetDistanceSqr(mousePos) > SkillWard.range*SkillWard.range) or not (Items.TrinketWard.ready or Items.RubySightStone.ready or Items.SightStone.ready or Items.VisionWard.ready) then
 					DrawCircle3D(mousePos.x, mousePos.y, mousePos.z, 50, 2, wardColor.searching, 20)
 				end
 			else
@@ -1437,7 +1437,7 @@ end
 --->
 	function OrbWalking(Target)
 		if not SkillR.castingUlt then
-			if TimeToAttack() and GetDistance(Target) <= myHero.range + GetDistance(myHero.minBBox) then
+			if TimeToAttack() and GetDistanceSqr(Target) <= (myHero.range + GetDistance(myHero.minBBox))*(myHero.range + GetDistance(myHero.minBBox)) then
 				myHero:Attack(Target)
 			elseif heroCanMove() then
 				moveToCursor()
