@@ -1,4 +1,4 @@
-local version = "2.1193"
+local version = "2.1194"
 
 --[[
 
@@ -195,6 +195,7 @@ local version = "2.1193"
 		 - Fixed Orbwalker not Orbwalking(lel)
 		 - Improved Orbwalker
 		 - Fixed Spamming Infos about Ult
+		 - Improved Lua Script Performance
   	]] --
 
 -- / Hero Name Check / --
@@ -298,7 +299,8 @@ function OnTick()
 		end
 		if KatarinaMenu.misc.AutoLevelSkills == 2 then
 			autoLevelSetSequence(levelSequence.prioritiseQ)
-		elseif KatarinaMenu.misc.AutoLevelSkills == 3 then
+		end
+		if KatarinaMenu.misc.AutoLevelSkills == 3 then
 			autoLevelSetSequence(levelSequence.prioritiseW)
 		end
 		if KatarinaMenu.misc.jumpAllies then
@@ -375,8 +377,8 @@ function Variables()
 	--- Misc Vars ---
 	--->
 		levelSequence = {
-			prioritiseQ = { 1,3,2,1,1,4,1,2,1,2,4,2,2,3,3,4,3,3 },
-			prioritiseW = { 1,3,2,2,2,4,2,1,2,1,4,1,1,3,3,4,3,3 }
+			prioritiseQ	= { 1,3,2,1,1,4,1,2,1,2,4,2,2,3,3,4,3,3 },
+			prioritiseW	= { 1,3,2,2,2,4,2,1,2,1,4,1,1,3,3,4,3,3 }
 		}
 		UsingHPot = false
 		gameState = GetGame()
@@ -484,9 +486,9 @@ function Variables()
 			local object = objManager:getObject(i)
 			if object and object.valid and not object.dead then
 				if FocusJungleNames[object.name] then
-					table.insert(JungleFocusMobs, object)
+					JunglefocusMobs[#JungleFocusMobs+1] = object
 				elseif JungleMobNames[object.name] then
-					table.insert(JungleMobs, object)
+					JungleMobs[#JungleMobs+1] = object
 				end
 			end
 		end
@@ -1285,12 +1287,12 @@ function OnCreateObj(obj)
 				end
 			end
 			if obj.valid and (string.find(obj.name, "Ward") ~= nil or string.find(obj.name, "Wriggle") ~= nil or string.find(obj.name, "Trinket")) then 
-				table.insert(Wards, obj)
+				Wards[#Wards+1] = obj
 			end
 			if FocusJungleNames[obj.name] then
-				table.insert(JungleFocusMobs, obj)
+				JungleFocusMobs[#JungleFocusMobs+1] = obj
 			elseif JungleMobNames[obj.name] then
-				table.insert(JungleMobs, obj)
+				JungleMobs[#JungleMobs+1] = obj
 			end
 		end
 	---<
@@ -1367,7 +1369,7 @@ function OnDraw()
 					if KillText[i] ~= 10 then
 						DrawText(TextList[KillText[i]], 16, PosX, PosY, colorText)
 					else
-						DrawText(TextList[KillText[i]] .. string.format("%4.1f", ((enemy.health - (qDmg + pDmg + wDmg + eDmg + itemsDmg)) / rDmg) * 2.5) .. "s = Kill", 16, PosX, PosY, colorText)
+						DrawText(TextList[KillText[i]] .. string.format("%4.1f", ((enemy.health - (qDmg + pDmg + wDmg + eDmg + itemsDmg)) * (1/rDmg)) * 2.5) .. "s = Kill", 16, PosX, PosY, colorText)
 					end
 				end
 			end
@@ -1487,7 +1489,7 @@ end
 				end
 
 				if spell.name:lower():find("attack") then
-					lastAttack = GetTickCount() - GetLatency()/2
+					lastAttack = GetTickCount() - GetLatency()*0.5
 					lastWindUpTime = spell.windUpTime*1000
 					lastAttackCD = spell.animationTime*1000
 				end
@@ -1735,7 +1737,7 @@ function isLow(Name)
 	--- Check Zhonya/Wooglets HP ---
 	--->
 		if Name == 'Zhonya' or Name == 'Wooglets' then
-			if (myHero.health / myHero.maxHealth) <= (KatarinaMenu.misc.ZWHealth / 100) then
+			if (myHero.health * (1/myHero.maxHealth)) <= (KatarinaMenu.misc.ZWHealth * 0.01) then
 				return true
 			else
 				return false
@@ -1746,7 +1748,7 @@ function isLow(Name)
 	--- Check Potions HP ---
 	--->
 		if Name == 'Health' then
-			if (myHero.health / myHero.maxHealth) <= (KatarinaMenu.misc.HPHealth / 100) then
+			if (myHero.health * (1/myHero.maxHealth)) <= (KatarinaMenu.misc.HPHealth * 0.01) then
 				return true
 			else
 				return false
