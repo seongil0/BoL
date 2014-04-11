@@ -1,4 +1,4 @@
-local version = "2.1196"
+local version = "2.1197"
 
 --[[
 
@@ -1131,7 +1131,7 @@ end
 		if isInDanger(myHero) and Target then
 			for _, ally in pairs(allyHeroes) do
 				if ValidTarget(Ally, SkillE.range, false) and Ally ~= nil then
-					if GetDistanceSqr(Ally, Target) <= GetDistanceSqr(myHero, Target) then
+					if GetDistance(Ally, Target) <= GetDistance(myHero, Target) then
 						if SkillE.ready then CastSpell(_E, ally) end
 					end
 				end
