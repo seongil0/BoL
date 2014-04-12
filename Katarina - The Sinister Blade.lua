@@ -1,4 +1,4 @@
-local version = "2.1198"
+local version = "2.1199"
 
 --[[
 
@@ -198,6 +198,7 @@ local version = "2.1198"
 		 - Improved Lua Script Performance
 		 - Fixed Cancelling Ult
 		 - Fixed Spamming Errors
+		 - Fixed AutoSkillsLevel Spamming Errors
   	]] --
 
 -- / Hero Name Check / --
@@ -299,10 +300,13 @@ function OnTick()
 		if KatarinaMenu.killsteal.smartKS then
 			KillSteal()
 		end
-		if KatarinaMenu.misc.AutoLevelSkills == 2 then
+		if KatarinaMenu.misc.AutoLevelSkills == 1 then
+			if myHero.level == 6 or myHero.level == 11 or myHero.level == 16 then
+				LevelSpell(_R)
+			end
+		elseif KatarinaMenu.misc.AutoLevelSkills == 2 then
 			autoLevelSetSequence(levelSequence.prioritiseQ)
-		end
-		if KatarinaMenu.misc.AutoLevelSkills == 3 then
+		elseif KatarinaMenu.misc.AutoLevelSkills == 3 then
 			autoLevelSetSequence(levelSequence.prioritiseW)
 		end
 		if KatarinaMenu.misc.jumpAllies then
