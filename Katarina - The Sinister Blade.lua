@@ -1,4 +1,4 @@
-local version = "2.1199"
+local version = "2.11991"
 
 --[[
 
@@ -199,6 +199,8 @@ local version = "2.1199"
 		 - Fixed Cancelling Ult
 		 - Fixed Spamming Errors
 		 - Fixed AutoSkillsLevel Spamming Errors
+		 - Fixed Packet Errors
+		 - Improved Ult Anti-Breaking
   	]] --
 
 -- / Hero Name Check / --
@@ -865,6 +867,7 @@ function CastR()
 		end
 		if CountEnemyHeroInRange(SkillR.range) >= 1 then
 			CastSpell(_R)
+			SkillR.castingUlt = true
 		end
 	---<
 	--- Dymanic R Cast --
@@ -1244,7 +1247,7 @@ function OnSendPacket(p)
 	-- Block Packets if Channeling --
 	--->
 		if SkillR.castingUlt and not (SkillR.rightClicked and WardJumpKey) then
-			if (p.header == Packet.headers.S_MOVE or p.header == Packet.headers.S_CAST) and (p:get('spellId') ~= SUMMONER_1 and p:get('spellId') ~= SUMMONER_2) then
+			if (p.header == Packet.headers.S_MOVE or p.header == Packet.headers.S_CAST) and (Packet(p):get('spellId') ~= SUMMONER_1 and Packet(p):get('spellId') ~= SUMMONER_2) then
 				if KatarinaMenu.combo.stopUlt then
 					if not SkillQ.ready and not SkillW.ready and not SkillE.ready and ValidTarget(Target) and Target ~= nil and Target.health > (qDmg + wDmg + eDmg) then
 						-- PrintChat("Debug 1")
@@ -1252,7 +1255,7 @@ function OnSendPacket(p)
 					end
 				end
 				if KatarinaMenu.combo.autoE then
-					if p:get('spellId') ~= SPELL_3 then
+					if Packet(p):get('spellId') ~= SPELL_3 then
 						-- PrintChat("Debug 2")
 						p:Block()
 					end
