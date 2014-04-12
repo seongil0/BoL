@@ -1,4 +1,4 @@
-local version = "2.11992"
+local version = "2.11993"
 
 --[[
 
@@ -201,6 +201,7 @@ local version = "2.11992"
 		 - Fixed AutoSkillsLevel Spamming Errors
 		 - Fixed Packet Errors
 		 - Improved Ult Anti-Breaking
+		 - Fixed Right-Click to Interrupt Bug
   	]] --
 
 -- / Hero Name Check / --
@@ -325,7 +326,7 @@ function Variables()
 		SkillQ =	{range = 675, name = "Bouncing Blades",	ready = false,	delay = 400,	projSpeed = 1400,	timeToHit = 0,	markDelay = 4000,	color = ARGB(255,178, 0 , 0 )	}
 		SkillW =	{range = 375, name = "Sinister Steel",	ready = false,																			color = ARGB(255, 32,178,170)	}
 		SkillE =	{range = 700, name = "Shunpo",			ready = false,																			color = ARGB(255,128, 0 ,128)	}
-		SkillR =	{range = 550, name = "Death Lotus",		ready = false,					castingUlt = false, rightClicked = false												}
+		SkillR =	{range = 550, name = "Death Lotus",		ready = false,					castingUlt = false,																		}
 		SkillWard = {range = 600, lastJump = 0,				itemSlot = nil																											}
 	---<
 	--- Skills Vars ---
@@ -1246,7 +1247,7 @@ end
 function OnSendPacket(p)
 	-- Block Packets if Channeling --
 	--->
-		if SkillR.castingUlt and not (SkillR.rightClicked and WardJumpKey) then
+		if SkillR.castingUlt and not WardJumpKey then
 			if (p.header == Packet.headers.S_MOVE or p.header == Packet.headers.S_CAST) and (Packet(p):get('spellId') ~= SUMMONER_1 and Packet(p):get('spellId') ~= SUMMONER_2) then
 				if KatarinaMenu.combo.stopUlt then
 					if not SkillQ.ready and not SkillW.ready and not SkillE.ready and ValidTarget(Target) and Target ~= nil and Target.health > (qDmg + wDmg + eDmg) then
@@ -1416,10 +1417,8 @@ end
 
 -- / OnWndMsg Function / --
 function OnWndMsg(msg, key)
-	if msg == WM_RBUTTONDOWN then 
-		SkillR.rightClicked = true
-	elseif msg == WM_RBUTTONUP then 
-		SkillR.rightClicked = false
+	if msg == WM_RBUTTONDOWN and SkillR.castingUlt then 
+		SkillR.castingUlt = false
 	end
 end
 -- / OnWndMsg Function / --
