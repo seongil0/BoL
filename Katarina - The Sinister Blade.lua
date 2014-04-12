@@ -1,4 +1,4 @@
-local version = "2.11991"
+local version = "2.11992"
 
 --[[
 
