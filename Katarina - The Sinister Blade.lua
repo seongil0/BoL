@@ -1,4 +1,4 @@
-local version = "2.121"
+local version = "2.122"
 
 --[[
 
@@ -1328,8 +1328,7 @@ function OnDeleteObj(obj)
 					table.remove(JungleFocusMobs, i)
 				end
 			end
-			for i = 1, #Wards do
-				local ward = Wards[i]
+			for i, ward in pairs(Wards) do
 				if not ward.valid or (obj.name == ward.name and obj.x == ward.x and obj.z == ward.z) then
 					table.remove(Wards, i)
 				end
