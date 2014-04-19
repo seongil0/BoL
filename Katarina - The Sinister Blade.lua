@@ -1,4 +1,4 @@
-local version = "2.123"
+local version = "2.124"
 
 --[[
 
@@ -1317,12 +1317,12 @@ function OnDeleteObj(obj)
 			if obj.name:find("Global_Item_HealthPotion.troy") then
 				UsingHPot = false
 			end
-			for i, Mob, in pairs(JungleMobs) do
+			for i, Mob in pairs(JungleMobs) do
 				if obj.name == Mob.name then
 					table.remove(JungleMobs, i)
 				end
 			end
-			for i, Mob, in pairs(JungleFocusMobs) do
+			for i, Mob in pairs(JungleFocusMobs) do
 				if obj.name == Mob.name then
 					table.remove(JungleFocusMobs, i)
 				end
