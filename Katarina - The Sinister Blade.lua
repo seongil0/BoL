@@ -1,4 +1,4 @@
-local version = "2.122"
+local version = "2.123"
 
 --[[
 
@@ -205,6 +205,7 @@ local version = "2.122"
    2.1.2 - Fixed Level Sequence Bug
    		 - Improved the Auto-Updater (Thanks to Honda7)
    		 - Improved Script's Performance
+   		 - Fixed Spamming Errors about 'ward' and 'Mob'
 
   	]] --
 
@@ -1316,14 +1317,12 @@ function OnDeleteObj(obj)
 			if obj.name:find("Global_Item_HealthPotion.troy") then
 				UsingHPot = false
 			end
-			for i = 1, #JungleMobs do
-				local Mob = JungleMobs[i]
+			for i, Mob, in pairs(JungleMobs) do
 				if obj.name == Mob.name then
 					table.remove(JungleMobs, i)
 				end
 			end
-			for i = 1, #JungleFocusMobs do
-				local Mob = JungleFocusMobs[i]
+			for i, Mob, in pairs(JungleFocusMobs) do
 				if obj.name == Mob.name then
 					table.remove(JungleFocusMobs, i)
 				end
