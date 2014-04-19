@@ -1,4 +1,4 @@
-local version = "2.12"
+local version = "2.121"
 
 --[[
 
@@ -1319,19 +1319,19 @@ function OnDeleteObj(obj)
 			for i = 1, #JungleMobs do
 				local Mob = JungleMobs[i]
 				if obj.name == Mob.name then
-					JungleMobs[i] = nil
+					table.remove(JungleMobs, i)
 				end
 			end
 			for i = 1, #JungleFocusMobs do
-				local Mob = JungleMobs[i]
+				local Mob = JungleFocusMobs[i]
 				if obj.name == Mob.name then
-					JungleMobs[i] = nil
+					table.remove(JungleFocusMobs, i)
 				end
 			end
 			for i = 1, #Wards do
 				local ward = Wards[i]
 				if not ward.valid or (obj.name == ward.name and obj.x == ward.x and obj.z == ward.z) then
-					Wards[i] = nil
+					table.remove(Wards, i)
 				end
 			end
 		end
