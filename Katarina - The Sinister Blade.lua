@@ -1,4 +1,4 @@
-local version = "2.124"
+local version = "2.125"
 
 --[[
 
@@ -206,6 +206,7 @@ local version = "2.124"
    		 - Improved the Auto-Updater (Thanks to Honda7)
    		 - Improved Script's Performance
    		 - Fixed Spamming Errors about 'ward' and 'Mob'
+   		 - Fixed Ult Cancelling (VIP)
 
   	]] --
 
@@ -1250,18 +1251,18 @@ function OnSendPacket(p)
 				if KatarinaMenu.combo.stopUlt then
 					if not SkillQ.ready and not SkillW.ready and not SkillE.ready and ValidTarget(Target) and Target ~= nil and Target.health > (qDmg + wDmg + eDmg) then
 						-- PrintChat("Debug 1")
-						p:Block()
+						p:block()
 					end
 				end
 				if KatarinaMenu.combo.autoE then
 					if Packet(p):get('spellId') ~= SPELL_3 then
 						-- PrintChat("Debug 2")
-						p:Block()
+						p:block()
 					end
 				end
 				if not KatarinaMenu.combo.stopUlt and not KatarinaMenu.combo.autoE then
 					-- PrintChat("Debug 3")
-					p:Block()
+					p:block()
 				end
 			end
 		end
