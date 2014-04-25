@@ -1,4 +1,4 @@
-local version = "2.125"
+local version = "2.126"
 
 --[[
 
@@ -345,7 +345,6 @@ function Variables()
 	--- Items Vars ---
 	--- Orbwalking Vars ---
 	--->
-		lastAnimation = "Run"
 		lastAttack = 0
 		lastAttackCD = 0
 		lastWindUpTime = 0
@@ -1251,18 +1250,18 @@ function OnSendPacket(p)
 				if KatarinaMenu.combo.stopUlt then
 					if not SkillQ.ready and not SkillW.ready and not SkillE.ready and ValidTarget(Target) and Target ~= nil and Target.health > (qDmg + wDmg + eDmg) then
 						-- PrintChat("Debug 1")
-						p:block()
+						Packet(p):Block()
 					end
 				end
 				if KatarinaMenu.combo.autoE then
 					if Packet(p):get('spellId') ~= SPELL_3 then
 						-- PrintChat("Debug 2")
-						p:block()
+						Packet(p):Block()
 					end
 				end
 				if not KatarinaMenu.combo.stopUlt and not KatarinaMenu.combo.autoE then
 					-- PrintChat("Debug 3")
-					p:block()
+					Packet(p):Block()
 				end
 			end
 		end
