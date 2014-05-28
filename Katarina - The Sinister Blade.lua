@@ -1,4 +1,4 @@
-local version = "2.127"
+local version = "2.128"
 
 --[[
 
@@ -1247,7 +1247,7 @@ function OnSendPacket(packet)
 	--->
 		local SendP = Packet(packet)
 		if SkillR.castingUlt and not WardJumpKey then
-				if (SendP:get('name') == 'S_MOVE' or SendP:get('name') == 'S_CAST') and SendP:get('sourceNetworkId') == myHero.networkID and (SendP::get('spellId') ~= SUMMONER_1 and SendP::get('spellId') ~= SUMMONER_2) then
+				if (SendP:get('name') == 'S_MOVE' or SendP:get('name') == 'S_CAST') and SendP:get('sourceNetworkId') == myHero.networkID and (SendP:get('spellId') ~= SUMMONER_1 and SendP:get('spellId') ~= SUMMONER_2) then
 				if KatarinaMenu.combo.stopUlt then
 					if not SkillQ.ready and not SkillW.ready and not SkillE.ready and ValidTarget(Target) and Target ~= nil and Target.health > (qDmg + wDmg + eDmg) then
 						-- PrintChat("Debug 1")
