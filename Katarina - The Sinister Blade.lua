@@ -1,4 +1,4 @@
-local version = "2.128"
+local version = "2.129"
 
 --[[
 
@@ -493,7 +493,7 @@ function Variables()
 			local object = objManager:getObject(i)
 			if object and object.valid and not object.dead then
 				if FocusJungleNames[object.name] then
-					JunglefocusMobs[#JungleFocusMobs+1] = object
+					JungleFocusMobs[#JungleFocusMobs+1] = object
 				elseif JungleMobNames[object.name] then
 					JungleMobs[#JungleMobs+1] = object
 				end
