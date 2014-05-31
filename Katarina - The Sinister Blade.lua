@@ -1,4 +1,4 @@
-local version = "2.11993"
+local version = "2.129"
 
 --[[
 
@@ -202,6 +202,12 @@ local version = "2.11993"
 		 - Fixed Packet Errors
 		 - Improved Ult Anti-Breaking
 		 - Fixed Right-Click to Interrupt Bug
+   2.1.2 - Fixed Level Sequence Bug
+   		 - Improved the Auto-Updater (Thanks to Honda7)
+   		 - Improved Script's Performance
+   		 - Fixed Spamming Errors about 'ward' and 'Mob'
+   		 - Fixed Ult Cancelling (VIP)
+
   	]] --
 
 -- / Hero Name Check / --
@@ -209,36 +215,32 @@ if myHero.charName ~= "Katarina" then return end
 -- / Hero Name Check / --
 
 -- / Auto-Update Function / --
-local autoupdateenabled = true
+local Kata_Autoupdate = true
 local UPDATE_SCRIPT_NAME = "Katarina - The Sinister Blade"
 local UPDATE_HOST = "raw.github.com"
-local UPDATE_PATH = "/UglyOldGuy/BoL/master/Katarina%20-%20The%20Sinister%20Blade.lua?chunk="..math.random(1, 1000)
+local UPDATE_PATH = "/UglyOldGuy/BoL/master/Katarina%20-%20The%20Sinister%20Blade.lua".."?rand="..math.random(1,10000)
 local UPDATE_FILE_PATH = SCRIPT_PATH..GetCurrentEnv().FILE_NAME
 local UPDATE_URL = "https://"..UPDATE_HOST..UPDATE_PATH
 
-local ServerData
-if autoupdateenabled then
-	GetAsyncWebResult(UPDATE_HOST, UPDATE_PATH, function(d) ServerData = d end)
-	function update()
-		if ServerData ~= nil then
-			local ServerVersion
-			local send, tmp, sstart = nil, string.find(ServerData, "local version = \"")
-			if sstart then
-				send, tmp = string.find(ServerData, "\"", sstart + 1)
+function AutoupdaterMsg(msg) print("<font color=\"#FF0000\">"..UPDATE_SCRIPT_NAME..":</font> <font color=\"#FFFFFF\">"..msg..".</font>") end
+if Kata_Autoupdate then
+	local ServerData = GetWebResult(UPDATE_HOST, UPDATE_PATH)
+	if ServerData then
+		local ServerVersion = string.match(ServerData, "local version = \"%d+.%d+\"")
+		ServerVersion = string.match(ServerVersion and ServerVersion or "", "%d+.%d+")
+		if ServerVersion then
+			ServerVersion = tonumber(ServerVersion)
+			if tonumber(version) < ServerVersion then
+				AutoupdaterMsg("New version available"..ServerVersion)
+				AutoupdaterMsg("Updating, please don't press F9")
+				DownloadFile(UPDATE_URL, UPDATE_FILE_PATH, function () AutoupdaterMsg("Successfully updated. ("..version.." => "..ServerVersion.."), press F9 twice to load the updated version.") end)	 
+			else
+				AutoupdaterMsg("You have got the latest version ("..ServerVersion..")")
 			end
-			if send then
-				ServerVersion = tonumber(string.sub(ServerData, sstart + 1, send - 1))
-			end
-
-			if ServerVersion ~= nil and tonumber(ServerVersion) ~= nil and tonumber(ServerVersion) > tonumber(version) then
-				DownloadFile(UPDATE_URL.."?nocache"..myHero.charName..os.clock(), UPDATE_FILE_PATH, function () print("<font color=\"#FF0000\"> >> "..UPDATE_SCRIPT_NAME..": successfully updated. Reload (double F9) Please.</font>") end)     
-			elseif ServerVersion then
-				print("<font color=\"#FF0000\"> >> "..UPDATE_SCRIPT_NAME..": You have got the latest version of the script.</font>")
-			end		
-			ServerData = nil
 		end
+	else
+		AutoupdaterMsg("Error downloading version info")
 	end
-	AddTickCallback(update)
 end
 -- / Auto-Update Function / --
 
@@ -247,7 +249,6 @@ function OnLoad()
 	--->
 		Variables()
 		KatarinaMenu()
-		PrintChat("<font color='#FF0000'> >> "..UPDATE_SCRIPT_NAME.." 2.1.1 Loaded <<</font>")
 	---<
 end
 -- / Loading Function / --
@@ -307,10 +308,8 @@ function OnTick()
 			if myHero.level == 6 or myHero.level == 11 or myHero.level == 16 then
 				LevelSpell(_R)
 			end
-		elseif KatarinaMenu.misc.AutoLevelSkills == 2 then
-			autoLevelSetSequence(levelSequence.prioritiseQ)
-		elseif KatarinaMenu.misc.AutoLevelSkills == 3 then
-			autoLevelSetSequence(levelSequence.prioritiseW)
+		else
+			autoLevelSetSequence(levelSequence[KatarinaMenu.misc.AutoLevelSkills-1])
 		end
 		if KatarinaMenu.misc.jumpAllies then
 			DangerCheck()
@@ -346,7 +345,6 @@ function Variables()
 	--- Items Vars ---
 	--- Orbwalking Vars ---
 	--->
-		lastAnimation = "Run"
 		lastAttack = 0
 		lastAttackCD = 0
 		lastWindUpTime = 0
@@ -386,8 +384,8 @@ function Variables()
 	--- Misc Vars ---
 	--->
 		levelSequence = {
-			prioritiseQ	= { 1,3,2,1,1,4,1,2,1,2,4,2,2,3,3,4,3,3 },
-			prioritiseW	= { 1,3,2,2,2,4,2,1,2,1,4,1,1,3,3,4,3,3 }
+			{ 1,3,2,1,1,4,1,2,1,2,4,2,2,3,3,4,3,3 }, -- Prioritise Q
+			{ 1,3,2,2,2,4,2,1,2,1,4,1,1,3,3,4,3,3 }  -- Prioritise W
 		}
 		UsingHPot = false
 		gameState = GetGame()
@@ -411,23 +409,23 @@ function Variables()
 			AP = {
 				"Annie", "Ahri", "Akali", "Anivia", "Annie", "Brand", "Cassiopeia", "Diana", "Evelynn", "FiddleSticks", "Fizz", "Gragas", "Heimerdinger", "Karthus",
 				"Kassadin", "Katarina", "Kayle", "Kennen", "Leblanc", "Lissandra", "Lux", "Malzahar", "Mordekaiser", "Morgana", "Nidalee", "Orianna",
-				"Ryze", "Sion", "Swain", "Syndra", "Teemo", "TwistedFate", "Veigar", "Viktor", "Vladimir", "Xerath", "Ziggs", "Zyra",
+				"Ryze", "Sion", "Swain", "Syndra", "Teemo", "TwistedFate", "Veigar", "Viktor", "Vladimir", "Xerath", "Ziggs", "Zyra"
 			},
 			Support = {
-				"Alistar", "Blitzcrank", "Janna", "Karma", "Leona", "Lulu", "Nami", "Nunu", "Sona", "Soraka", "Taric", "Thresh", "Zilean",
+				"Alistar", "Blitzcrank", "Janna", "Karma", "Leona", "Lulu", "Nami", "Nunu", "Sona", "Soraka", "Taric", "Thresh", "Zilean"
 			},
 			Tank = {
 				"Amumu", "Chogath", "DrMundo", "Galio", "Hecarim", "Malphite", "Maokai", "Nasus", "Rammus", "Sejuani", "Nautilus", "Shen", "Singed", "Skarner", "Volibear",
-				"Warwick", "Yorick", "Zac",
+				"Warwick", "Yorick", "Zac"
 			},
 			AD_Carry = {
 				"Ashe", "Caitlyn", "Corki", "Draven", "Ezreal", "Graves", "Jayce", "Jinx", "KogMaw", "Lucian", "MasterYi", "MissFortune", "Pantheon", "Quinn", "Shaco", "Sivir",
-				"Talon","Tryndamere", "Tristana", "Twitch", "Urgot", "Varus", "Vayne", "Yasuo","Zed", 
+				"Talon","Tryndamere", "Tristana", "Twitch", "Urgot", "Varus", "Vayne", "Yasuo","Zed"
 			},
 			Bruiser = {
 				"Aatrox", "Darius", "Elise", "Fiora", "Gangplank", "Garen", "Irelia", "JarvanIV", "Jax", "Khazix", "LeeSin", "Nocturne", "Olaf", "Poppy",
-				"Renekton", "Rengar", "Riven", "Rumble", "Shyvana", "Trundle", "Udyr", "Vi", "MonkeyKing", "XinZhao",
-			},
+				"Renekton", "Rengar", "Riven", "Rumble", "Shyvana", "Trundle", "Udyr", "Vi", "MonkeyKing", "XinZhao"
+			}
 		}
 		if TTMAP then --
 			FocusJungleNames = {
@@ -437,7 +435,7 @@ function Variables()
 				["TT_NWraith4.1.1"] = true,
 				["TT_NGolem5.1.1"] = true,
 				["TT_NWolf6.1.1"] = true,
-				["TT_Spiderboss8.1.1"] = true,
+				["TT_Spiderboss8.1.1"] = true
 			}		
 			JungleMobNames = {
 				["TT_NWraith21.1.2"] = true,
@@ -449,7 +447,7 @@ function Variables()
 				["TT_NWraith24.1.3"] = true,
 				["TT_NGolem25.1.1"] = true,
 				["TT_NWolf26.1.2"] = true,
-				["TT_NWolf26.1.3"] = true,
+				["TT_NWolf26.1.3"] = true
 			}
 		else 
 			JungleMobNames = { 
@@ -472,7 +470,7 @@ function Variables()
 				["LesserWraith3.1.4"] = true,
 				["YoungLizard4.1.2"] = true,
 				["YoungLizard4.1.3"] = true,
-				["SmallGolem5.1.1"] = true,
+				["SmallGolem5.1.1"] = true
 			}
 			FocusJungleNames = {
 				["Dragon6.1.1"] = true,
@@ -488,14 +486,14 @@ function Variables()
 				["LizardElder4.1.1"] = true,
 				["Golem5.1.2"] = true,
 				["GreatWraith13.1.1"] = true,
-				["GreatWraith14.1.1"] = true,
+				["GreatWraith14.1.1"] = true
 			}
 		end
 		for i = 0, objManager.maxObjects do
 			local object = objManager:getObject(i)
 			if object and object.valid and not object.dead then
 				if FocusJungleNames[object.name] then
-					JunglefocusMobs[#JungleFocusMobs+1] = object
+					JungleFocusMobs[#JungleFocusMobs+1] = object
 				elseif JungleMobNames[object.name] then
 					JungleMobs[#JungleMobs+1] = object
 				end
@@ -1233,7 +1231,7 @@ end
 --- Set Priorities ---
 --->
 	function SetPriority(table, hero, priority)
-		for i = 1, #table, 1 do
+		for i = 1, #table do
 			if hero.charName:find(table[i]) ~= nil then
 				TS_SetHeroPriority(priority, hero.charName)
 			end
@@ -1244,26 +1242,27 @@ end
 -- / Misc Functions / --
 
 -- / On Send Packet Function / --
-function OnSendPacket(p)
+function OnSendPacket(packet)
 	-- Block Packets if Channeling --
 	--->
+		local SendP = Packet(packet)
 		if SkillR.castingUlt and not WardJumpKey then
-			if (p.header == Packet.headers.S_MOVE or p.header == Packet.headers.S_CAST) and (Packet(p):get('spellId') ~= SUMMONER_1 and Packet(p):get('spellId') ~= SUMMONER_2) then
+				if (SendP:get('name') == 'S_MOVE' or SendP:get('name') == 'S_CAST') and SendP:get('sourceNetworkId') == myHero.networkID and (SendP:get('spellId') ~= SUMMONER_1 and SendP:get('spellId') ~= SUMMONER_2) then
 				if KatarinaMenu.combo.stopUlt then
 					if not SkillQ.ready and not SkillW.ready and not SkillE.ready and ValidTarget(Target) and Target ~= nil and Target.health > (qDmg + wDmg + eDmg) then
 						-- PrintChat("Debug 1")
-						p:Block()
+						SendP:block()
 					end
 				end
 				if KatarinaMenu.combo.autoE then
 					if Packet(p):get('spellId') ~= SPELL_3 then
 						-- PrintChat("Debug 2")
-						p:Block()
+						SendP:block()
 					end
 				end
 				if not KatarinaMenu.combo.stopUlt and not KatarinaMenu.combo.autoE then
 					-- PrintChat("Debug 3")
-					p:Block()
+					SendP:block()
 				end
 			end
 		end
@@ -1329,9 +1328,9 @@ function OnDeleteObj(obj)
 					table.remove(JungleFocusMobs, i)
 				end
 			end
-			for i,ward in ipairs(Wards) do
+			for i, ward in pairs(Wards) do
 				if not ward.valid or (obj.name == ward.name and obj.x == ward.x and obj.z == ward.z) then
-					table.remove(Wards,i)
+					table.remove(Wards, i)
 				end
 			end
 		end
