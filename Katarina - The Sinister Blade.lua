@@ -1613,7 +1613,7 @@ function Checks()
 	--- Updates & Checks if Target is Valid ---
 	--->
 		tsTarget = GetTarget()
-		if tsTarget and tsTarget.type == "obj_AI_Hero" then
+		if tsTarget and tsTarget.type == myHero.type then
 			Target = tsTarget
 		else
 			Target = nil
