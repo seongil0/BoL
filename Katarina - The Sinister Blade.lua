@@ -1,4 +1,4 @@
-local version = "2.130"
+local version = "2.140"
 
 --[[
 
@@ -213,6 +213,9 @@ local version = "2.130"
 -- / Hero Name Check / --
 if myHero.charName ~= "Katarina" then return end
 -- / Hero Name Check / --
+
+-- Temp Fix --
+_G.Packet.headers.S_CAST = 0x9A
 
 -- / Auto-Update Function / --
 local Kata_Autoupdate = true
@@ -1264,6 +1267,10 @@ function OnSendPacket(packet)
 					-- PrintChat("Debug 3")
 					SendP:block()
 				end
+			end
+		else
+			if (SendP:get('name') == 'S_CAST') and (SendP:get('sourceNetworkId') == myHero.networkID) and (SendP:get('spellId') == _R) then
+				SkillR.castingUlt = true
 			end
 		end
 	---<
