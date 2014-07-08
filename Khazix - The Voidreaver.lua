@@ -688,7 +688,7 @@ function Checks()
 	-- Updates Targets --
 	TargetSelector:update()
 	tsTarget = TargetSelector.target
-	if tsTarget and tsTarget.type == "obj_AI_Hero" and not tsTarget.dead then
+	if tsTarget and tsTarget.type == myHero.type and not tsTarget.dead then
 		Target = tsTarget
 	else
 		Target = nil
