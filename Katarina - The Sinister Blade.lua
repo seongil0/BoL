@@ -1,4 +1,4 @@
-local version = "2.140"
+local version = "2.150"
 
 --[[
 
@@ -213,9 +213,6 @@ local version = "2.140"
 -- / Hero Name Check / --
 if myHero.charName ~= "Katarina" then return end
 -- / Hero Name Check / --
-
--- Temp Fix --
-_G.Packet.headers.S_CAST = 0x9A
 
 -- / Auto-Update Function / --
 local Kata_Autoupdate = true
