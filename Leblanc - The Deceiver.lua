@@ -83,7 +83,6 @@
 if VIP_USER then
   require "Prodiction"
   require "Collision"
-    require "Selector"
 end
   require "VPrediction"
   require "SOW"
