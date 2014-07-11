@@ -1,5 +1,5 @@
 --[[
-        [Script] Leblanc - The Deceiver by Skeem 1.2
+        [Script] Leblanc - The Deceiver by Skeem 1.5
         
                 Features:
                         - Prodiction for VIPs, NonVIP prediction
@@ -19,8 +19,8 @@
                                  2 - Opposite Way of Hero
                                  3 - Run Towards Target
                          - Evade Settings:
-                                  - Dodge Important Spells with W
-                                  - Dodge Important Spells with R/W
+                                  - Dodge Important Spells.W.h W
+                                  - Dodge Important Spells.W.h R/W
                         - Farming Settings:
                                 - Toggle to farm with Q in menu
                                 - Minimum mana to farm can be set in menu (50% default)
@@ -61,7 +61,7 @@
                               - Fixed Skills Not Casting
                               - Added Selecting Which TS you want to Use in Menu
                         1.2.1 - Fixed nil error spam for free users
-                              - Fixed W Usage in Harass Mode 1
+                            - Fixed W Usage in Harass Mode 1
                         1.3   - Added New Dynamic Combo
                               - Added New Harass
                               - A lot of Code Rewrites
@@ -70,17 +70,1134 @@
                               - Fixed Script not Loading
                               - Fixed Spamming Errors about 'tables'
                               - Fixed Harass not working properly
+                        1.4   - Made Harass Faster
+                              - Fixed vPrediction Usage
+                              - Added vPrediction HitChance
+                              - Added Use E when W cooldown in harass
+                        1.5   - Added SOW
+                              - Updated for latest patch
+                              - Some tweaks
+                              - Added Selector
 ]]--
 
 if VIP_USER then
   require "Prodiction"
   require "Collision"
-  if FileExist(LIB_PATH..'VPrediction.lua') then
-    vPredictionExists = true
-      require "VPrediction"
-  else -- safety check in case file was deleted.
-    vPredictionExists = false
+    require "Selector"
+end
+  require "VPrediction"
+  require "SOW"
+
+-- Name Check --  
+if myHero.charName ~= "Leblanc" then return end
+
+-- Loading Function --
+function OnLoad()
+  Variables()
+  LeblancMenu()
+  PrintChat("<font color='#FFFF00'> >> Leblanc - The Deceiver 1.5 Loaded!! <<</font>")
+end
+
+-- Tick Function --
+function OnTick()
+  Checks()
+  UseConsumables()
+  DamageCalculation()
+
+  -- Menu Vars --
+  ComboKey =   LeblancMenu.combo.comboKey
+  FarmingKey = LeblancMenu.farming.farmKey
+  HarassKey =  LeblancMenu.harass.harassKey
+  JungleKey =  LeblancMenu.jungle.jungleKey
+
+  if ComboKey then SmartCombo() end
+  if HarassKey then HarassCombo() end
+  if JungleKey then JungleClear() end
+  if LeblancMenu.combo.smartW then smartW() end
+  if LeblancMenu.ks.killSteal then KillSteal() end
+  if LeblancMenu.ks.autoIgnite then AutoIgnite() end
+  if LeblancMenu.cloneSlic ~= 1 then CloneLogic() end
+  if FarmingKey and not (ComboKey or HarassKey) then FarmMinions() end
+end
+
+function Variables()
+  Spells = {
+    
+    ["Q"] = {key = _Q, name = "Sigil of Silence", range = 700,  ready = false, mana = 0, dmg = 0, last = false, data = myHero:GetSpellData(_Q), pdmg = 0, delay = 0},
+    ["W"] = {key = _W, name = "Distortion",       range = 720,  ready = false, mana = 0, dmg = 0, last = false, data = myHero:GetSpellData(_W), speed = 2000, delay = .25, width = 100, pos = nil, delay = 0},
+    ["E"] = {key = _E, name = "Ethereal Chains",  range = 1000, ready = false, mana = 0, dmg = 0, last = false, data = myHero:GetSpellData(_E), speed = 1600, delay = .25, width = 95, pos = nil},
+    ["R"] = {key = _R, name = "Mimic", ready = false, dmg = 0, data = myHero:GetSpellData(_R), pos = nil, rqdmg = 0, rwdmg = 0, redmg = 0}
+    --["IGNITE"] = {key = ignite, range = 600, ready = false}
+  }
+
+  leblancW, leblancImage, cloneId = nil, nil, nil
+
+  if VIP_USER then
+    Prodict = ProdictManager.GetInstance()
+    ProdictW = Prodict:AddProdictionObject(_W, Spells.W.range, Spells.W.speed, Spells.W.delay, Spells.W.width, myHero)
+    ProdictE = Prodict:AddProdictionObject(_E, Spells.E.range, Spells.E.speed, Spells.E.delay, Spells.E.width, myHero)
+  end
+  vPred = VPrediction()
+  SOW  = SOW(vPred)
+  hpReady, mpReady, fskReady, Recalling = false, false, false, false
+  TextList = {"Harass him!!", "Q KILL!!", "Q + W Kill!", "Q+W+QP Kill!", "Q+W+E+QP Kill!", "Full Combo Kill!", "Need Mana or CD!"}
+  KillText = {}
+  colorText = ARGB(255,0,0,255)
+  usingHPot, usingMPot = false, false
+  enemyMinions  = minionManager(MINION_ENEMY,  Spells.Q.range, myHero.visionPos, MINION_SORT_HEALTH_ASC)
+  jungleMinions = minionManager(MINION_JUNGLE, Spells.Q.range, myHero.visionPos, MINION_SORT_HEALTH_ASC)
+  debugMode = false
+  TargetSelector = TargetSelector(TARGET_LOW_HP, Spells.W.range,DAMAGE_MAGIC)
+  TargetSelector.name = "Leblanc"
+  priorityTable = {
+      AP = {
+          "Annie", "Ahri", "Akali", "Anivia", "Annie", "Brand", "Cassiopeia", "Diana", "Evelynn", "FiddleSticks", "Fizz", "Gragas", "Heimerdinger", "Karthus",
+          "Kassadin", "Katarina", "Kayle", "Kennen", "Leblanc", "Lissandra", "Lux", "Malzahar", "Mordekaiser", "Morgana", "Nidalee", "Orianna",
+          "Ryze", "Sion", "Swain", "Syndra", "Teemo", "TwistedFate", "Veigar", "Viktor", "Vladimir", "Xerath", "Ziggs", "Zyra",
+              },
+      Support = {
+          "Alistar", "Blitzcrank", "Janna", "Karma", "Leona", "Lulu", "Nami", "Nunu", "Sona", "Soraka", "Taric", "Thresh", "Zilean",
+                  },
+      Tank = {
+          "Amumu", "Chogath", "DrMundo", "Galio", "Hecarim", "Malphite", "Maokai", "Nasus", "Rammus", "Sejuani", "Nautilus", "Shen", "Singed", "Skarner", "Volibear",
+          "Warwick", "Yorick", "Zac",
+              },
+      AD_Carry = {
+          "Ashe", "Caitlyn", "Corki", "Draven", "Ezreal", "Graves", "Jayce", "Jinx", "KogMaw", "Lucian", "MasterYi", "MissFortune", "Pantheon", "Quinn", "Shaco", "Sivir",
+          "Talon","Tryndamere", "Tristana", "Twitch", "Urgot", "Varus", "Vayne", "Yasuo","Zed", 
+                  },
+      Bruiser = {
+          "Aatrox", "Darius", "Elise", "Fiora", "Gangplank", "Garen", "Irelia", "JarvanIV", "Jax", "Khazix", "LeeSin", "Nocturne", "Olaf", "Poppy",
+          "Renekton", "Rengar", "Riven", "Rumble", "Shyvana", "Trundle", "Udyr", "Vi", "MonkeyKing", "XinZhao",
+              }
+        }
+  Items = {
+    ["BLACKFIRE"] = { id = 3188, range = 750, ready = false, dmg = 0 },
+    ["BRK"]     = { id = 3153, range = 500, ready = false, dmg = 0 },
+    ["BWC"]     = { id = 3144, range = 450, ready = false, dmg = 0 },
+    ["DFG"]     = { id = 3128, range = 750, ready = false, dmg = 0 },
+    ["HXG"]     = { id = 3146, range = 700, ready = false, dmg = 0 },
+    ["ODYNVEIL"]  = { id = 3180, range = 525, ready = false, dmg = 0 },
+    ["DVN"]     = { id = 3131, range = 200, ready = false, dmg = 0 },
+    ["ENT"]     = { id = 3184, range = 350, ready = false, dmg = 0 },
+    ["HYDRA"]   = { id = 3074, range = 350, ready = false, dmg = 0 },
+    ["TIAMAT"]    = { id = 3077, range = 350, ready = false, dmg = 0 },
+    ["YGB"]     = { id = 3142, range = 350, ready = false, dmg = 0 }
+  }
+
+  local gameState = GetGame()
+  if gameState.map.shortName == "twistedTreeline" then
+    TTMAP = true
+  else
+    TTMAP = false
+  end
+  if heroManager.iCount < 10 then -- borrowed from Sidas Auto Carry, modified to 3v3
+        PrintChat(" >> Too few champions to arrange priority")
+  elseif heroManager.iCount == 6 and TTMAP then
+    ArrangeTTPrioritys()
+    else
+        ArrangePrioritys()
+    end
+end
+
+-- Our Menu --
+function LeblancMenu()
+  LeblancMenu = scriptConfig("Leblanc - The Deceiver", "Leblanc")
+  
+  LeblancMenu:addSubMenu("["..myHero.charName.."] - Combo Settings", "combo")
+    LeblancMenu.combo:addParam("comboKey", "Smart Combo Key (X)", SCRIPT_PARAM_ONKEYDOWN, false, 88)
+    LeblancMenu.combo:addParam("comboItems", "Use Items with Burst", SCRIPT_PARAM_ONOFF, true)
+    LeblancMenu.combo:addParam("comboGap", "Gap Close if Needed", SCRIPT_PARAM_ONOFF, true)
+    LeblancMenu.combo:addParam("smartW", "Use Smart W", SCRIPT_PARAM_ONOFF, true)
+    LeblancMenu.combo:addParam("wBack", "W Back After Target Dead", SCRIPT_PARAM_ONOFF, false)
+    LeblancMenu.combo:permaShow("comboKey") 
+  
+  LeblancMenu:addSubMenu("["..myHero.charName.."] - Harass Settings", "harass")
+    LeblancMenu.harass:addParam("harassKey", "Harass Hotkey (C)", SCRIPT_PARAM_ONKEYDOWN, false, 67)
+    LeblancMenu.harass:addParam("waitWq", "Wait for W + Q", SCRIPT_PARAM_ONOFF, true)
+    LeblancMenu.harass:addParam("secW", "Use 2nd W in Harass", SCRIPT_PARAM_ONOFF, true)
+    LeblancMenu.harass:addParam("gapClose", "Gap Close with W", SCRIPT_PARAM_ONOFF, false)
+    LeblancMenu.harass:addParam("harassE", "Use E if W on Cooldown", SCRIPT_PARAM_ONOFF, false)
+    LeblancMenu.harass:permaShow("harassKey") 
+    
+  
+  LeblancMenu:addSubMenu("["..myHero.charName.."] - Farming Settings", "farming")
+    LeblancMenu.farming:addParam("farmKey", "Farming ON/Off (Z)", SCRIPT_PARAM_ONKEYTOGGLE, false, 90)
+    LeblancMenu.farming:addParam("qFarm", "Farm with "..Spells.Q.name.." (Q)", SCRIPT_PARAM_ONOFF, true)
+    LeblancMenu.farming:addParam("qFarmMana", "Min Mana % for Farming", SCRIPT_PARAM_SLICE, 50, 0, 100, -1)
+    LeblancMenu.farming:permaShow("farmKey") 
+    
+  LeblancMenu:addSubMenu("["..myHero.charName.."] - Clear Settings", "jungle")
+    LeblancMenu.jungle:addParam("jungleKey", "Jungle Clear Key (V)", SCRIPT_PARAM_ONKEYDOWN, false, 86)
+    LeblancMenu.jungle:addParam("jungleQ", "Clear with "..Spells.Q.name.." (Q)", SCRIPT_PARAM_ONOFF, true)
+    LeblancMenu.jungle:addParam("jungleW", "Clear with "..Spells.W.name.." (W)", SCRIPT_PARAM_ONOFF, true)
+    LeblancMenu.jungle:addParam("jungleE", "Clear with "..Spells.E.name.." (E)", SCRIPT_PARAM_ONOFF, true)
+  
+  LeblancMenu:addSubMenu("["..myHero.charName.."] - Orbwalking Settings", "Orbwalking")
+    SOW:LoadToMenu(LeblancMenu.Orbwalking)
+
+  LeblancMenu:addSubMenu("["..myHero.charName.."] - KillSteal Settings", "ks")
+    LeblancMenu.ks:addParam("killSteal", "Use Smart Kill Steal", SCRIPT_PARAM_ONOFF, true)
+    LeblancMenu.ks:addParam("autoIgnite", "Auto Ignite", SCRIPT_PARAM_ONOFF, true)
+    LeblancMenu.ks:permaShow("killSteal")
+      
+  LeblancMenu:addSubMenu("["..myHero.charName.."] - Drawing Settings", "drawing") 
+    LeblancMenu.drawing:addParam("mDraw", "Disable All Ranges Drawing", SCRIPT_PARAM_ONOFF, false)
+    LeblancMenu.drawing:addParam("cDraw", "Draw Enemy Text", SCRIPT_PARAM_ONOFF, true)
+    LeblancMenu.drawing:addParam("qDraw", "Draw "..Spells.Q.name.." (Q) Range", SCRIPT_PARAM_ONOFF, true)
+    LeblancMenu.drawing:addParam("wDraw", "Draw "..Spells.W.name.." (W) Range", SCRIPT_PARAM_ONOFF, false)
+    LeblancMenu.drawing:addParam("eDraw", "Draw "..Spells.E.name.." (E) Range", SCRIPT_PARAM_ONOFF, false)
+  
+  LeblancMenu:addSubMenu("["..myHero.charName.."] - Misc Settings", "misc")
+    LeblancMenu.misc:addParam("ZWItems", "Auto Zhonyas/Wooglets", SCRIPT_PARAM_ONOFF, true)
+    LeblancMenu.misc:addParam("ZWHealth", "Min Health % for Zhonyas/Wooglets", SCRIPT_PARAM_SLICE, 15, 0, 100, -1)
+    LeblancMenu.misc:addParam("aMP", "Auto Mana Pots", SCRIPT_PARAM_ONOFF, true)
+    LeblancMenu.misc:addParam("aHP", "Auto Health Pots", SCRIPT_PARAM_ONOFF, true)
+    LeblancMenu.misc:addParam("HPHealth", "Min % for Health Pots", SCRIPT_PARAM_SLICE, 50, 0, 100, -1)
+  LeblancMenu:addParam("predType", "Prediction Use", SCRIPT_PARAM_LIST, 1, { "Prodiction", "VPrediction" })
+  LeblancMenu:addParam("hitchance", "vPrediction HitChance", SCRIPT_PARAM_SLICE, 2, 1, 5, 0)
+  LeblancMenu:addParam("cloneSlic", "Clone Logic", SCRIPT_PARAM_LIST, 4, { "None", "Towards Enemy", "Random Location", "Try To Escape", "Towards Mouse" })
+  LeblancMenu:addTS(TargetSelector)
+end
+
+function SmartCombo()
+  local ComboTarget = nil
+  if Target then
+    ComboTarget = Target
+    if LeblancMenu.combo.comboItems then
+        UseItems(Target)
+    end
+    local BestCombo = GetBestCombo(ComboTarget)
+    local ComboDamage = ComboGetDamage(BestCombo, ComboTarget)
+    ExecuteCombo(BestCombo, Target)
+    if ComboTarget ~= nil and ComboTarget.dead and LeblancMenu.combo.wBack then
+      if wUsed() then
+        CastSpell(_W)
+      end
+    end
+  else
+    if LeblancMenu.combo.comboOrbwalk then
+      moveToCursor()
+    end
+  end
+end
+
+function HarassCombo()
+  if Target and Target.valid then
+    if LeblancMenu.harass.secW then
+      if wUsed() then
+        CastSpell(_W)
+      end
+    end
+    local HarassCombo = {}
+    if LeblancMenu.harass.harassOrbwalk then
+      OrbWalking(Target)
+    end
+    if Spells.Q.ready and Spells.W.ready then
+      if LeblancMenu.harass.gapClose then
+        if GetDistanceSqr(Target) < (Spells.W.range + Spells.Q.range) * (Spells.W.range * Spells.Q.range) then
+          HarassCombo  = {_W, _Q}
+        end
+      else
+        if GetDistanceSqr(Target) < (Spells.Q.range * Spells.Q.range) then
+          HarassCombo = {_Q, _W}
+         end
+      end
+    elseif Spells.Q.ready then
+      if LeblancMenu.harass.waitWq then
+        if not Spells.W.ready and (Spells.W.data.level >= 1) then
+          return
+        else
+          HarassCombo = {_Q}
+        end
+      else
+        HarassCombo = {_Q}
+      end
+    elseif Spells.W.ready then
+      if LeblancMenu.harass.waitWq then
+        if not Spells.Q.ready then
+          return
+        else
+          HarassCombo = {_Q, _W}
+        end
+      else
+        HarassCombo = {_Q}
+      end
+    elseif Spells.E.ready and not Spells.W.ready then
+      if LeblancMenu.harass.harassE then
+        HarassCombo = {_E}
+      end
+    end
+    ExecuteCombo(HarassCombo, Target)
+  else
+    if LeblancMenu.harass.harassOrbwalk then
+      moveToCursor()
+    end
+  end
+end
+
+-- Farming Function --
+function FarmMinions()
+  if not myManaLow() then
+    for _, minion in pairs(enemyMinions.objects) do
+      local qMinionDmg = getDmg("Q", minion, myHero)
+      if ValidTarget(minion) then
+        if LeblancMenu.farming.qFarm and Spells.Q.ready and GetDistance(minion) <= Spells.Q.range and minion.health <= qMinionDmg then
+          CastSpell(_Q, minion)
+        end
+      end
+    end
+  end
+end
+
+-- Farming Mana Function --
+function myManaLow()
+  if myHero.mana < (myHero.maxMana * (LeblancMenu.farming.qFarmMana / 100)) then
+    return true
+  else
+    return false
+  end
+end
+
+function ManaCost(Spell)
+  if Spell == _Q and Spells.Q.data.level ~= 0 then
+    return Spells.Q.mana
+  elseif Spell == _W and Spells.W.data.level ~= 0 then
+    return Spells.W.mana
+  elseif Spell == _E and Spells.E.data.level ~= 0 then
+    return Spells.E.mana
+  end
+  return 0
+end
+
+function ComboManaCost(Combo)
+  local Result = 0  
+  for i = 1, #Combo do
+    local spell = Combo[i]
+    Result = Result + ManaCost(spell)
+  end
+  return Result
+end
+
+function GetDamage(Skill, enemy)
+  local TotalMagicDamage = 0
+  local TrueDamage = 0
+  if Items.DFG.ready then
+    m = 1.2
+    if Spell == _DFG then
+      TotalMagicDamage = TotalMagicDamage + enemy.maxHealth * 0.15 / 1.2
+    end
+  else
+    m = 1
+  end
+
+  if (Spells.Q.ready and (Spells.Q.data.level ~= 0) and (Skill == _Q)) then
+    TotalMagicDamage = TotalMagicDamage + Spells.Q.dmg
+  end
+  if (Spells.W.ready and (Spells.W.data.level ~= 0) and (Skill == _W)) then
+    TotalMagicDamage = TotalMagicDamage + Spells.W.dmg
+  end
+  if (Spells.E.ready and (Spells.E.data.level ~= 0) and (Skill == _E)) then
+    TotalMagicDamage = TotalMagicDamage + Spells.Q.dmg
+  end
+  if (Spells.R.ready and (Spells.R.data.level ~= 0) and (Skill == _RQ)) then
+    TotalMagicDamage = TotalMagicDamage + Spells.R.rqdmg
+  end
+  if (Spells.R.ready and (Spells.R.data.level ~= 0) and (Skill == _RW)) then
+    TotalMagicDamage = TotalMagicDamage + Spells.R.rwdmg
+  end
+  if (Spells.R.ready and (Spells.R.data.level ~= 0) and (Skill == _RE)) then
+    TotalMagicDamage = TotalMagicDamage + Spells.R.redmg
+  end
+  TrueDamage = m * myHero:CalcMagicDamage(enemy, TotalMagicDamage)
+
+  --[[if Spells.IGNITE.ready and Skill == _IGNITE then
+    TrueDamage = TrueDamage + myHero.level * 20 + 50
+  end]]--
+  return TrueDamage
+end
+
+function ComboGetDamage(Skills, enemy)
+  local TotalDamage = 0
+  for i, spell in ipairs(Skills) do
+    TotalDamage = TotalDamage + GetDamage(spell, enemy)
+  end
+  return TotalDamage
+end
+
+function ExecuteCombo(Skills, enemy)
+  for i, spell in ipairs(Skills) do
+    CastSkill(spell, enemy)
+  end
+end
+
+function GetBestCombo(enemy)
+  local distance = GetDistanceSqr(enemy)
+  local health = enemy.health
+  local bestcombo = {}
+  local wPriority = (Spells.W.data.level > Spells.Q.data.level) or false
+  if not wPriority then
+    if distance <= (Spells.E.range*Spells.E.range) then
+      bestcombo = {_E, _Q, _R, _W}
+    elseif distance <= (Spells.W.range + Spells.Q.range) * (Spells.W.range + Spells.Q.range) and LeblancMenu.combo.comboGap then
+      bestcombo = {_W, _Q, _R, _E}
+    end
+  else
+    if distance <= (Spells.E.range*Spells.E.range) then
+      bestcombo = {_Q, _E, _W, _R}
+    elseif distance <= (Spells.W.range + Spells.W.range) * (Spells.W.range + Spells.W.range) and LeblancMenu.combo.comboGap then
+      bestcombo = {_W, _R, _Q, _E}
+    end
+  end
+  return bestcombo
+end
+
+function ComboToText(Combo)
+  local Result = ""
+  for i = 1, #Combo do
+    local spell = Combo[i]
+
+    if spell == _Q then
+      Result = Result.."Q->"
+    elseif spell == _W then
+      Result = Result.."W->"
+    elseif spell == _E then
+      Result = Result.."E->"
+    elseif spell == _R then
+      Result = Result.."R->"
+    elseif spell == _IGNITE then
+      Result = Result.."IGNITE->"
+    elseif spell == _DFG then
+      Result = Result.."DFG->"
+    end
+  end
+  return Result
+end
+
+-- Jungle Farming --
+function JungleClear()
+  local JungleMob = nil
+  jungleMinions:update()
+  if JungleMob == nil then
+    for _, mob in pairs(jungleMinions.objects) do
+      if not mob.dead then 
+        JungleMob = mob
+      end
+    end
+  else
+    if LeblancMenu.jungle.jungleQ and GetDistance(JungleMob) <= Spells.Q.range then CastSpell(_Q, JungleMob) end
+    if not wUsed() and LeblancMenu.jungle.jungleW and GetDistance(JungleMob) <= Spells.W.range then CastSpell(_W, JungleMob.x, JungleMob.z) end
+    if LeblancMenu.jungle.jungleE and GetDistance(JungleMob) <= Spells.E.range then CastSpell(_E, JungleMob.x, JungleMob.z) end
+  end
+end
+
+function CastSkill(Skill, enemy)
+  if Skill == _Q then
+    if GetDistanceSqr(enemy) > Spells.Q.range*Spells.Q.range or not Spells.Q.ready then
+      return false
+    end
+    if VIP_USER then
+      Packet("S_CAST", {spellId = _Q, targetNetworkId = enemy.networkID}):send()
+      return true
+    else
+      CastSpell(_Q, enemy)
+      return true
+    end
+  elseif Skill == _W and not wUsed() then
+    if VIP_USER then
+      if LeblancMenu.predType == 1 then
+        Spells.W.pos = ProdictW:GetPrediction(enemy)
+        if Spells.W.pos and not IsWall(D3DXVECTOR3(Spells.W.pos.x, Spells.W.pos.y, Spells.W.pos.z)) then
+          CastSpell(_W, Spells.W.pos.x, Spells.W.pos.z)
+          return true
+        end
+      else
+        if vPredictionExists then
+          local CastPosition, HitChance, Position = vPred:GetCircularCastPosition(enemy, Spells.W.delay, Spells.W.width, Spells.W.speed)
+          if HitChance >= LeblancMenu.hitchance then
+            if not IsWall(D3DXVECTOR3(CastPosition.x, CastPosition.y, CastPosition.z)) then
+              CastSpell(_W, CastPosition.x, CastPosition.z)
+              return true
+            end
+          end
+        end
+      end
+    else
+      local wPred = TargetPrediction(Spells.W.range, Spells.W.speed, Spells.W.delay, Spells.W.width)
+            local wPrediction = wPred:GetPrediction(enemy)
+            if wPrediction then
+            CastSpell(_W, wPrediction.x, wPrediction.z)
+        return true
+      end
+    end
+  elseif Skill == _E then
+    if GetDistanceSqr(enemy) > Spells.E.range*Spells.E.range or not Spells.E.ready then
+      return false
+    end
+    if VIP_USER then
+      if LeblancMenu.predType == 1 then
+        Spells.E.pos = ProdictE:GetPrediction(Target)
+        local CollisionE =  Collision(Spells.E.range, Spells.E.speed, Spells.E.delay, Spells.E.width)
+        if Spells.E.pos then
+          if not CollisionE:GetMinionCollision(myHero, Spells.E.pos) then
+            CastSpell(_E, Spells.E.pos.x, Spells.E.pos.z)
+            return true
+          end
+        end
+      else
+        if vPredictionExists then
+          local CastPosition, HitChance, Pos = vPred:GetLineCastPosition(enemy, Spells.E.delay, Spells.E.width, Spells.E.range, Spells.E.speed, myHero, true)
+          if HitChance >= LeblancMenu.hitchance then
+            CastSpell(_E, CastPosition.x, CastPosition.z)
+            return true
+          end
+        end
+      end
+    else
+      local ePred = TargetPrediction(Spells.E.range, Spells.E.speed, Spells.E.delay, Spells.E.width)
+            local ePrediction = ePred:GetPrediction(enemy)
+            if ePrediction and not willHitMinion(ePrediction, Spells.E.width) then
+        CastSpell(_E, ePrediction.x, ePrediction.z)
+        return true
+      end
+    end
+  elseif Skill == _R then
+    if myHero:GetSpellData(_R).name == "leblancslidereturnm" then
+      return false
+    end
+    local Distance = GetDistanceSqr(Target)
+    if Spells.Q.last then
+      if Distance <= Spells.Q.range*Spells.Q.range then
+        if VIP_USER then
+          Packet("S_CAST", {spellId = _R, targetNetworkId = enemy.networkID}):send()
+          return true
+        else
+          CastSpell(_R, enemy)
+          return true
+        end
+      end
+    elseif Spells.W.last then
+      if VIP_USER then
+        if LeblancMenu.predType == 1 then
+          Spells.R.pos = ProdictW:GetPrediction(enemy)
+          if Spells.R.pos and not IsWall(D3DXVECTOR3(Spells.R.pos.x, Spells.R.pos.y, Spells.R.pos.z)) then
+            CastSpell(_R, Spells.R.pos.x, Spells.R.pos.z)
+            return true
+          end
+        else
+          if vPredictionExists then
+            local CastPosition,  HitChance,  Position = vPred:GetCircularCastPosition(enemy, Spells.W.delay, Spells.W.width, Spells.W.range)
+            if HitChance >= 2 and not IsWall(D3DXVECTOR3(CastPosition.x, CastPosition.y, CastPosition.z)) then 
+              CastSpell(_R, CastPosition.x, CastPosition.z)
+              return true
+            end
+          end
+        end
+      else
+        local wrPred = TargetPrediction(Spells.W.range, Spells.W.speed, Spells.W.delay, Spells.W.width)
+              local wrPrediction = wrPred:GetPrediction(enemy)
+              if wrPrediction then
+          CastSpell(_W, wrPrediction.x, wrPrediction.z)
+          return true
+        end
+      end
+    elseif Spells.E.last then
+      if Distance <= Spells.E.range*Spells.E.range then
+        if VIP_USER then
+          if LeblancMenu.predType == 1 then
+            local erPos = ProdictE:GetPrediction(Target)
+            local CollisionER =  Collision(Spells.E.range, Spells.E.speed, Spells.E.delay, Spells.E.width)
+            if erPos then
+              if not CollisionER:GetMinionCollision(myHero, Spells.E.pos) then
+                CastSpell(_E, erPos.x, erPos.z)
+                return true
+              end
+            end
+          else
+            if vPredictionExists then
+              local CastPosition, HitChance, Pos = vPred:GetLineCastPosition(enemy, Spells.E.delay, Spells.E.width, Spells.E.range, Spells.E.speed, myHero, true)
+              if HitChance >= 2 then
+                CastSpell(_R, CastPosition.x, CastPosition.z)
+                return true
+              end
+            end
+          end
+        else
+          local erPred = TargetPrediction(Spells.E.range, Spells.E.speed, Spells.E.delay, Spells.E.width)
+                local erPrediction = erPred:GetPrediction(enemy)
+                if erPrediction and not willHitMinion(erPrediction, Spells.E.width) then
+            CastSpell(_E, erPrediction.x, erPrediction.z)
+            return true
+          end
+        end 
+      end
+    end
+  end
+end
+
+
+-- Check if W was used once --
+function wUsed() 
+  local leblancW = myHero:GetSpellData(_W)
+  if leblancW.name == "leblancslidereturn" then 
+    return true 
+  else 
+    return false
+  end
+end
+
+function CloneLogic()
+  if leblancImage and leblancImage.valid and (cloneId ~= nil) then
+    if LeblancMenu.cloneSlic == 2 and Target then
+      Packet('S_MOVE', {type = 6, x = Target.x, y = Target.z, sourceNetworkId = cloneId, unitNetworkId = cloneId}):send()
+    elseif LeblancMenu.cloneSlic == 3 then
+      local movepoint =  WayPointManager():GetWayPoints(myHero)
+      local line = Vector(leblancImage) - Vector(myHero):perpendicular()
+      local Direction = (Vector(movepoint[#movepoint].x, 0, movepoint[#movepoint].z) - Vector(myHero)):mirrorOn(line):normalized()
+      
+      local movepos = Vector(leblancImage) + 500 * Direction
+      Packet('S_MOVE', {type = 6, x = movepos.x, y = movepos.z, sourceNetworkId = cloneId, unitNetworkId = cloneId}):send()
+    elseif LeblancMenu.cloneSlic == 4 then
+      local Point = Vector(0, 0, 0)
+      local Count = 0
+      for i, hero in ipairs(GetAllyHeroes()) do
+        Point = Vector(Point) + Vector(hero)
+        Count = Count + 1
+      end
+      Count = Count or 1
+      Point = 1/Count * Vector(Point)
+      Packet('S_MOVE', {type = 6, x = Point.x, y = Point.z, sourceNetworkId = cloneId, unitNetworkId = cloneId}):send()
+    else
+      Packet('S_MOVE', {type = 6, x = mousePos.x, y = mousePos.z, sourceNetworkId = cloneId, unitNetworkId = cloneId}):send()
+    end
+  end
+end
+
+-- Use Items on Enemy --
+function UseItems(enemy)
+  for i, item in pairs(Items) do
+    if GetInventoryItemIsCastable(item.id) and GetDistanceSqr(enemy) <= item.range*item.range then
+      CastItem(item.id, enemy)
+    end
+  end
+end
+
+-- KillSteal function --
+function KillSteal()
+  if Target and Target.valid then
+    local KillCombo = {}
+    local Distance = GetDistanceSqr(Target)
+    local Health = Target.health
+    local ComboMana = 0
+    local WQRange = Spells.W.range + Spells.Q.range
+    local WWQRange = (Spells.W.range * 2) + Spells.Q.range
+    if Distance <= (WWQRange*WWQRange) and Distance > (WQRange*WQRange) then
+      if Spells.W.ready and Spells.R.ready and Spells.Q.ready then
+        ComboMana = ComboManaCost({_Q, _W})
+        if Health <= ComboGetDamage({_Q}, Target) and myMana >= ComboMana then 
+          KillCombo = {_Q}
+          if debugMode then PrintChat("338") end
+        end
+      end
+    elseif Distance <= (WQRange*WQRange) and Distance > (Spells.Q.range * Spells.Q.range) then
+      if Health <= Spells.Q.dmg and Spells.W.ready and Spells.Q.ready then
+        if wUsed() then
+          if Spells.R.ready then
+             CastSkill(_R, Target)
+          end
+        elseif not wUsed() then
+          ComboMana = ComboManaCost({_Q, _W})
+          if myMana > ComboMana then
+            CastSkill(_W, Target)
+            if debugMode then PrintChat("348") end
+          end
+        end
+      end
+    elseif Distance <= (Spells.Q.range*Spells.Q.range) and Health <= Spells.Q.dmg then
+      if Spells.Q.ready then
+        ComboMana = ComboManaCost({_Q})
+        if myMana > ComboMana then
+          CastSkill(_Q, Target)
+          if debugMode then PrintChat("358") end
+        end
+      end
+    elseif Distance <= Spells.W.range and Health <= Spells.W.dmg then
+      if Spells.W.ready then
+        ComboMana = ComboManaCost({_W})
+        if not wUsed() and myMana > ComboMana then
+          CastSkill(_W, Target)
+          if debugMode then PrintChat("366") end
+        elseif wUsed() and Spells.R.ready then
+          CastSkill(_R, Target)
+          if debugMode then PrintChat("369") end
+        end
+      end
+    elseif Distance <= (Spells.E.range*Spells.E.range) and Health <= Spells.E.dmg then
+      if Spells.E.ready then
+        ComboMana = ComboManaCost({_E})
+        if myMana > ComboMana then
+          CastSkill(_E, Target)
+          if debugMode then PrintChat("377") end
+        end
+      end
+    elseif Distance <= (Spells.W.range*Spells.W.range) and Health <= (Spells.W.dmg + Spells.Q.dmg) then
+      if Spells.W.ready and Spells.Q.ready then
+        ComboMana = ComboManaCost({_Q, _W})
+        if not wUsed() and myMana > ComboMana then
+          CastSkill(_W, Target)
+          if debugMode then PrintChat("385") end
+        end
+      end
+    elseif Distance <= (Spells.E.range*Spells.E.range) and Health <= (Spells.E.dmg + Spells.Q.dmg) then
+      if Spells.E.ready and Spells.Q.ready then
+        ComboMana = ComboManaCost({_Q, _W})
+        if myMana > ComboMana then
+          CastSkill(_E, Target)
+          if debugMode then PrintChat("393") end
+        end
+      end
+    elseif Distance <= (Spells.W.range*Spells.W.range) and Health <= (Spells.W.dmg + Spells.E.dmg) then
+      if Spells.W.ready and Spells.E.ready then
+        ComboMana = ComboManaCost({_W, _E})
+        if not wUsed() and myMana > ComboMana then
+          CastSkill(_W, Target)
+          if debugMode then PrintChat("401") end
+        end
+      end
+    elseif Distance <= (WQRange*WQRange) and Health <= (Spells.Q.dmg + Spells.E.dmg) then
+      if Spells.W.ready and Spells.Q.ready and Spells.E.ready then
+        ComboMana = ComboManaCost({_Q, _W, _E})
+        if not wUsed() and myMana > ComboMana then
+          CastSkill(_W, Target)
+          CastSkill(_Q, Target)
+          if debugMode then PrintChat("410") end
+        end
+      end
+    elseif Distance <= Spells.Q.range*Spells.Q.range and Health <= Spells.R.rqdmg then
+      if Spells.Q.last and Spells.R.ready then
+        CastSkill(_R, Target)
+        if debugMode then PrintChat("467") end
+      end
+    elseif Distance <= (Spells.W.range*Spells.W.range) and Health <= Spells.R.rwdmg then
+      if Spells.W.last and Spells.R.ready then
+          CastSkill(_R, Target)
+          if debugMode then PrintChat("472") end
+      end
+    elseif Distance <= (WQRange*WQRange) and Distance > (Spells.Q.range*Spells.Q.range) and Health < (Spells.R.rqdmg + Spells.Q.dmg) then
+      if Spells.W.ready and Spells.Q.ready and Spells.R.ready then
+        ComboMana = ComboManaCost({_W, _Q})
+        if not wUsed() and myMana > ComboMana then
+          CastSkill(_W, Target)
+          CastSkill(_Q, Target)
+          if debugMode then PrintChat("420") end
+        end
+      end
+    elseif Distance < (Spells.Q.range*Spells.Q.range) and Health < (Spells.Q.pdmg + Spells.R.rqdmg + Spells.E.dmg) then
+      if Spells.R.ready and Spells.E.ready and Spells.Q.last then
+        ComboMana = ComboManaCost({_E})
+        if myMana > ComboMana then
+          CastSkill(_R, Target)
+          if debugMode then PrintChat("488") end
+        end
+      end
+    elseif Distance < (Spells.Q.range*Spells.Q.range) and Health < (Spells.Q.dmg + Spells.Q.pdmg + Spells.R.rqdmg + Spells.E.dmg) then
+      if Spells.Q.ready and Spells.R.ready and Spells.E.ready then
+        ComboMana = ComboManaCost({_W, _E})
+        if myMana > ComboMana then
+          CastSkill(_Q, Target)
+          if debugMode then PrintChat("496") end
+        end
+      end
+    elseif Distance < (Spells.W.range*Spells.W.range) and Health < (Spells.W.dmg + Spells.Q.pdmg + Spells.Q.dmg + Spells.R.rqdmg + Spells.E.dmg) then
+      if Spells.Q.ready and Spells.W.ready and Spells.E.ready and Spells.R.ready then
+        ComboMana = ComboManaCost({_W, _Q, _E})
+        if not wUsed() and myMana > ComboMana then
+          CastSkill(_W, Target)
+          if debugMode then PrintChat("505") end
+        end
+      end
+    elseif Distance < (Spells.W.range*Spells.W.range) and Health < (Spells.W.dmg + Spells.Q.pdmg + Spells.Q.dmg + Spells.R.rqdmg + Spells.E.dmg + itemsDmg) then
+      if Spells.Q.ready and Spells.W.ready and Spells.E.ready and Spells.R.ready then
+        ComboMana = ComboManaCost({_Q, _W, _E})
+        if not wUsed() and myMana > ComboMana then
+          UseItems(Target)
+          if debugMode then PrintChat("513") end
+        end
+      end
+    end
+  end
+end
+
+-- Auto Ignite --
+function AutoIgnite()
+  if ValidTarget(Target) then
+    if Target.health <= iDmg and GetDistance(Target) <= 600 then
+      if Spells.Q.ready and Target.health <= Spells.Q.dmg then
+        CastSkill(_Q, Target)
+      elseif Spells.W.ready and Target.health <= Spells.W.dmg then
+        if not wUsed() then 
+          CastSkill(_W, Target)
+        end
+      else
+        if iReady then
+          CastSpell(ignite, Target)
+        end
+      end
+    end
+  end
+end
+
+-- Using our consumables --
+function UseConsumables()
+  if not Recalling and ValidTarget(Target) then
+    if LeblancMenu.misc.aHP and myHero.health < (myHero.maxHealth * (LeblancMenu.misc.HPHealth / 100))
+      and not (usingHPot or usingFlask) and (hpReady or fskReady) then
+        CastSpell((hpSlot or fskSlot)) 
+    end
+    if LeblancMenu.misc.aMP and myHero.mana < (myHero.maxMana * (LeblancMenu.farming.qFarmMana / 100))
+      and not (usingMPot or usingFlask) and (mpReady or fskReady) then
+        CastSpell((mpSlot or fskSlot))
+    end
   end
 end 
 
-LoadProtectedScript('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36BEB88C7B395A4468AC1C2C50D8A196')
+function OnSendPacket(p)
+  if p.header == 113 then
+    dwArg1 = p.dwArg1
+    dwArg2 = p.dwArg2
+    sourceNetworkId = p:DecodeF()
+    if sourceNetworkId ~= myHero.networkID then
+      cloneId = sourceNetworkId
+    end
+  end
+end
+
+-- Damage Calculations --
+function DamageCalculation()
+  for i = 1, heroManager.iCount do
+    local enemy = heroManager:GetHero(i)
+    if ValidTarget(enemy) then
+      myMana = (myHero.mana)
+      Spells.Q.dmg = (Spells.Q.ready and getDmg("Q", enemy, myHero)) or 0
+        Spells.W.dmg = (Spells.W.ready and getDmg("W", enemy, myHero)) or 0
+      Spells.E.dmg = (Spells.E.ready and getDmg("E", enemy, myHero)) or 0
+      Spells.Q.pdmg =  (Spells.Q.ready and getDmg("Q", enemy, myHero, 2)) or 0
+      Spells.R.rqdmg = (Spells.R.ready and getDmg("R", enemy, myHero)) or 0
+      Spells.R.rwdmg = (Spells.R.ready and getDmg("R", enemy, myHero, 2)) or 0
+      Spells.R.redmg = (Spells.R.ready and getDmg("R", enemy, myHero, 3)) or 0
+      Items.DFG.dmg = (Items.DFG.ready and getDmg("DFG", enemy, myHero) or 0)
+            iDmg = (ignite and getDmg("IGNITE", enemy, myHero)) or 0
+            itemsDmg = Items.DFG.dmg
+
+            -- Calculations for drawing text --
+            if enemy.health > (Spells.Q.dmg + Spells.Q.pdmg + Spells.W.dmg + Spells.R.rqdmg + Spells.E.dmg + itemsDmg) then
+        KillText[i] = 1
+        colorText = ARGB(255,0,0,255)
+      elseif enemy.health <= Spells.Q.dmg and Spells.Q.ready then
+        if myMana > Spells.Q.mana then
+          KillText[i] = 2
+          colorText = ARGB(255,255,0,0)
+        end
+      elseif enemy.health <= (Spells.Q.dmg + Spells.W.dmg) and Spells.Q.ready and Spells.W.ready then
+        if myMana > (Spells.Q.mana + Spells.W.mana) and enemy.health > Spells.Q.dmg then
+          KillText[i] = 3
+          colorText = ARGB(255,255,0,0)
+        end
+      elseif enemy.health <= (Spells.Q.dmg + Spells.W.dmg + Spells.Q.pdmg) and Spells.Q.ready and Spells.W.ready then 
+        if myMana > (Spells.Q.mana + Spells.W.mana) and enemy.health > (Spells.Q.dmg + Spells.W.dmg) then
+          KillText[i] = 4
+          colorText = ARGB(255,255,0,0)
+        end
+      elseif enemy.health <= (Spells.Q.dmg + Spells.W.dmg + Spells.E.dmg + Spells.Q.pdmg) and Spells.Q.ready and Spells.W.ready and Spells.E.ready then
+        if myMana > (Spells.Q.mana + Spells.E.mana + Spells.W.mana) and enemy.health > (Spells.Q.dmg + Spells.W.dmg + Spells.E.dmg) then
+          KillText[i] = 5
+          colorText = ARGB(255,255,0,0)
+        end
+      elseif enemy.health <= (Spells.Q.dmg + (Spells.Q.pdmg*2) + Spells.W.dmg + Spells.R.rqdmg + Spells.E.dmg + itemsDmg) then
+        if myMana > (Spells.Q.mana + Spells.E.mana + Spells.W.mana) and enemy.health > (Spells.Q.dmg + Spells.W.dmg + Spells.E.dmg + Spells.Q.pdmg) then
+          KillText[i] = 6
+          colorText = ARGB(255,255,0,0)
+        end
+      else
+        KillText[i] = 7
+      end
+    end
+  end
+end
+
+function ArrangePrioritys()
+    for i, enemy in pairs(GetEnemyHeroes()) do
+        SetPriority(priorityTable.AD_Carry, enemy, 1)
+        SetPriority(priorityTable.AP, enemy, 2)
+        SetPriority(priorityTable.Support, enemy, 3)
+        SetPriority(priorityTable.Bruiser, enemy, 4)
+        SetPriority(priorityTable.Tank, enemy, 5)
+    end
+end
+
+function ArrangeTTPrioritys()
+  for i, enemy in pairs(GetEnemyHeroes()) do
+    SetPriority(priorityTable.AD_Carry, enemy, 1)
+        SetPriority(priorityTable.AP, enemy, 1)
+        SetPriority(priorityTable.Support, enemy, 2)
+        SetPriority(priorityTable.Bruiser, enemy, 2)
+        SetPriority(priorityTable.Tank, enemy, 3)
+  end
+end
+
+function SetPriority(table, hero, priority)
+    for i=1, #table, 1 do
+        if hero.charName:find(table[i]) ~= nil then
+            TS_SetHeroPriority(priority, hero.charName)
+        end
+    end
+end
+
+--Smart W --
+function smartW()
+  if wUsed() and leblancW and leblancW.valid then
+    if CountEnemyHeroInRange(600, leblancW) < CountEnemyHeroInRange(600, myHero) then
+      if ValidTarget(Target) then
+        if Target.health > (Spells.Q.dmg + Spells.Q.pdmg + Spells.W.dmg + Spells.R.rqdmg + Spells.E.dmg + itemsDmg + 500) then
+          CastSpell(_W)
+        end
+      end
+    end
+  end
+end
+
+-- Object Handling Functions --
+function OnCreateObj(obj)
+  if obj ~= nil then
+    if obj.name:find("LeblancChaosOrb") or obj.name:find("LeblancChaosOrbM") then
+      if ValidTarget(Target) and GetDistance(obj, Target) <= 70 then
+        qPassive = true
+      end
+    end
+    if obj.name:find("leBlanc_displacement_cas.troy") then
+      leblancW = obj
+    end
+    if obj.name:find("LeblancImage.troy") then
+      leblancImage = obj
+    end
+    if obj.name:find("Global_Item_HealthPotion.troy") then
+      if GetDistance(obj, myHero) <= 70 then
+        usingHPot = true
+        usingFlask = true
+      end
+    end
+    if obj.name:find("Global_Item_ManaPotion.troy") then
+      if GetDistance(obj, myHero) <= 70 then
+        usingFlask = true
+        usingMPot = true
+      end
+    end
+    if obj.name:find("TeleportHome.troy") then
+      if GetDistance(obj) <= 70 then
+        Recalling = true
+      end
+    end
+  end
+end
+
+function OnDeleteObj(obj)
+  if obj ~= nil then
+    if obj.name:find("LeblancChaosOrb") or obj.name:find("LeblancChaosOrbM") then
+      qPassive = false
+    end
+    if obj.name:find("Global_Item_HealthPotion.troy") then
+      if GetDistance(obj) <= 70 then
+        usingHPot = false
+        usingFlask = false
+      end
+    end
+    if obj.name:find("Global_Item_ManaPotion.troy") then
+      if GetDistance(obj) <= 70 then
+        usingMPot = false
+        usingFlask = false
+      end
+    end
+    if obj.name:find("TeleportHome.troy") then
+      if GetDistance(obj) <= 70 then
+        Recalling = false
+      end
+    end
+  end
+end
+
+-- Recalling Functions --
+function OnRecall(hero)
+  if hero.networkID == player.networkID then
+    Recalling = true
+  end
+end
+
+function OnAbortRecall(hero)
+  if hero.networkID == player.networkID then
+    Recalling = false
+  end
+end
+
+function OnFinishRecall(hero)
+  if hero.networkID == player.networkID then
+    Recalling = false
+  end
+end
+
+function OnGainBuff(Unit, buff)
+  if Unit == Target and buff.name == "LeblancChaosOrb" or "LeblancChaosOrbM" then
+    qPassive = true
+  end
+end
+
+function OnLoseBuff(Unit, buff)
+  if Unit == Target and buff.name == "LeblancChaosOrb" or "LeblancChaosOrbM" then
+    qPassive = false
+  end
+end
+
+-- Function OnDraw --
+function OnDraw()
+  --> Ranges
+  if not LeblancMenu.drawing.mDraw and not myHero.dead then
+    if Spells.Q.ready and LeblancMenu.drawing.qDraw then
+      DrawCircle(myHero.x, myHero.y, myHero.z, Spells.Q.range, 0xFFFF00)
+    end
+    if Spells.W.ready and LeblancMenu.drawing.wDraw then
+      DrawCircle(myHero.x, myHero.y, myHero.z, Spells.W.range, 0xFFFF00)
+    end
+    if Spells.E.ready and LeblancMenu.drawing.eDraw then
+      DrawCircle(myHero.x, myHero.y, myHero.z, Spells.E.range, 0xFFFF00)
+    end
+  end
+  if LeblancMenu.drawing.cDraw then
+    for i = 1, heroManager.iCount do
+          local Unit = heroManager:GetHero(i)
+          if ValidTarget(Unit) then
+            local barPos = WorldToScreen(D3DXVECTOR3(Unit.x, Unit.y, Unit.z)) --(Credit to Zikkah)
+        local PosX = barPos.x - 35
+        local PosY = barPos.y - 10        
+            DrawText(TextList[KillText[i]], 16, PosX, PosY, colorText)
+      end
+    end
+    end
+end
+
+-- regular minion mec taken from Sida's Auto Carry --
+function willHitMinion(predic, width)
+        for _, minion in pairs(enemyMinions.objects) do
+                if minion ~= nil and minion.valid and string.find(minion.name,"Minion_") == 1 and minion.team ~= player.team and minion.dead == false then
+                        if predic ~= nil then
+                                ex = player.x
+                                ez = player.z
+                                tx = predic.x
+                                tz = predic.z
+                                dx = ex - tx
+                                dz = ez - tz
+                                if dx ~= 0 then
+                                        m = dz/dx
+                                        c = ez - m*ex
+                                end
+                                mx = minion.x
+                                mz = minion.z
+                                distanc = (math.abs(mz - m*mx - c))/(math.sqrt(m*m+1))
+                                if distanc < width and math.sqrt((tx - ex)*(tx - ex) + (tz - ez)*(tz - ez)) > math.sqrt((tx - mx)*(tx - mx) + (tz - mz)*(tz - mz)) then
+                                        return true
+                                end
+                        end
+                end
+        end
+        return false
+end
+
+--Based on Manciuzz Orbwalker http://pastebin.com/jufCeE0e
+function OrbWalking(Target)
+  if TimeToAttack() and GetDistance(Target) <= myHero.range + GetDistance(myHero.minBBox) then
+    myHero:Attack(Target)
+    elseif heroCanMove() then
+        moveToCursor()
+    end
+end
+
+function TimeToAttack()
+    return (GetTickCount() + GetLatency()/2 > lastAttack + lastAttackCD)
+end
+
+function heroCanMove()
+  return (GetTickCount() + GetLatency()/2 > lastAttack + lastWindUpTime + 20)
+end
+
+function moveToCursor()
+  if GetDistance(mousePos) then
+    local moveToPos = myHero + (Vector(mousePos) - myHero):normalized()*300
+    myHero:MoveTo(moveToPos.x, moveToPos.z)
+    end        
+end
+
+function OnProcessSpell(object, spell)
+  if object == myHero then
+    if spell.name:lower():find("attack") then
+      lastAttack = GetTickCount() - GetLatency()*0.5
+      lastWindUpTime = spell.windUpTime*1000
+      lastAttackCD = spell.animationTime*1000
+        end
+        if spell.name == "LeblancChaosOrb" then
+          Spells.Q.last, Spells.Q.delay, Spells.W.last, Spells.E.last = true, os.clock(), false, false      
+        elseif spell.name == "LeblancSlide" then
+          Spells.Q.last, Spells.W.last, Spells.E.last = false, true, false
+        elseif spell.name == "LeblancSoulShackle" then
+          Spells.Q.last, Spells.W.last, Spells.E.last = false, false, true
+        end
+    end
+end
+
+function OnAnimation(unit, animationName)
+    if unit.isMe and lastAnimation ~= animationName then lastAnimation = animationName end
+end
+
+function GetTarget()
+  TargetSelector:update()
+    if _G.MMA_Target and _G.MMA_Target.type == myHero.type then
+      return _G.MMA_Target
+    elseif _G.AutoCarry and _G.AutoCarry.Crosshair and _G.AutoCarry.Attack_Crosshair then
+      return _G.AutoCarry.Attack_Crosshair.target
+    elseif TargetSelector.target and not TargetSelector.target.dead and TargetSelector.target.type  == myHero.type then
+      return TargetSelector.target
+    else
+      return nil
+    end
+end
+
+-- Spells/Items Checks --
+function Checks()
+  -- Updates Targets --
+  Target = GetTarget()
+
+  -- Updates Items --
+  for i, item in pairs(Items) do
+    item.ready = GetInventoryItemIsCastable(item.id)
+  end
+  
+  -- Updates Spell Info --
+  for i, spell in pairs(Spells) do
+    spell.ready = myHero:CanUseSpell(spell.key) == READY
+    spell.mana  = myHero:GetSpellData(spell.key).mana
+  end
+
+  -- Finds Ignite --
+  if myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") then
+    ignite = SUMMONER_1
+  elseif myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") then
+    ignite = SUMMONER_2
+  end
+
+  iReady = (ignite ~= nil and myHero:CanUseSpell(ignite) == READY)
+
+  -- Pots --
+  hpReady = (hpSlot ~= nil and myHero:CanUseSpell(hpSlot) == READY)
+  mpReady =(mpSlot ~= nil and myHero:CanUseSpell(mpSlot) == READY)
+  fskReady = (fskSlot ~= nil and myHero:CanUseSpell(fskSlot) == READY)
+  
+  -- Updates Minions --
+  enemyMinions:update()
+end
