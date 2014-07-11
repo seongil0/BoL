@@ -511,13 +511,11 @@ function CastSkill(Skill, enemy)
           return true
         end
       else
-        if vPredictionExists then
-          local CastPosition, HitChance, Position = vPred:GetCircularCastPosition(enemy, Spells.W.delay, Spells.W.width, Spells.W.speed)
-          if HitChance >= LeblancMenu.hitchance then
-            if not IsWall(D3DXVECTOR3(CastPosition.x, CastPosition.y, CastPosition.z)) then
-              CastSpell(_W, CastPosition.x, CastPosition.z)
-              return true
-            end
+        local CastPosition, HitChance, Position = vPred:GetCircularCastPosition(enemy, Spells.W.delay, Spells.W.width, Spells.W.speed)
+        if HitChance >= LeblancMenu.hitchance then
+          if not IsWall(D3DXVECTOR3(CastPosition.x, CastPosition.y, CastPosition.z)) then
+            CastSpell(_W, CastPosition.x, CastPosition.z)
+            return true
           end
         end
       end
@@ -544,12 +542,10 @@ function CastSkill(Skill, enemy)
           end
         end
       else
-        if vPredictionExists then
-          local CastPosition, HitChance, Pos = vPred:GetLineCastPosition(enemy, Spells.E.delay, Spells.E.width, Spells.E.range, Spells.E.speed, myHero, true)
-          if HitChance >= LeblancMenu.hitchance then
-            CastSpell(_E, CastPosition.x, CastPosition.z)
-            return true
-          end
+        local CastPosition, HitChance, Pos = vPred:GetLineCastPosition(enemy, Spells.E.delay, Spells.E.width, Spells.E.range, Spells.E.speed, myHero, true)
+        if HitChance >= LeblancMenu.hitchance then
+          CastSpell(_E, CastPosition.x, CastPosition.z)
+          return true
         end
       end
     else
@@ -584,12 +580,10 @@ function CastSkill(Skill, enemy)
             return true
           end
         else
-          if vPredictionExists then
-            local CastPosition,  HitChance,  Position = vPred:GetCircularCastPosition(enemy, Spells.W.delay, Spells.W.width, Spells.W.range)
-            if HitChance >= 2 and not IsWall(D3DXVECTOR3(CastPosition.x, CastPosition.y, CastPosition.z)) then 
-              CastSpell(_R, CastPosition.x, CastPosition.z)
-              return true
-            end
+          local CastPosition,  HitChance,  Position = vPred:GetCircularCastPosition(enemy, Spells.W.delay, Spells.W.width, Spells.W.range)
+          if HitChance >= 2 and not IsWall(D3DXVECTOR3(CastPosition.x, CastPosition.y, CastPosition.z)) then 
+            CastSpell(_R, CastPosition.x, CastPosition.z)
+            return true
           end
         end
       else
@@ -613,12 +607,10 @@ function CastSkill(Skill, enemy)
               end
             end
           else
-            if vPredictionExists then
-              local CastPosition, HitChance, Pos = vPred:GetLineCastPosition(enemy, Spells.E.delay, Spells.E.width, Spells.E.range, Spells.E.speed, myHero, true)
-              if HitChance >= 2 then
-                CastSpell(_R, CastPosition.x, CastPosition.z)
-                return true
-              end
+            local CastPosition, HitChance, Pos = vPred:GetLineCastPosition(enemy, Spells.E.delay, Spells.E.width, Spells.E.range, Spells.E.speed, myHero, true)
+            if HitChance >= 2 then
+              CastSpell(_R, CastPosition.x, CastPosition.z)
+              return true
             end
           end
         else
