@@ -1,4 +1,4 @@
-local version = "2.150"
+local version = "2.160"
 
 --[[
 
@@ -265,15 +265,6 @@ function OnTick()
 			if KatarinaMenu.killsteal.Ignite then AutoIgnite(Target) end
 		end
 		
-		if KatarinaMenu.combo.autoE then
-			for _, enemy in pairs(enemyHeroes) do
-				if ValidTarget(enemy) and enemy ~= nil and GetDistanceSqr(enemy) > SkillR.range*SkillR.range and GetDistanceSqr(enemy) <= SkillE.range*SkillE.range and SkillR.castingUlt then
-					CastE(enemy)
-				end
-			end
-		end
-		
-	---<
 	-- Menu Variables --
 	--->
 		ComboKey =	 KatarinaMenu.combo.comboKey
