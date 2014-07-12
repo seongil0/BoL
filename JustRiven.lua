@@ -214,14 +214,6 @@ function IgniteCheck(target)
 	return  target.health < getDmg("IGNITE", target, myHero) and CastSpell(Ignite, target)
 end
 
-function AutoR()
-	for _, enemy in pairs(GetEnemyHeroes()) do
-		if ValidTarget(enemy, Spells.R.range) and enemy.health < getDmg("R", enemy, myHero) and Spells.R.data.name ~= 'RivenFengShuiEngine' then
-			Cast(_R, enemy, Spells.R.range)
-		end
-	end
-end
-
 function Cast(spell, target, range)
 	return GetDistanceSqr(target) < range * range and Packet("S_CAST", { spellId = spell, toX = target.x, toY = target.z, fromX = target.x, fromY = target.z }):send()
 end
