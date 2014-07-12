@@ -1,6 +1,12 @@
 -- Script Name: Just Riven
--- Script Ver.: 1.0
+-- Script Ver.: 1.1
 -- Author     : Skeem
+
+--[[ Changelog:
+	1.0 -Initial Release
+	1.1 - Smoothen up combo
+	    - Fixed Error Spamming
+]]--
 
 if myHero.charName ~= 'Riven' then return end
 
@@ -21,6 +27,8 @@ require 'VPrediction'
 		HYDRA  = {id = 3074, range = 350, ready = false},
 		TIAMAT = {id = 3077, range = 350, ready = false}
 	}
+
+	SpellNames = {'RivenTriCleave', 'RivenMartyr', 'RivenFeint', 'RivenFengShuiEngine', 'rivenizunablade'}
 
 	BuffInfo = {
 		P = false,
@@ -81,7 +89,7 @@ function OnTick()
 		Orb(Target)
 		CastCombo(Target)
 	end
-	if not RivenMenu.comboKey and RivenMenu.skills.autoW and Spells.W.ready and Target then
+	if RivenMenu.skills.autoW and Spells.W.ready and Target then
 		Cast(_W, Target, Spells.W.range)
 	end
 	if RivenMenu.kill.enabled then
@@ -136,14 +144,15 @@ function OnProcessSpell(unit, spell)
 			else
 				Orbwalking.lastAA = os.clock() - GetLatency() / 2000
 			end
+		else
+			Packet('S_MOVE', { x = mousePos.x, y = mousePos.z }):send()
 		end
 	end
 end
 
 function OnSendPacket(packet)
 	local p = Packet(packet)
-	if p:get('name') == 'S_CAST' and p:get('sourceNetworkId') == myHero.networkID then
-		Packet('S_MOVE', { x = mousePos.x, y = mousePos.z }):send()
+	if p:get('name') == 'S_CAST' and p:get('sourceNetworkId') == myHero.networkID and p:get('spellId') == 0 then
 		Orbwalking.lastAA = 0
 	end
 end
@@ -160,26 +169,40 @@ function CastCombo(target)
 	if target then
 		local truerange = Orbwalking.range + vPred:GetHitBox(target) + 50
 		local distance  = GetDistanceSqr(target)
+		local EQRange   = Spells.E.ready and Spells.Q.ready and Spells.E.range + Spells.Q.range
+		local EWRange   = Spells.E.ready and Spells.Q.ready and Spells.E.range + Spells.W.range
 		if RivenMenu.skills.comboR ~= 3 and Spells.R.ready and Spells.R.data.name == 'RivenFengShuiEngine' then
 			if RivenMenu.skills.comboR == 1 then
-				if target.health  < (target.maxHealth * RivenMenu.skills.healthR / 100) and ((Spells.E.ready and Spells.Q.ready) or (Spells.W.ready and Spells.Q.ready)) then
+				if target.health < (target.maxHealth * (RivenMenu.skills.healthR / 100)) and ((Spells.E.ready and Spells.Q.ready) or (Spells.W.ready and Spells.Q.ready)) then
 					CastSpell(_R)
 				end
 			elseif RivenMenu.skills.comboR == 2 then
-				if target.health <  target.health  < (target.maxHealth * RivenMenu.skills.healthR / 100) then
+				if target.health < (target.maxHealth * (RivenMenu.skills.healthR / 100)) then
 					CastSpell(_R)
 				end
 			end
 		end
 
 		if RivenMenu.forceAAs then
-			if distance > truerange * truerange or not BuffInfo.P then
-				Cast(_E, target, Spells.E.range)
+			if not BuffInfo.P then
+				if EQ then
+					Cast(_E, target, EQRange)
+				elseif EW then
+					Cast(_E, target, EWRange)
+				else
+					Cast(_E, target, Spells.E.range)
+				end
 				Cast(_Q, target, Spells.Q.range)
 				Cast(_W, target, Spells.W.range)
 			end
 		else
-			Cast(_E, target, Spells.E.range)
+			if EQ then
+				Cast(_E, target, EQRange)
+			elseif EW then
+				Cast(_E, target, EWRange)
+			else
+				Cast(_E, target, Spells.E.range)
+			end
 			Cast(_Q, target, Spells.Q.range)
 			Cast(_W, target, Spells.W.range)
 		end
@@ -229,12 +252,20 @@ function UseItems(enemy)
 end
 
 function Orb(target)
-	truerange = target ~= nil and Orbwalking.range + vPred:GetHitBox(target)
+	local truerange  = target ~= nil and Orbwalking.range + vPred:GetHitBox(target)
 	if CanAttack() and ValidTarget(target, truerange) then
 		Attack(target)
 	elseif CanMove() then
-		local MovePos = myHero + (Vector(mousePos) - myHero):normalized()*300
-		Packet('S_MOVE', { x = MovePos.x, y = MovePos.z }):send()
+		if not target then
+			local MovePos = Vector(myHero) + 400 * (Vector(mousePos) - Vector(myHero)):normalized()
+			Packet('S_MOVE', { x = MovePos.x, y = MovePos.z }):send()
+		elseif GetDistanceSqr(target) > 300*300 + math.pow(vPred:GetHitBox(target), 2) then
+			local point = vPred:GetPredictedPos(target, 0, 2*myHero.ms, myHero, false)
+			if GetDistanceSqr(point) < 300*300 + math.pow(vPred:GetHitBox(target), 2) then
+				point = Vector(Vector(myHero) - point):normalized() * 50
+			end
+			Packet('S_MOVE', { x = point.x, y = point.z }):send()
+		end
 	end
 end
 
