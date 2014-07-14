@@ -1,11 +1,13 @@
 -- Script Name: Just Riven
--- Script Ver.: 1.1
+-- Script Ver.: 1.2
 -- Author     : Skeem
 
 --[[ Changelog:
 	1.0 -Initial Release
 	1.1 - Smoothen up combo
 	    - Fixed Error Spamming
+	1.2 - Smoothen up Orbwalking
+	    - Added some packet checks
 ]]--
 
 if myHero.charName ~= 'Riven' then return end
@@ -67,9 +69,10 @@ require 'VPrediction'
 			for _, spell in pairs(Spells) do
 				RivenMenu.draw:addParam(spell.string, 'Draw '..spell.name..' ('..spell.string..')', SCRIPT_PARAM_ONOFF, true)
 			end
-		RivenMenu:addParam('forceAAs', 'Force AAs with Passive', SCRIPT_PARAM_ONOFF,         false)
+		RivenMenu:addParam('forceAAs', 'Force AAs with Passive', SCRIPT_PARAM_ONOFF,         true)
 		RivenMenu:addParam('comboKey', 'Combo Key X'           , SCRIPT_PARAM_ONKEYDOWN, false, 88)
 
+PrintChat("<font color='#663300'>Just Riven 1.2 Loaded</font>")
 
 function OnTick()
 	Target = GetTarget()
@@ -138,23 +141,51 @@ function OnProcessSpell(unit, spell)
 				Orbwalking.windUp    = 1 / (spell.windUpTime    * myHero.attackSpeed)
 				Orbwalking.updated   = true
 			end
-			if Target and Items.HYDRA.ready or Items.TIAMAT.ready then
-				UseItems(Target)
-				Orbwalking.lastAA = 0
+			if RivenMenu.comboKey then
+				if Items.HYDRA.ready or Items.TIAMAT.ready then
+					UseItems(spell.target)
+					Orbwalking.lastAA = 0
+				end
 			else
 				Orbwalking.lastAA = os.clock() - GetLatency() / 2000
 			end
-		else
-			Packet('S_MOVE', { x = mousePos.x, y = mousePos.z }):send()
 		end
 	end
 end
 
 function OnSendPacket(packet)
 	local p = Packet(packet)
-	if p:get('name') == 'S_CAST' and p:get('sourceNetworkId') == myHero.networkID and p:get('spellId') == 0 then
+	if p:get('name') == 'S_CAST' and p:get('sourceNetworkId') == myHero.networkID then
+		if p:get('spellId') == 2 then
+			if RivenMenu.comboKey and Target then
+				Cast(_Q, Target, Spells.Q.range)
+			end
+		end
+		Packet('S_MOVE', { x = mousePos.x, y = mousePos.z }):send()
 		Orbwalking.lastAA = 0
 	end
+end
+
+function OnRecvPacket(packet)
+	if packet.header == 0x34 then
+		packet.pos = 1
+		if packet:DecodeF() == myHero.networkID then
+			packet.pos = 9
+			if packet:Decode1() == 0x11 then
+				Orbwalking.lastAA = 0
+			end
+		end
+	end
+	-- Thanks to Bilbao :3 --
+	if packet.header == 0x65 then
+  		packet.pos = 5
+  		local dmgType  = packet:Decode1()
+  		local targetId = packet:DecodeF()
+  		local souceId  = packet:DecodeF()
+  		if souceId == myHero.networkID and dmgType == (12 or 3) then
+  			Orbwalking.lastAA = 0
+  		end
+ 	end
 end
 
 function GetTarget()
@@ -185,6 +216,7 @@ function CastCombo(target)
 
 		if RivenMenu.forceAAs then
 			if not BuffInfo.P then
+				Cast(_Q, target, Spells.Q.range)
 				if EQ then
 					Cast(_E, target, EQRange)
 				elseif EW then
@@ -192,10 +224,10 @@ function CastCombo(target)
 				else
 					Cast(_E, target, Spells.E.range)
 				end
-				Cast(_Q, target, Spells.Q.range)
 				Cast(_W, target, Spells.W.range)
 			end
 		else
+			Cast(_Q, target, Spells.Q.range)
 			if EQ then
 				Cast(_E, target, EQRange)
 			elseif EW then
@@ -203,7 +235,6 @@ function CastCombo(target)
 			else
 				Cast(_E, target, Spells.E.range)
 			end
-			Cast(_Q, target, Spells.Q.range)
 			Cast(_W, target, Spells.W.range)
 		end
 	end
@@ -259,9 +290,9 @@ function Orb(target)
 		if not target then
 			local MovePos = Vector(myHero) + 400 * (Vector(mousePos) - Vector(myHero)):normalized()
 			Packet('S_MOVE', { x = MovePos.x, y = MovePos.z }):send()
-		elseif GetDistanceSqr(target) > 300*300 + math.pow(vPred:GetHitBox(target), 2) then
+		elseif GetDistanceSqr(target) > 200*200 + math.pow(vPred:GetHitBox(target), 2) then
 			local point = vPred:GetPredictedPos(target, 0, 2*myHero.ms, myHero, false)
-			if GetDistanceSqr(point) < 300*300 + math.pow(vPred:GetHitBox(target), 2) then
+			if GetDistanceSqr(point) < 200*200 + math.pow(vPred:GetHitBox(target), 2) then
 				point = Vector(Vector(myHero) - point):normalized() * 50
 			end
 			Packet('S_MOVE', { x = point.x, y = point.z }):send()
