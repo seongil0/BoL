@@ -74,7 +74,7 @@ require 'VPrediction'
 		RivenMenu:addParam('comboKey', 'Combo Key X', SCRIPT_PARAM_ONKEYDOWN, false, 88)
 		RivenMenu:addTS(TS)
 
-PrintChat("<font color='#663300'>Just Riven 1.2 Loaded</font>")
+PrintChat("<font color='#663300'>Just Riven 1.3 Loaded</font>")
 
 function OnTick()
 	Target = GetTarget()
