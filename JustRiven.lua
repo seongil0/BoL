@@ -42,8 +42,6 @@ require 'VPrediction'
 
 	Orbwalking = {
 		lastAA     = 0,
-		windUp     = 3.75,
-		animation  = 0.625,
 	}
 
 	TS = TargetSelector(TARGET_LESS_CAST_PRIORITY, 500, DAMAGE_PHYSICAL)
@@ -184,7 +182,7 @@ function OnRecvPacket(packet)
   		local targetId = packet:DecodeF()
   		local souceId  = packet:DecodeF()
   		if souceId == myHero.networkID and dmgType == (12 or 3) then
-  			if Target then
+  			if RivenMenu.comboKey and Target then
   				if Spells.Q.ready then
   					Cast(_Q, Target, Spells.Q.range + 100)
   				end
@@ -297,7 +295,7 @@ end
 function Orb(target)
     if target and CanAttack() and ValidTarget(target, AARange(target)) then
       	Attack(target)
-    elseif CanMove() then
+    else
     	local MovePos = Vector(myHero) + 400 * (Vector(mousePos) - Vector(myHero)):normalized()
     	local AARange = target and AARange(target)
         if not target then
@@ -325,12 +323,4 @@ end
 function Attack(target)
 	Orbwalking.lastAA = os.clock()
 	Packet('S_MOVE', {type = 3, targetNetworkId = target.networkID}):send()
-end
-
-function CanMove()
-	return os.clock() > (Orbwalking.lastAA + WindUpTime())
-end
-
-function WindUpTime()
-	return (1 / (myHero.attackSpeed * Orbwalking.windUp))
 end
