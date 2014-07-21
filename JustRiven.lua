@@ -24,6 +24,8 @@
 	1.4.5 - Fixed Ult Kill Usage
 	      - Fixed W error spamming
 	      - Tried to improve AA in between spells
+	1.4.8 - Fixed boolean error
+	      - Fixed Qing backwards when trying to run
 ]]--
 
 if myHero.charName ~= 'Riven' then return end
@@ -82,8 +84,10 @@ require 'Selector'
 		RivenMenu:addParam('comboKey', 'Combo Key X', SCRIPT_PARAM_ONKEYDOWN, false, 88)
 
 PrintChat("<font color='#663300'>Just Riven 1.4 Loaded</font>")
+RivenLoaded = true
 
 function OnTick()
+	if not RivenLoaded then return end
 	Target = GetTarget()
 	for _, spell in pairs(Spells) do
 		spell.ready = myHero:CanUseSpell(spell.key) == READY
@@ -109,6 +113,7 @@ function OnTick()
 end 
 
 function OnDraw()
+	if not RivenLoaded then return end
 	for _, spell in pairs(Spells) do
 		if spell.ready and RivenMenu.draw[spell.string] then
 			DrawCircle(myHero.x, myHero.y, myHero.z, spell.range, spell.color)
@@ -117,6 +122,7 @@ function OnDraw()
 end
 
 function OnGainBuff(unit, buff)
+	if not RivenLoaded then return end
 	if unit.isMe then
 		if buff.name == 'rivenpassiveaaboost' then
 			BuffInfo.P.stacks = 1
@@ -131,6 +137,7 @@ function OnGainBuff(unit, buff)
 end
 
 function OnLoseBuff(unit, buff)
+	if not RivenLoaded then return end
 	if unit.isMe then
 		if buff.name == 'rivenpassiveaaboost' then
 			BuffInfo.P.stacks = 0
@@ -142,6 +149,7 @@ function OnLoseBuff(unit, buff)
 end
 
 function OnUpdateBuff(unit, buff)
+	if not RivenLoaded then return end
 	if unit.isMe then
 		if buff.name == 'rivenpassiveaaboost' then
 			BuffInfo.P.stacks = buff.stack
@@ -150,10 +158,11 @@ function OnUpdateBuff(unit, buff)
 end
 
 function OnSendPacket(packet)
+if not RivenLoaded then return end
 	local p = Packet(packet)
 	if p:get('name') == 'S_CAST' and p:get('sourceNetworkId') == myHero.networkID then
 		DelayAction(function() CancelAnimation() end, .1)
-		if Target then
+		if Target and RivenMenu.comboKey then
 			if p:get('spellId') == 0 then
 				Orbwalking.lastAA = 0
 			elseif p:get('spellId') == 1 and Spells.Q.ready then
@@ -171,6 +180,7 @@ function OnSendPacket(packet)
 end
 
 function OnRecvPacket(packet)
+	if not RivenLoaded then return end
 	if packet.header == 0x34 then
 		packet.pos = 1
 		if packet:DecodeF() == myHero.networkID then
