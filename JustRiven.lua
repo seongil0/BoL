@@ -3,24 +3,27 @@
 -- Author     : Skeem
 
 --[[ Changelog:
-	1.0 -Initial Release
-	1.1 - Smoothen up combo
-	    - Fixed Error Spamming
-	1.2 - Smoothen up Orbwalking
-	    - Added some packet checks
-	1.3 - Remade orbwalker completely packet based now
-	    - Combo should be a lot faster
-	    - Added Menu Options for max stacks to use in combo
-	1.4 - Whole new combo system
-		- Added Selector make sure to have latest (http://iuser99.com/scripts/Selector.lua)
-		- Removed Max Stacks in combo from menu (let me know if you want this back, i don't think its need anymore)
-	    - Added menu to cancel anims with laugh/movement
-	    - Added tiamat cancel AA anim -> W cancel tiamat anim -> Q cancel w Anim
-	    - Added option to disable orbwalk in combo
-	    - Fixed 'chasing target' when using combo
-	    - Changed R Menu (Now in Combo Options) & Fixed Path Lib error with R
-	    - Added R Damage logic based on skills available and option to use in combo
-	    - Fixed Auto Ignite & Nil error spamming when not having it
+	1.0   - Initial Release
+	1.1   - Smoothen up combo
+	      - Fixed Error Spamming
+	1.2   - Smoothen up Orbwalking
+	      - Added some packet checks
+	1.3   - Remade orbwalker completely packet based now
+	      - Combo should be a lot faster
+	      - Added Menu Options for max stacks to use in combo
+	1.4   - Whole new combo system
+		  - Added Selector make sure to have latest (http://iuser99.com/scripts/Selector.lua)
+		  - Removed Max Stacks in combo from menu (let me know if you want this back, i don't think its need anymore)
+	      - Added menu to cancel anims with laugh/movement
+	      - Added tiamat cancel AA anim -> W cancel tiamat anim -> Q cancel w Anim
+	      - Added option to disable orbwalk in combo
+	      - Fixed 'chasing target' when using combo
+	      - Changed R Menu (Now in Combo Options) & Fixed Path Lib error with R
+	      - Added R Damage logic based on skills available and option to use in combo
+	      - Fixed Auto Ignite & Nil error spamming when not having it
+	1.4.5 - Fixed Ult Kill Usage
+	      - Fixed W error spamming
+	      - Tried to improve AA in between spells
 ]]--
 
 if myHero.charName ~= 'Riven' then return end
@@ -63,7 +66,7 @@ require 'Selector'
 			RivenMenu.combo:addParam('forceAAs', 'Force AAs with Passive',    SCRIPT_PARAM_ONOFF, true)
 			RivenMenu.combo:addParam('orbwalk',  'Orbwalk in Combo',          SCRIPT_PARAM_ONOFF, true)
 			RivenMenu.combo:addParam('ulti',     'Use R for Potential Kills', SCRIPT_PARAM_ONOFF, true)
-			RivenMenu.combo:addParam('anim',     'Cancel Animation With:',    SCRIPT_PARAM_LIST, 1, {"Laugh", "Movement"})
+			RivenMenu.combo:addParam('anim',     'Cancel Animation With:',    SCRIPT_PARAM_LIST, 2, {"Laugh", "Movement"})
 
 		RivenMenu:addSubMenu('~[Kill Settings]~', 'kill')
 			RivenMenu.kill:addParam('enabled', 'Enable KillSteal',    SCRIPT_PARAM_ONOFF, true)
@@ -82,7 +85,6 @@ PrintChat("<font color='#663300'>Just Riven 1.4 Loaded</font>")
 
 function OnTick()
 	Target = GetTarget()
-
 	for _, spell in pairs(Spells) do
 		spell.ready = myHero:CanUseSpell(spell.key) == READY
 		spell.data  = myHero:GetSpellData(spell.key)
@@ -98,7 +100,7 @@ function OnTick()
 		end
 		CastCombo(Target)
 	end
-	if RivenMenu.skills.autoW and Spells.W.ready and Target then
+	if RivenMenu.skills.autoW and Spells.W.ready and Target ~= nil then
 		Cast(_W, Target, Spells.W.range)
 	end
 	if RivenMenu.kill.enabled then
@@ -154,10 +156,15 @@ function OnSendPacket(packet)
 		if Target then
 			if p:get('spellId') == 0 then
 				Orbwalking.lastAA = 0
-			elseif p:get('spellId') > 3 then
-				DelayAction(function() Cast(_W, Target, Spells.W.range) end, .13)
 			elseif p:get('spellId') == 1 and Spells.Q.ready then
 				DelayAction(function() Cast(_Q, Target, Spells.Q.range) end, .17)
+			elseif p:get('spellId') == 2 and Spells.Q.ready then
+				DelayAction(function() Cast(_Q, Target, Spells.Q.range) end, .15)
+			elseif p:get('spellId') > 3 then
+				DelayAction(function() Cast(_W, Target, Spells.W.range) end, .13)
+			end
+			if InRange(Target) then
+				Attack(Target)
 			end
 		end
 	end
@@ -244,17 +251,19 @@ end
 
 function KillSteal()
 	for _, enemy in pairs(GetEnemyHeroes()) do
-		if ValidTarget(enemy) then
-			if Spells.R.ready then
-				if RivenMenu.kill.killR == 1 then
-					if enemy.health < getDmg("R", enemy, myHero) and Spells.R.data.name ~= 'RivenFengShuiEngine' then
-						Cast(_R, enemy, Spells.R.range)
-					end
-				elseif RivenMenu.kill.killR == 2 then
-					if ValidTarget(enemy, Spells.R.range) and enemy.health < getDmg("R", enemy, myHero) then
-						Cast(_R, enemy, Spells.R.range)
-					end	
+		if ValidTarget(enemy, Spells.R.range) then
+			if RivenMenu.kill.killR == 1 then
+				if enemy.health < getDmg("R", enemy, myHero) and Spells.R.data.name == 'rivenizunablade' then
+					Packet("S_CAST", { spellId = _R, toX = enemy.x, toY = enemy.z, fromX = enemy.x, fromY = enemy.z }):send()
 				end
+			elseif RivenMenu.kill.killR == 2 then
+				if enemy.health < getDmg("R", enemy, myHero) then
+					if Spells.R.data.name == 'rivenizunablade' then
+						Packet("S_CAST", { spellId = _R, toX = enemy.x, toY = enemy.z, fromX = enemy.x, fromY = enemy.z }):send()
+					else
+						CastSpell(_R)
+					end
+				end	
 			end
 			if Ignite ~= nil and RivenMenu.kill.Ignite and GetDistanceSqr(enemy) < 600 * 600 then
 				IgniteCheck(enemy)
