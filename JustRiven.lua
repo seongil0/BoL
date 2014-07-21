@@ -1,5 +1,5 @@
 -- Script Name: Just Riven
--- Script Ver.: 1.3
+-- Script Ver.: 1.4
 -- Author     : Skeem
 
 --[[ Changelog:
@@ -11,14 +11,25 @@
 	1.3 - Remade orbwalker completely packet based now
 	    - Combo should be a lot faster
 	    - Added Menu Options for max stacks to use in combo
+	1.4 - Whole new combo system
+		- Added Selector make sure to have latest (http://iuser99.com/scripts/Selector.lua)
+		- Removed Max Stacks in combo from menu (let me know if you want this back, i don't think its need anymore)
+	    - Added menu to cancel anims with laugh/movement
+	    - Added tiamat cancel AA anim -> W cancel tiamat anim -> Q cancel w Anim
+	    - Added option to disable orbwalk in combo
+	    - Fixed 'chasing target' when using combo
+	    - Changed R Menu (Now in Combo Options) & Fixed Path Lib error with R
+	    - Added R Damage logic based on skills available and option to use in combo
+	    - Fixed Auto Ignite & Nil error spamming when not having it
 ]]--
 
 if myHero.charName ~= 'Riven' then return end
 
 require 'VPrediction'
+require 'Selector'
 
 	Spells = {
-		Q = {key = _Q, string = 'Q', name = 'Broken Wings',   range = 300, ready = false, data = nil, color = 0x663300},
+		Q = {key = _Q, string = 'Q', name = 'Broken Wings',   range = 280, ready = false, data = nil, color = 0x663300},
 		W = {key = _W, string = 'W', name = 'Ki Burst',       range = 260, ready = false, data = nil, color = 0x333300},
 		E = {key = _E, string = 'E', name = 'Valor',          range = 390, ready = false, data = nil, color = 0x666600},
 		R = {key = _R, string = 'R', name = 'Blade of Exile', range = 900, ready = false, data = nil, color = 0x993300}
@@ -29,8 +40,8 @@ require 'VPrediction'
 	Items = {
 		YGB	   = {id = 3142, range = 350, ready = false},
 		BRK    = {id = 3153, range = 500, ready = false},
-		HYDRA  = {id = 3074, range = 350, ready = false},
-		TIAMAT = {id = 3077, range = 350, ready = false}
+		HYDRA  = {id = 3074, range = 400, ready = false},
+		TIAMAT = {id = 3077, range = 400, ready = false}
 	}
 
 	BuffInfo = {
@@ -44,24 +55,20 @@ require 'VPrediction'
 		lastAA     = 0,
 	}
 
-	TS = TargetSelector(TARGET_LESS_CAST_PRIORITY, 500, DAMAGE_PHYSICAL)
-	TS.name = 'Riven'
-	
 	RivenMenu = scriptConfig('~[Just Riven]~', 'Riven')
 		RivenMenu:addSubMenu('~[Skill Settings]~', 'skills')
 			RivenMenu.skills:addParam('', '--[ W Options ]--', SCRIPT_PARAM_INFO, '')
 			RivenMenu.skills:addParam('autoW', 'Auto W Close Enemies', SCRIPT_PARAM_ONOFF, false)
-			RivenMenu.skills:addParam('', '--[ R Options ]--',    SCRIPT_PARAM_INFO, '')
-			RivenMenu.skills:addParam('comboR', 'Use in Combo',   SCRIPT_PARAM_LIST, 1, {"When other skills are not on CD", "Always", "Never"})	
-			RivenMenu.skills:addParam('healthR', 'Min Health %',  SCRIPT_PARAM_SLICE, 50, 0, 100, -1)
 		RivenMenu:addSubMenu('~[Combo Settings]~', 'combo')
-			RivenMenu.combo:addParam('forceAAs', 'Force AAs with Passive', SCRIPT_PARAM_ONOFF,         true)
-			RivenMenu.combo:addParam("maxStacks", "Max Passive Stacks",   SCRIPT_PARAM_SLICE, 2,  0, 3)
+			RivenMenu.combo:addParam('forceAAs', 'Force AAs with Passive',    SCRIPT_PARAM_ONOFF, true)
+			RivenMenu.combo:addParam('orbwalk',  'Orbwalk in Combo',          SCRIPT_PARAM_ONOFF, true)
+			RivenMenu.combo:addParam('ulti',     'Use R for Potential Kills', SCRIPT_PARAM_ONOFF, true)
+			RivenMenu.combo:addParam('anim',     'Cancel Animation With:',    SCRIPT_PARAM_LIST, 1, {"Laugh", "Movement"})
 
 		RivenMenu:addSubMenu('~[Kill Settings]~', 'kill')
 			RivenMenu.kill:addParam('enabled', 'Enable KillSteal',    SCRIPT_PARAM_ONOFF, true)
 			RivenMenu.kill:addParam('killQ',   'GapClose Q to KS',    SCRIPT_PARAM_ONOFF, true)
-			RivenMenu.kill:addParam('killR',   'KillSteal with R',    SCRIPT_PARAM_LIST, 1, {"When other skills are not on CD", "Always", "Never"})
+			RivenMenu.kill:addParam('killR',   'KillSteal with R',    SCRIPT_PARAM_LIST, 1, {"When R Already Used", "Always", "Never"})
 			RivenMenu.kill:addParam('killW',   'KillSteal with W',    SCRIPT_PARAM_ONOFF, true)
 			RivenMenu.kill:addParam('Ignite',  'Auto Ignite Enemies', SCRIPT_PARAM_ONOFF, true)
 
@@ -70,9 +77,8 @@ require 'VPrediction'
 				RivenMenu.draw:addParam(spell.string, 'Draw '..spell.name..' ('..spell.string..')', SCRIPT_PARAM_ONOFF, true)
 			end		
 		RivenMenu:addParam('comboKey', 'Combo Key X', SCRIPT_PARAM_ONKEYDOWN, false, 88)
-		RivenMenu:addTS(TS)
 
-PrintChat("<font color='#663300'>Just Riven 1.3 Loaded</font>")
+PrintChat("<font color='#663300'>Just Riven 1.4 Loaded</font>")
 
 function OnTick()
 	Target = GetTarget()
@@ -87,7 +93,9 @@ function OnTick()
 	end
 
 	if RivenMenu.comboKey then
-		Orb(Target)
+		if RivenMenu.combo.orbwalk then
+			Orb(Target)
+		end
 		CastCombo(Target)
 	end
 	if RivenMenu.skills.autoW and Spells.W.ready and Target then
@@ -103,9 +111,6 @@ function OnDraw()
 		if spell.ready and RivenMenu.draw[spell.string] then
 			DrawCircle(myHero.x, myHero.y, myHero.z, spell.range, spell.color)
 		end
-	end
-	if Target then
-		DrawCircle(myHero.x, myHero.y, myHero.z, AARange(Target), Spells.Q.color)
 	end
 end
 
@@ -145,21 +150,14 @@ end
 function OnSendPacket(packet)
 	local p = Packet(packet)
 	if p:get('name') == 'S_CAST' and p:get('sourceNetworkId') == myHero.networkID then
-		DelayAction(function () Packet('S_MOVE', { x = mousePos.x, y = mousePos.z }):send() end, 0.1)
+		DelayAction(function() CancelAnimation() end, .1)
 		if Target then
 			if p:get('spellId') == 0 then
 				Orbwalking.lastAA = 0
-			elseif p:get('spellId') == 1 then
-				if Items.HYDRA.ready or Items.TIAMAT.ready then
-					DelayAction(function () UseItems(Target) end, 0.2)
-				end
-			elseif p:get('spellId') == 2 then
-				if Spells.W.ready then
-					Cast(_W, Target, Spells.W.range)
-				end
-			end
-			if InRange(Target) then
-				Attack(Target)
+			elseif p:get('spellId') > 3 then
+				DelayAction(function() Cast(_W, Target, Spells.W.range) end, .13)
+			elseif p:get('spellId') == 1 and Spells.Q.ready then
+				DelayAction(function() Cast(_Q, Target, Spells.Q.range) end, .17)
 			end
 		end
 	end
@@ -183,14 +181,10 @@ function OnRecvPacket(packet)
   		local souceId  = packet:DecodeF()
   		if souceId == myHero.networkID and dmgType == (12 or 3) then
   			if RivenMenu.comboKey and Target then
+				UseItems(Target)
   				if Spells.Q.ready then
-  					Cast(_Q, Target, Spells.Q.range + 100)
+  					Cast(_Q, Target, Spells.Q.range)
   				end
-				if not Spells.E.ready or Spells.W.ready then 
-					if Target and Items.HYDRA.ready or Items.TIAMAT.ready then
-						UseItems(Target)
-					end
-				end
 			end
 			Orbwalking.lastAA = 0
   		end
@@ -198,10 +192,7 @@ function OnRecvPacket(packet)
 end
 
 function GetTarget()
-	TS:update()
-	if TS.target ~= nil and not TS.target.dead and TS.target.type  == myHero.type and TS.target.visible then
-		return TS.target
-	end
+	return Selector.GetTarget(LESSCASTADVANCED, 'AD', {distance = Spells.R.range})
 end
 
 
@@ -210,44 +201,45 @@ function CastCombo(target)
 		local distance  = GetDistanceSqr(target)
 		local EQRange   = Spells.E.ready and Spells.Q.ready and Spells.E.range + Spells.Q.range
 		local EWRange   = Spells.E.ready and Spells.Q.ready and Spells.E.range + Spells.W.range
-		if RivenMenu.skills.comboR ~= 3 and Spells.R.ready and Spells.R.data.name == 'RivenFengShuiEngine' then
-			if RivenMenu.skills.comboR == 1 then
-				if target.health < (target.maxHealth * (RivenMenu.skills.healthR / 100)) and ((Spells.E.ready and Spells.Q.ready) or (Spells.W.ready and Spells.Q.ready)) then
-					CastSpell(_R)
-				end
-			elseif RivenMenu.skills.comboR == 2 then
-				if target.health < (target.maxHealth * (RivenMenu.skills.healthR / 100)) then
-					CastSpell(_R)
-				end
-			end
+		if RivenMenu.combo.ulti and Ult(target) and Spells.R.ready and InRange(target) then
+			CastSpell(_R)
 		end
-		
+		if EQ then
+			Cast(_E, target, EQRange)
+		elseif EW then
+			Cast(_E, target, EWRange)
+		else
+			Cast(_E, target, Spells.E.range)
+		end		
 		if RivenMenu.combo.forceAAs then
-			if BuffInfo.P.stacks < RivenMenu.combo.maxStacks then
+			if BuffInfo.P.stacks < 1 then
 				if not CanAttack() or not InRange(target) then
 					Cast(_Q, target, Spells.Q.range)
 				end
-				if EQ then
-					Cast(_E, target, EQRange)
-				elseif EW then
-					Cast(_E, target, EWRange)
-				else
-					Cast(_E, target, Spells.E.range)
-				end
-				Cast(_W, target, Spells.W.range)
 			end
 		else
 			Cast(_Q, target, Spells.Q.range)
-			if EQ then
-				Cast(_E, target, EQRange)
-			elseif EW then
-				Cast(_E, target, EWRange)
-			else
-				Cast(_E, target, Spells.E.range)
-			end
+		end
+		if not Items.TIAMAT.ready or Items.HYDRA.ready then 
 			Cast(_W, target, Spells.W.range)
 		end
 	end
+end
+
+function Ult(target)
+	local Dmg = {P = getDmg('P',  target, myHero),
+				 A = getDmg('AD', target, myHero),
+				 Q = Spells.Q.ready and getDmg('Q', target, myHero) or 0,
+				 W = Spells.W.ready and getDmg('W', target, myHero) or 0,
+				 R = Spells.R.ready and getDmg('R', target, myHero) or 0}
+
+	return ((Dmg.P*3) + (Dmg.A*3) + (Dmg.Q*3) + Dmg.W + Dmg.R) > target.health
+end
+
+
+
+function CancelAnimation()
+	return RivenMenu.combo.anim == 1 and SendChat('/l') or Packet('S_MOVE', { x = mousePos.x, y = mousePos.z }):send()
 end
 
 function KillSteal()
@@ -264,7 +256,7 @@ function KillSteal()
 					end	
 				end
 			end
-			if RivenMenu.kill.Ignite and GetDistanceSqr(enemy) < 600 * 600 then
+			if Ignite ~= nil and RivenMenu.kill.Ignite and GetDistanceSqr(enemy) < 600 * 600 then
 				IgniteCheck(enemy)
 			end
 			if RivenMenu.kill.killW and enemy.health < getDmg("W", enemy, myHero) then
@@ -293,18 +285,11 @@ function UseItems(enemy)
 end
 
 function Orb(target)
-    if target and CanAttack() and ValidTarget(target, AARange(target)) then
+    if target and CanAttack() and InRange(target) then
       	Attack(target)
     else
     	local MovePos = Vector(myHero) + 400 * (Vector(mousePos) - Vector(myHero)):normalized()
-    	local AARange = target and AARange(target)
-        if not target then
-            Packet('S_MOVE', { x = MovePos.x, y = MovePos.z }):send()
-        elseif target and not InRange(target) and GetDistanceSqr(target) < ((AARange + 200) * (AARange * 200)) then
-			Packet('S_MOVE', { x = target.x, y = target.z }):send()
-        elseif target and not InRange(target) then
-        	Packet('S_MOVE', { x = MovePos.x, y = MovePos.z }):send()
-		end
+        Packet('S_MOVE', { x = MovePos.x, y = MovePos.z }):send()
     end
 end
 
