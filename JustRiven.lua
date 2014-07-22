@@ -1,5 +1,5 @@
 -- Script Name: Just Riven
--- Script Ver.: 1.4
+-- Script Ver.: 1.4.9
 -- Author     : Skeem
 
 --[[ Changelog:
