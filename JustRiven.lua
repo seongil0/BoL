@@ -26,6 +26,7 @@
 	      - Tried to improve AA in between spells
 	1.4.8 - Fixed boolean error
 	      - Fixed Qing backwards when trying to run
+	1.4.9 - Fixed Lib Path Error
 ]]--
 
 if myHero.charName ~= 'Riven' then return end
@@ -83,7 +84,7 @@ require 'Selector'
 			end		
 		RivenMenu:addParam('comboKey', 'Combo Key X', SCRIPT_PARAM_ONKEYDOWN, false, 88)
 
-PrintChat("<font color='#663300'>Just Riven 1.4 Loaded</font>")
+PrintChat("<font color='#663300'>Just Riven 1.4.9 Loaded</font>")
 RivenLoaded = true
 
 function OnTick()
