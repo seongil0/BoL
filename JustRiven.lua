@@ -1,5 +1,5 @@
 -- Script Name: Just Riven
--- Script Ver.: 1.4.9
+-- Script Ver.: 1.5
 -- Author     : Skeem
 
 --[[ Changelog:
@@ -24,15 +24,14 @@
 	1.4.5 - Fixed Ult Kill Usage
 	      - Fixed W error spamming
 	      - Tried to improve AA in between spells
-	1.4.8 - Fixed boolean error
+	      - Fixed boolean error
 	      - Fixed Qing backwards when trying to run
-	1.4.9 - Fixed Lib Path Error
+	1.5   - Update Riven's orbwalker a bit
 ]]--
 
 if myHero.charName ~= 'Riven' then return end
 
 require 'VPrediction'
-require 'Selector'
 
 	Spells = {
 		Q = {key = _Q, string = 'Q', name = 'Broken Wings',   range = 280, ready = false, data = nil, color = 0x663300},
@@ -59,7 +58,13 @@ require 'Selector'
 
 	Orbwalking = {
 		lastAA     = 0,
+		windUp     = 3.75,
+ 		animation  = 0.625,
+ 		range      = 0
 	}
+
+	TS = TargetSelector(TARGET_LESS_CAST_PRIORITY, Spells.R.range, DAMAGE_PHYSICAL)
+ 	TS.name = 'Riven'
 
 	RivenMenu = scriptConfig('~[Just Riven]~', 'Riven')
 		RivenMenu:addSubMenu('~[Skill Settings]~', 'skills')
@@ -84,12 +89,15 @@ require 'Selector'
 			end		
 		RivenMenu:addParam('comboKey', 'Combo Key X', SCRIPT_PARAM_ONKEYDOWN, false, 88)
 
-PrintChat("<font color='#663300'>Just Riven 1.4.9 Loaded</font>")
+PrintChat("<font color='#663300'>Just Riven 1.4 Loaded</font>")
 RivenLoaded = true
 
 function OnTick()
 	if not RivenLoaded then return end
+	
 	Target = GetTarget()
+	Orbwalking.range = myHero.range + vPred:GetHitBox(myHero)
+
 	for _, spell in pairs(Spells) do
 		spell.ready = myHero:CanUseSpell(spell.key) == READY
 		spell.data  = myHero:GetSpellData(spell.key)
@@ -111,7 +119,7 @@ function OnTick()
 	if RivenMenu.kill.enabled then
 		KillSteal()
 	end
-end 
+end
 
 function OnDraw()
 	if not RivenLoaded then return end
@@ -162,8 +170,8 @@ function OnSendPacket(packet)
 if not RivenLoaded then return end
 	local p = Packet(packet)
 	if p:get('name') == 'S_CAST' and p:get('sourceNetworkId') == myHero.networkID then
-		DelayAction(function() CancelAnimation() end, .1)
-		if Target and RivenMenu.comboKey then
+		DelayAction(function() CancelAnimation() end, .2)
+		if Target and RivenMenu.comboKey and BuffInfo.P.stacks < 2 then
 			if p:get('spellId') == 0 then
 				Orbwalking.lastAA = 0
 			elseif p:get('spellId') == 1 and Spells.Q.ready then
@@ -182,11 +190,19 @@ end
 
 function OnRecvPacket(packet)
 	if not RivenLoaded then return end
+	if packet and packet.header == 0xFE then
+ 		packet.pos = 1
+ 		if packet:DecodeF() == myHero.networkID then
+ 			--print('AA Started')
+ 			Orbwalking.lastAA = os.clock() - GetLatency() / 2000
+ 		end
+ 	end
 	if packet.header == 0x34 then
 		packet.pos = 1
 		if packet:DecodeF() == myHero.networkID then
 			packet.pos = 9
 			if packet:Decode1() == 0x11 then
+				--print('AA Canceled')
 				Orbwalking.lastAA = 0
 			end
 		end
@@ -205,12 +221,16 @@ function OnRecvPacket(packet)
   				end
 			end
 			Orbwalking.lastAA = 0
+			--print('AA Finished')
   		end
  	end
 end
 
 function GetTarget()
-	return Selector.GetTarget(LESSCASTADVANCED, 'AD', {distance = Spells.R.range})
+	TS:update()
+ 	if TS.target ~= nil and not TS.target.dead and TS.target.type  == myHero.type and TS.target.visible then
+ 		return TS.target
+ 	end
 end
 
 
@@ -305,27 +325,39 @@ function UseItems(enemy)
 end
 
 function Orb(target)
-    if target and CanAttack() and InRange(target) then
-      	Attack(target)
-    else
-    	local MovePos = Vector(myHero) + 400 * (Vector(mousePos) - Vector(myHero)):normalized()
-        Packet('S_MOVE', { x = MovePos.x, y = MovePos.z }):send()
-    end
-end
-
-function CanAttack()
-	return os.clock() > Orbwalking.lastAA
-end
-
-function AARange(target)
-	return myHero.range + vPred:GetHitBox(myHero) + vPred:GetHitBox(target)
+	if target and CanAttack() and ValidTarget(target, truerange) then
+		Attack(target)
+	elseif CanMove() then
+		local MovePos = myHero + (Vector(mousePos) - myHero):normalized()*300
+		Packet('S_MOVE', { x = MovePos.x, y = MovePos.z }):send()
+	end
 end
 
 function InRange(target)
-	return GetDistanceSqr(target.visionPos, myHero.visionPos) < AARange(target) * AARange(target)
+	local truetrange = vPred:GetHitBox(target) + Orbwalking.range
+	return GetDistanceSqr(target.visionPos, myHero.visionPos) < truetrange * truetrange
+end
+
+function CanAttack()
+	if Orbwalking.lastAA <= os.clock() then
+		return (os.clock() + GetLatency() / 2000  > Orbwalking.lastAA + AnimationTime())
+	end
+	return false
 end
 
 function Attack(target)
-	Orbwalking.lastAA = os.clock()
 	Packet('S_MOVE', {type = 3, targetNetworkId = target.networkID}):send()
+end
+
+function CanMove()
+	if Orbwalking.lastAA <= os.clock() then
+		return (os.clock() + GetLatency() / 2000 > Orbwalking.lastAA + WindUpTime())
+	end
+end
+function AnimationTime()
+	return (1 / (myHero.attackSpeed * Orbwalking.animation))
+end
+
+function WindUpTime()
+	return (1 / (myHero.attackSpeed * Orbwalking.windUp))
 end
