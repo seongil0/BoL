@@ -1,5 +1,5 @@
 -- Script Name: Just Riven
--- Script Ver.: 1.6
+-- Script Ver.: 1.6.1
 -- Author     : Skeem
 
 --[[ Changelog:
@@ -55,7 +55,8 @@ require "SxOrbWalk"
 		Q = {stage  = 0}
 	}
 
-
+	SxOrb:ChangeSettings("TargetRange", 600)
+	SxOrb:ChangeSettings("ForceSelector", true)
 	RivenMenu = scriptConfig('~[Just Riven]~', 'Riven')
 		RivenMenu:addSubMenu('~[Skill Settings]~', 'skills')
 			RivenMenu.skills:addParam('', '--[ W Options ]--', SCRIPT_PARAM_INFO, '')
@@ -70,8 +71,6 @@ require "SxOrbWalk"
 		SxOrb:LoadToMenu(RivenMenu.sxorb, true)
 		SxOrb:RegisterHotKey("AutoCarry", RivenMenu.combo, "orbwalk")
 		SxOrb:RegisterHotKey("AutoCarry", RivenMenu, "comboKey")
-		SxOrb:ChangeSettings("TargetRange", 600)
-		SxOrb:ChangeSettings("ForceSelector", true)
 
 		RivenMenu:addSubMenu('~[Kill Settings]~', 'kill')
 			RivenMenu.kill:addParam('enabled', 'Enable KillSteal',    SCRIPT_PARAM_ONOFF, true)
@@ -88,13 +87,10 @@ require "SxOrbWalk"
 		RivenMenu:addParam('comboKey', 'Combo Key X', SCRIPT_PARAM_ONKEYDOWN, false, 88)
 
 	
-PrintChat("<font color='#663300'>Just Riven 1.6 Loaded</font>")
-RivenLoaded = true
+PrintChat("<font color='#663300'>Just Riven 1.6.1 Loaded</font>")
 
 function OnTick()
-	if not RivenLoaded then return end
 	Target = SxOrb:GetTarget()
-	
 	for _, spell in pairs(Spells) do
 		spell.ready = myHero:CanUseSpell(spell.key) == READY
 		spell.data  = myHero:GetSpellData(spell.key)
@@ -116,7 +112,6 @@ function OnTick()
 end
 
 function OnDraw()
-	if not RivenLoaded then return end
 	for _, spell in pairs(Spells) do
 		if spell.ready and RivenMenu.draw[spell.string] then
 			DrawCircle(myHero.x, myHero.y, myHero.z, spell.range, spell.color)
@@ -125,7 +120,6 @@ function OnDraw()
 end
 
 function OnGainBuff(unit, buff)
-	if not RivenLoaded then return end
 	if unit.isMe then
 		if buff.name == 'rivenpassiveaaboost' then
 			BuffInfo.P.stacks = 1
@@ -140,7 +134,6 @@ function OnGainBuff(unit, buff)
 end
 
 function OnLoseBuff(unit, buff)
-	if not RivenLoaded then return end
 	if unit.isMe then
 		if buff.name == 'rivenpassiveaaboost' then
 			BuffInfo.P.stacks = 0
@@ -152,7 +145,6 @@ function OnLoseBuff(unit, buff)
 end
 
 function OnUpdateBuff(unit, buff)
-	if not RivenLoaded then return end
 	if unit.isMe then
 		if buff.name == 'rivenpassiveaaboost' then
 			BuffInfo.P.stacks = buff.stack
@@ -161,20 +153,19 @@ function OnUpdateBuff(unit, buff)
 end
 
 function OnSendPacket(packet)
-if not RivenLoaded then return end
 	local p = Packet(packet)
 	if p:get('name') == 'S_CAST' and p:get('sourceNetworkId') == myHero.networkID then
-		DelayAction(function() CancelAnimation() end, .2)
+		DelayAction(function() CancelAnimation() end, Latency())
 		if Target and RivenMenu.comboKey then
 			if p:get('spellId') == 0 then
-				DelayAction(function() SxOrb:ResetAA() end, .2)
+				DelayAction(function() SxOrb:ResetAA() end, Latency())
 			elseif p:get('spellId') == 1 and Spells.Q.ready then
-				DelayAction(function() Cast(_Q, Target, Spells.Q.range) end, .2)
+				DelayAction(function() Cast(_Q, Target, Spells.Q.range) end, Latency())
 			elseif p:get('spellId') == 2 and Spells.Q.ready then
-				DelayAction(function() Cast(_Q, Target, Spells.Q.range) end, .2)
+				DelayAction(function() Cast(_Q, Target, Spells.Q.range) end, Latency())
 			elseif p:get('spellId') > 3 then
-				DelayAction(function() SxOrb:ResetAA() end, .2)
-				DelayAction(function() Cast(_W, Target, Spells.W.range) end, .2)
+				DelayAction(function() SxOrb:ResetAA() end, Latency())
+				DelayAction(function() Cast(_W, Target, Spells.W.range) end, Latency())
 			end
 		end
 	end
@@ -196,6 +187,7 @@ function OnRecvPacket(packet)
   		end
  	end
 end
+
 
 function CastCombo(target)
 	if target then
@@ -245,19 +237,21 @@ end
 
 function KillSteal()
 	for _, enemy in pairs(GetEnemyHeroes()) do
-		if ValidTarget(enemy, Spells.R.range) then
-			if RivenMenu.kill.killR == 1 then
-				if enemy.health < getDmg("R", enemy, myHero) and Spells.R.data.name == 'rivenizunablade' then
-					Packet("S_CAST", { spellId = _R, toX = enemy.x, toY = enemy.z, fromX = enemy.x, fromY = enemy.z }):send()
-				end
-			elseif RivenMenu.kill.killR == 2 then
-				if enemy.health < getDmg("R", enemy, myHero) then
-					if Spells.R.data.name == 'rivenizunablade' then
+		if Spells.R.ready then
+			if ValidTarget(enemy, Spells.R.range) then
+				if RivenMenu.kill.killR == 1 then
+					if enemy.health < getDmg("R", enemy, myHero) and Spells.R.data.name == 'rivenizunablade' then
 						Packet("S_CAST", { spellId = _R, toX = enemy.x, toY = enemy.z, fromX = enemy.x, fromY = enemy.z }):send()
-					else
-						CastSpell(_R)
 					end
-				end	
+				elseif RivenMenu.kill.killR == 2 then
+					if enemy.health < getDmg("R", enemy, myHero) then
+						if Spells.R.data.name == 'rivenizunablade' then
+							Packet("S_CAST", { spellId = _R, toX = enemy.x, toY = enemy.z, fromX = enemy.x, fromY = enemy.z }):send()
+						else
+							CastSpell(_R)
+						end
+					end	
+				end
 			end
 			if Ignite ~= nil and RivenMenu.kill.Ignite and GetDistanceSqr(enemy) < 600 * 600 then
 				IgniteCheck(enemy)
@@ -290,4 +284,8 @@ end
 function InRange(target)
 	local truetrange = myHero.range + SxOrb:GetHitBox(myHero.charName) + SxOrb:GetHitBox(target.charName)
 	return GetDistanceSqr(target.visionPos, myHero.visionPos) < truetrange * truetrange
+end
+
+function Latency()
+	return GetLatency() / 2000
 end
