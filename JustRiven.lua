@@ -1,5 +1,5 @@
 -- Script Name: Just Riven
--- Script Ver.: 1.5
+-- Script Ver.: 1.6
 -- Author     : Skeem
 
 --[[ Changelog:
@@ -27,11 +27,12 @@
 	      - Fixed boolean error
 	      - Fixed Qing backwards when trying to run
 	1.5   - Update Riven's orbwalker a bit
+	1.6   - Now Uses SxOrbwalker remade a lot of the script!
 ]]--
 
 if myHero.charName ~= 'Riven' then return end
 
-require 'VPrediction'
+require "SxOrbWalk"
 
 	Spells = {
 		Q = {key = _Q, string = 'Q', name = 'Broken Wings',   range = 280, ready = false, data = nil, color = 0x663300},
@@ -54,27 +55,23 @@ require 'VPrediction'
 		Q = {stage  = 0}
 	}
 
-	vPred = VPrediction()
-
-	Orbwalking = {
-		lastAA     = 0,
-		windUp     = 3.75,
- 		animation  = 0.625,
- 		range      = 0
-	}
-
-	TS = TargetSelector(TARGET_LESS_CAST_PRIORITY, Spells.R.range, DAMAGE_PHYSICAL)
- 	TS.name = 'Riven'
 
 	RivenMenu = scriptConfig('~[Just Riven]~', 'Riven')
 		RivenMenu:addSubMenu('~[Skill Settings]~', 'skills')
 			RivenMenu.skills:addParam('', '--[ W Options ]--', SCRIPT_PARAM_INFO, '')
 			RivenMenu.skills:addParam('autoW', 'Auto W Close Enemies', SCRIPT_PARAM_ONOFF, false)
+
 		RivenMenu:addSubMenu('~[Combo Settings]~', 'combo')
 			RivenMenu.combo:addParam('forceAAs', 'Force AAs with Passive',    SCRIPT_PARAM_ONOFF, true)
 			RivenMenu.combo:addParam('orbwalk',  'Orbwalk in Combo',          SCRIPT_PARAM_ONOFF, true)
 			RivenMenu.combo:addParam('ulti',     'Use R for Potential Kills', SCRIPT_PARAM_ONOFF, true)
 			RivenMenu.combo:addParam('anim',     'Cancel Animation With:',    SCRIPT_PARAM_LIST, 2, {"Laugh", "Movement"})
+		RivenMenu:addSubMenu('~[SxOrb Settings]~', 'sxorb')
+		SxOrb:LoadToMenu(RivenMenu.sxorb, true)
+		SxOrb:RegisterHotKey("AutoCarry", RivenMenu.combo, "orbwalk")
+		SxOrb:RegisterHotKey("AutoCarry", RivenMenu, "comboKey")
+		SxOrb:ChangeSettings("TargetRange", 600)
+		SxOrb:ChangeSettings("ForceSelector", true)
 
 		RivenMenu:addSubMenu('~[Kill Settings]~', 'kill')
 			RivenMenu.kill:addParam('enabled', 'Enable KillSteal',    SCRIPT_PARAM_ONOFF, true)
@@ -87,17 +84,17 @@ require 'VPrediction'
 			for _, spell in pairs(Spells) do
 				RivenMenu.draw:addParam(spell.string, 'Draw '..spell.name..' ('..spell.string..')', SCRIPT_PARAM_ONOFF, true)
 			end		
+
 		RivenMenu:addParam('comboKey', 'Combo Key X', SCRIPT_PARAM_ONKEYDOWN, false, 88)
 
+	
 PrintChat("<font color='#663300'>Just Riven 1.4 Loaded</font>")
 RivenLoaded = true
 
 function OnTick()
 	if not RivenLoaded then return end
+	Target = SxOrb:GetTarget()
 	
-	Target = GetTarget()
-	Orbwalking.range = myHero.range + vPred:GetHitBox(myHero)
-
 	for _, spell in pairs(Spells) do
 		spell.ready = myHero:CanUseSpell(spell.key) == READY
 		spell.data  = myHero:GetSpellData(spell.key)
@@ -108,9 +105,6 @@ function OnTick()
 	end
 
 	if RivenMenu.comboKey then
-		if RivenMenu.combo.orbwalk then
-			Orb(Target)
-		end
 		CastCombo(Target)
 	end
 	if RivenMenu.skills.autoW and Spells.W.ready and Target ~= nil then
@@ -171,43 +165,22 @@ if not RivenLoaded then return end
 	local p = Packet(packet)
 	if p:get('name') == 'S_CAST' and p:get('sourceNetworkId') == myHero.networkID then
 		DelayAction(function() CancelAnimation() end, .2)
-		if Target and RivenMenu.comboKey and BuffInfo.P.stacks < 2 then
+		if Target and RivenMenu.comboKey then
 			if p:get('spellId') == 0 then
-				Orbwalking.lastAA = 0
+				DelayAction(function() SxOrb:ResetAA() end, .2)
 			elseif p:get('spellId') == 1 and Spells.Q.ready then
-				DelayAction(function() Cast(_Q, Target, Spells.Q.range) end, .17)
+				DelayAction(function() Cast(_Q, Target, Spells.Q.range) end, .2)
 			elseif p:get('spellId') == 2 and Spells.Q.ready then
-				DelayAction(function() Cast(_Q, Target, Spells.Q.range) end, .15)
+				DelayAction(function() Cast(_Q, Target, Spells.Q.range) end, .2)
 			elseif p:get('spellId') > 3 then
-				DelayAction(function() Cast(_W, Target, Spells.W.range) end, .13)
-			end
-			if InRange(Target) then
-				Attack(Target)
+				DelayAction(function() SxOrb:ResetAA() end, .2)
+				DelayAction(function() Cast(_W, Target, Spells.W.range) end, .2)
 			end
 		end
 	end
 end
 
 function OnRecvPacket(packet)
-	if not RivenLoaded then return end
-	if packet and packet.header == 0xFE then
- 		packet.pos = 1
- 		if packet:DecodeF() == myHero.networkID then
- 			--print('AA Started')
- 			Orbwalking.lastAA = os.clock() - GetLatency() / 2000
- 		end
- 	end
-	if packet.header == 0x34 then
-		packet.pos = 1
-		if packet:DecodeF() == myHero.networkID then
-			packet.pos = 9
-			if packet:Decode1() == 0x11 then
-				--print('AA Canceled')
-				Orbwalking.lastAA = 0
-			end
-		end
-	end
-	-- Thanks to Bilbao :3 --
 	if packet.header == 0x65 then
   		packet.pos = 5
   		local dmgType  = packet:Decode1()
@@ -220,19 +193,9 @@ function OnRecvPacket(packet)
   					Cast(_Q, Target, Spells.Q.range)
   				end
 			end
-			Orbwalking.lastAA = 0
-			--print('AA Finished')
   		end
  	end
 end
-
-function GetTarget()
-	TS:update()
- 	if TS.target ~= nil and not TS.target.dead and TS.target.type  == myHero.type and TS.target.visible then
- 		return TS.target
- 	end
-end
-
 
 function CastCombo(target)
 	if target then
@@ -251,7 +214,7 @@ function CastCombo(target)
 		end		
 		if RivenMenu.combo.forceAAs then
 			if BuffInfo.P.stacks < 1 then
-				if not CanAttack() or not InRange(target) then
+				if not InRange(target) or not SxOrb:CanAttack() then
 					Cast(_Q, target, Spells.Q.range)
 				end
 			end
@@ -324,40 +287,7 @@ function UseItems(enemy)
 	end
 end
 
-function Orb(target)
-	if target and CanAttack() and ValidTarget(target, truerange) then
-		Attack(target)
-	elseif CanMove() then
-		local MovePos = myHero + (Vector(mousePos) - myHero):normalized()*300
-		Packet('S_MOVE', { x = MovePos.x, y = MovePos.z }):send()
-	end
-end
-
 function InRange(target)
-	local truetrange = vPred:GetHitBox(target) + Orbwalking.range
+	local truetrange = myHero.range + SxOrb:GetHitBox(myHero.charName) + SxOrb:GetHitBox(target.charName)
 	return GetDistanceSqr(target.visionPos, myHero.visionPos) < truetrange * truetrange
-end
-
-function CanAttack()
-	if Orbwalking.lastAA <= os.clock() then
-		return (os.clock() + GetLatency() / 2000  > Orbwalking.lastAA + AnimationTime())
-	end
-	return false
-end
-
-function Attack(target)
-	Packet('S_MOVE', {type = 3, targetNetworkId = target.networkID}):send()
-end
-
-function CanMove()
-	if Orbwalking.lastAA <= os.clock() then
-		return (os.clock() + GetLatency() / 2000 > Orbwalking.lastAA + WindUpTime())
-	end
-end
-function AnimationTime()
-	return (1 / (myHero.attackSpeed * Orbwalking.animation))
-end
-
-function WindUpTime()
-	return (1 / (myHero.attackSpeed * Orbwalking.windUp))
 end
