@@ -88,7 +88,7 @@ require "SxOrbWalk"
 		RivenMenu:addParam('comboKey', 'Combo Key X', SCRIPT_PARAM_ONKEYDOWN, false, 88)
 
 	
-PrintChat("<font color='#663300'>Just Riven 1.4 Loaded</font>")
+PrintChat("<font color='#663300'>Just Riven 1.6 Loaded</font>")
 RivenLoaded = true
 
 function OnTick()
