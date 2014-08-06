@@ -1,4 +1,4 @@
-local version = "2.160"
+local version = "2.17"
 
 --[[
 
@@ -11,235 +11,350 @@ local version = "2.160"
 		YP   YD YP   YP    YP    YP   YP 88   YD Y888888P VP   V8P YP   YP 
 
 
-	Script - Katarina - The Sinister Blade 2.1.0 by Skeem and Roach
+	Script - Katarina - The Sinister Blade 2.1.7 by Skeem and Roach
 
 	Changelog :
-   1.0	 - Initial Release
-   1.1	 - Fixed Damage Calculation
-		 - Fixed Auto Ignite
-		 - Hopefully Fixed BugSplat
-   1.2	 - Really fixed BugSplat Now
-		 - More Damage Calculation Adjustments
-		 - More checks for when to ult
-		 - More checks to not use W when enemy not in range
-   1.2.1 - Fixed the problem with channelling ultimate
-   1.3	 - Fixed the problem with ult AGAIN
-		 - Added Auto Pots
-		 - Added Auto Zhonyas
-		 - Added Draw Circles of targets that can die
-   1.3.1 - Lul another Ult fix wtfux
-		 - Added move to mouse to harass mode
-   1.4	 - Recoded most of the script
-		 - Added toggle to use items with KS
-		 - Jungle Clearing
-		 - New method to stop ult from not channeling
-		 - New Menu
-		 - Lane Clear
-   1.4.1 - Added packet block ult movement
-   1.4.2 - Some draw text fixes
-		 - ult range fixes so it doesn't keep spinning if no enemies are around
-		 - Added some permashows
-   1.5   - No longer AutoCarry Script
-		 - Requires iSAC library for orbwalking
-		 - Revamped code a little
-		 - Deleted ult usage from auto KS for now
-   1.5.2 - Fixed Skills not casting ult
-		 - Fixed enemy chasing bug
-		 - Added delay W to both harass & full combo with toggle in menu
-   1.6   - Fixed Jungle Clear
-		 - Added Toggle to Stop ult if enemies can die from other spells
-		 - Fixed Ward Jump
+			1.0
+				- Initial Release
 
-		 - Improved Farm a bit
-   1.6.1 - Added Blackfire Tourch in combo
-		 - Fixed ult stop when enemies can die
-   1.6.2 - Fixed Blackfire torch error
-   1.7   - Updated ward jump, won't use more than 1 item
-		 - Beta KS with wards if E not ready
-		 - Beta ward save when in danger
-		 - Doesn't require iSAC anymore
-   1.7.1 - Fixed ward jump (doesn't jump to wards that are in oposite way of mouse)
-		 - Fixed Combo
-		 - some fixes for auto ward save
-   1.8   - Added Trinkets for Ward Jump
-		 - Improved KS a little, removed unnecessary code
-   1.8.3 - Attempt to fix some errors
-		 - Reworked combo a little should be smoother now
-		 - Added togge for orbwalking in combo as requested
-		 - Casting wards should work a little better as well
-   1.8.4 - Fixed bugsplat
-   1.8.5 - Fixed Draw Errors
-   1.8.7 - Fixed W Delay changed name to Proc Q Mark
-		 - Fixed text errors added Q mark to calculations
-   1.9   - Fixed ult issues recoded a couple of things
-   2.0   - Big update rewrote everything!
-		 - Combo Reworked should be a lot smoother now
-		 - Harass Reworked as well, should work better and detonate marks
-		 - Farm reworked / Uses mixed skill damages to maximize farm
-		 - Ward Jump Improved / Now Can ward to minions & allies that are in range
-		 - Lane Clear & Jungle Clear Improved / Uses new jungle table with all mobs in 5v5 / 3v3
-		 - New Overkill Protection
-		 - New Option to OrbWalk Minions In Lane During Lane Clear
-		 - New Option to Orbwalk Jungle during jungle clear
-		 - New Option to block packets while channeling (Won't block ultimate if Target is killable (Option for this too))
-		 - New Option to KS with Ult
-		 - New Option to KS with Items
-		 - New Option to KS with Wards / Minions / Allies
-		 - Added Priority Arranger to Target Selector
-		 - New Draw which shows exactly which skills need to be used to kill
-		 - New Option to Draw Who is being targetted by text
-		 - New Option to Draw a circle around target
-   2.0.1 - Removed Draw Circles around Target (FPS Drops)
-		 - All bug fixes by Roach:
-			- Fixed Variables
-			- Fixed and Added Ward Jump
-			- Fixed Items Usage
-   2.0.2 - Added TickManager/FPS Drops Improver - It will lower your FPS Drops
-		 - Deleted 'wardSave' from Misc Menu
-		 - Improved Ulti-KS
-		 - Now Lag Free Circles is implemented:
-			- Credits to:
-				- barasia283
-				- vadash
-				- ViceVersa
-				- Trees
-				- Any more I don't know of
-			- Features:
-				- Globally reduces the FPS drop from circles.
-			- Requirements:
-				- VIP
-   2.0.3 - Added Ulti Seconds Timer
-			- Features:
-				- How many seconds do we need to kill an Enemy
-			- It will be Improved as it is in Early Development
-		 - Fixed some more Typo
-		 - Fixed a little bug where the Ward-Jump function didn't jumped on Minions
-		 - 'colorText' is now Yellow every time, because other colors can be hard to see
-		 - Fixed a bug where, if you were a Free User, the Lag Free Cicrcles Started to Spam errors
-   2.0.4 - Fixed a bug where 'Sinister Steel' (W) was used even if Katarina was Channelling her Ultimate
-		 - Fixed Range Draws blinking by adding a new option to Enable/Disable TickManager/FPS Improver in 'Misc Menu' (Default: OFF)
-		 - Using ARGB Function for the Draw Ranges
-		 - Fixed a bug where E Range was not seen
-		 - Fixed more typo and variables from 1.9
-		 - Made ward jumping more accurate
-		 - Fixed harass function
-   2.0.5 - FPS Lag should be fixed now
-		 - Edited Ward Jump to jump at max range
-		 - Added Jump to Allies if in danger
-		 - Fixed Ulti problem for Free Users
-		 - Updated Damage Calculation
-			- Added: Q+E+W+Itm = Kill
-		 - Hopefully fixed Ward-Jump
-		 - Improved Ulti functionality for VIP and Free Users
-		 - Fixed a bug where Katarina was not farming with W if only W was Enabled to farm
-		 - Fixed a bug with Damage Calculation
-		 - Added Liandry's Torment into the Damage Calculation
-		 - Increased Farming Performance
-   2.0.6 - Added Orbwalkig in Harass
-		 - Improved Ult Functionality
-		 - Fixed bugs from 2.0.5 about Ult
-		 - Fixed some typo
-		 - Fixed some logics about killsteal
-		 - Fixed some Logics about getting Distance
-		 - Improved Logics of the Script
-   2.0.7 - Finally fixed Proc Q Mark
-		 - Changed some variables
-		 - Improved Ult Killsteal (Experimental)
-		 - Hopefully fixed Double-Ward Bug
-		 - Fixed farm with 'Shunpo' (E)
-		 - Fixed Sightstone not casting Bug
-		 - Fixed typo
-		 - Added Auto-updater
-		 - Added Anti-Ult Breaking for MMA / SAC
-		 - Fixed Ult Breaking for Free / VIP Users
-   2.0.8 - Fixed Ignite Bug while Ult (VIP Users Bug)
-		 - Fixed Auto-W Bug while Ult
-		 - Added Auto-E at Max Range while Ult (Option in Combo Menu)
-		 - Changed Harass Menu
-		 - Fixed Packet Spamming Errors
-		 - Improved Proc Q Mark
-		 - Hopefully fixed Spamming Errors
-		 - Improved Ult Functionality
-		 - Improved Damage Calculation
-		 - Improved Orbwalker
-		 - Fixed Ward-Jump Bug when Ult
-		 - Fixed MMA Blocking Issues for Free Users
-		 - Added Support for MMA Target Selector
-		 - Fixed Combo Stuttering
-		 - Fixed Ult Stuttering
-   2.0.9 - Fixed Spamming Errors when Using Ult
-		 - Fixed MMA Breaking Ult
-		 - Added Summoner Spells as an Exception at Blocking Packets while Kata is Channeling Ult (VIP USERS)
-		 - Improved Combo Functionality
-		 - Fixed Combo Stuttering
-		 - Fixed Typos about Ult
-		 - Added Support for SAC Target Selector
-		 - Fixed some 'nil' values arount the Script
-		 - Improved Auto-E Functionality
-		 - Implemented right-click to Interrupt the Ult
-		 - Improved 'Proc Q Mark Option'
-		 - Fixed 'Not Casting Ult' Bug
-		 - Fixed Auto-E Bugs and Hopefully Right-Click to Interrupt Bug
-   2.1.0 - Added another Level Sequence (Prioritise Q)
-		 - Changed 'Auto Level Skills' Menu
-		 - Improved Packet Checks (VIP)
-		 - Fixed Packet Problems (VIP)
-		 - Fixed Jungle Clear Bug (Not using Spells neither Attack)
-		 - Added usage for 'OnGainBuff' and 'OnLoseBuff' (VIP)
-		 - Improved Killsteal Function
-		 - Re-arranged 'Auto Level Skills' Menu
-		 - Fixed Ult Cancelling
-		 - Brought a Fix for MMA (Cancelling Ult)
-		 - Brought a Fix for SAC (Cancelling Ult)
-   2.1.1 - Fixed SAC Errors
-		 - Fixed Orbwalker not Orbwalking(lel)
-		 - Improved Orbwalker
-		 - Fixed Spamming Infos about Ult
-		 - Improved Lua Script Performance
-		 - Fixed Cancelling Ult
-		 - Fixed Spamming Errors
-		 - Fixed AutoSkillsLevel Spamming Errors
-		 - Fixed Packet Errors
-		 - Improved Ult Anti-Breaking
-		 - Fixed Right-Click to Interrupt Bug
-   2.1.2 - Fixed Level Sequence Bug
-   		 - Improved the Auto-Updater (Thanks to Honda7)
-   		 - Improved Script's Performance
-   		 - Fixed Spamming Errors about 'ward' and 'Mob'
-   		 - Fixed Ult Cancelling (VIP)
+			1.1
+				- Fixed Damage Calculation
+				- Fixed Auto Ignite
+				- Hopefully Fixed BugSplat
+
+			1.2
+				- Really fixed BugSplat Now
+				- More Damage Calculation Adjustments
+				- More checks for when to ult
+				- More checks to not use W when enemy not in range
+
+			1.2.1
+				- Fixed the problem with channelling ultimate
+
+			1.3
+				- Fixed the problem with ult AGAIN
+				- Added Auto Pots
+				- Added Auto Zhonyas
+				- Added Draw Circles of targets that can die
+
+			1.3.1
+				- Lul another Ult fix wtfux
+				- Added move to mouse to harass mode
+
+			1.4
+				- Recoded most of the script
+				- Added toggle to use items with KS
+				- Jungle Clearing
+				- New method to stop ult from not channeling
+				- New Menu
+				- Lane Clear
+
+			1.4.1
+				- Added packet block ult movement
+
+			1.4.2
+				- Some draw text fixes
+				- ult range fixes so it doesn't keep spinning if no enemies are around
+				- Added some permashows
+
+			1.5
+				- No longer AutoCarry Script
+				- Requires iSAC library for orbwalking
+				- Revamped code a little
+				- Deleted ult usage from auto KS for now
+
+			1.5.2
+				- Fixed Skills not casting ult
+				- Fixed enemy chasing bug
+				- Added delay W to both harass & full combo with toggle in menu
+
+			1.6
+				- Fixed Jungle Clear
+				- Added Toggle to Stop ult if enemies can die from other spells
+				- Fixed Ward Jump
+				- Improved Farm a bit
+
+			1.6.1
+				- Added Blackfire Tourch in combo
+				- Fixed ult stop when enemies can die
+
+			1.6.2
+				- Fixed Blackfire torch error
+
+			1.7
+				- Updated ward jump, won't use more than 1 item
+				- Beta KS with wards if E not ready
+				- Beta ward save when in danger
+				- Doesn't require iSAC anymore
+
+			1.7.1
+				- Fixed ward jump (doesn't jump to wards that are in oposite way of mouse)
+				- Fixed Combo
+				- some fixes for auto ward save
+
+			1.8
+				- Added Trinkets for Ward Jump
+				- Improved KS a little, removed unnecessary code
+
+			1.8.3
+				- Attempt to fix some errors
+				- Reworked combo a little should be smoother now
+				- Added togge for orbwalking in combo as requested
+				- Casting wards should work a little better as well
+
+			1.8.4
+				- Fixed bugsplat
+
+			1.8.5
+				- Fixed Draw Errors
+
+			1.8.7
+				- Fixed W Delay changed name to Proc Q Mark
+				- Fixed text errors added Q mark to calculations
+
+			1.9
+				- Fixed ult issues recoded a couple of things
+
+			2.0
+				- Big update rewrote everything!
+				- Combo Reworked should be a lot smoother now
+				- Harass Reworked as well, should work better and detonate marks
+				- Farm reworked / Uses mixed skill damages to maximize farm
+				- Ward Jump Improved / Now Can ward to minions & allies that are in range
+				- Lane Clear & Jungle Clear Improved / Uses new jungle table with all mobs in 5v5 / 3v3
+				- New Overkill Protection
+				- New Option to OrbWalk Minions In Lane During Lane Clear
+				- New Option to Orbwalk Jungle during jungle clear
+				- New Option to block packets while channeling (Won't block ultimate if Target is killable (Option for this too))
+				- New Option to KS with Ult
+				- New Option to KS with Items
+				- New Option to KS with Wards / Minions / Allies
+				- Added Priority Arranger to Target Selector
+				- New Draw which shows exactly which skills need to be used to kill
+				- New Option to Draw Who is being targetted by text
+				- New Option to Draw a circle around target
+
+			2.0.1
+				- Removed Draw Circles around Target (FPS Drops)
+				- All bug fixes by Roach:
+					- Fixed Variables
+					- Fixed and Added Ward Jump
+					- Fixed Items Usage
+
+			2.0.2
+				- Added TickManager/FPS Drops Improver - It will lower your FPS Drops
+				- Deleted 'wardSave' from Misc Menu
+				- Improved Ulti-KS
+				- Now Lag Free Circles is implemented:
+					- Credits to:
+						- barasia283
+						- vadash
+						- ViceVersa
+						- Trees
+						- Any more I don't know of
+					- Features:
+						- Globally reduces the FPS drop from circles.
+					- Requirements:
+						- VIP
+
+			2.0.3
+				- Added Ulti Seconds Timer
+					- Features:
+						- How many seconds do we need to kill an Enemy
+							- It will be Improved as it is in Early Development
+				- Fixed some more Typo
+				- Fixed a little bug where the Ward-Jump function didn't jumped on Minions
+				- 'colorText' is now Yellow every time, because other colors can be hard to see
+				- Fixed a bug where, if you were a Free User, the Lag Free Cicrcles Started to Spam errors
+
+			2.0.4
+				- Fixed a bug where 'Sinister Steel' (W) was used even if Katarina was Channelling her Ultimate
+				- Fixed Range Draws blinking by adding a new option to Enable/Disable TickManager/FPS Improver in 'Misc Menu' (Default: OFF)
+				- Using ARGB Function for the Draw Ranges
+				- Fixed a bug where E Range was not seen
+				- Fixed more typo and variables from 1.9
+				- Made ward jumping more accurate
+				- Fixed harass function
+
+			2.0.5 - FPS Lag should be fixed now
+				- Edited Ward Jump to jump at max range
+				- Added Jump to Allies if in danger
+				- Fixed Ulti problem for Free Users
+				- Updated Damage Calculation
+					- Added: Q+E+W+Itm = Kill
+				- Hopefully fixed Ward-Jump
+				- Improved Ulti functionality for VIP and Free Users
+				- Fixed a bug where Katarina was not farming with W if only W was Enabled to farm
+				- Fixed a bug with Damage Calculation
+				- Added Liandry's Torment into the Damage Calculation
+				- Increased Farming Performance
+
+			2.0.6
+				- Added Orbwalkig in Harass
+				- Improved Ult Functionality
+				- Fixed bugs from 2.0.5 about Ult
+				- Fixed some typo
+				- Fixed some logics about killsteal
+				- Fixed some Logics about getting Distance
+				- Improved Logics of the Script
+
+			2.0.7
+				- Finally fixed Proc Q Mark
+				- Changed some variables
+				- Improved Ult Killsteal (Experimental)
+				- Hopefully fixed Double-Ward Bug
+				- Fixed farm with 'Shunpo' (E)
+				- Fixed Sightstone not casting Bug
+				- Fixed typo
+				- Added Auto-updater
+				- Added Anti-Ult Breaking for MMA / SAC
+				- Fixed Ult Breaking for Free / VIP Users
+
+			2.0.8
+				- Fixed Ignite Bug while Ult (VIP Users Bug)
+				- Fixed Auto-W Bug while Ult
+				- Added Auto-E at Max Range while Ult (Option in Combo Menu)
+				- Changed Harass Menu
+				- Fixed Packet Spamming Errors
+				- Improved Proc Q Mark
+				- Hopefully fixed Spamming Errors
+				- Improved Ult Functionality
+				- Improved Damage Calculation
+				- Improved Orbwalker
+				- Fixed Ward-Jump Bug when Ult
+				- Fixed MMA Blocking Issues for Free Users
+				- Added Support for MMA Target Selector
+				- Fixed Combo Stuttering
+				- Fixed Ult Stuttering
+
+			2.0.9
+				- Fixed Spamming Errors when Using Ult
+				- Fixed MMA Breaking Ult
+				- Added Summoner Spells as an Exception at Blocking Packets while Kata is Channeling Ult (VIP USERS)
+				- Improved Combo Functionality
+				- Fixed Combo Stuttering
+				- Fixed Typos about Ult
+				- Added Support for SAC Target Selector
+				- Fixed some 'nil' values arount the Script
+				- Improved Auto-E Functionality
+				- Implemented right-click to Interrupt the Ult
+				- Improved 'Proc Q Mark Option'
+				- Fixed 'Not Casting Ult' Bug
+				- Fixed Auto-E Bugs and Hopefully Right-Click to Interrupt Bug
+
+			2.1.0
+				- Added another Level Sequence (Prioritise Q)
+				- Changed 'Auto Level Skills' Menu
+				- Improved Packet Checks (VIP)
+				- Fixed Packet Problems (VIP)
+				- Fixed Jungle Clear Bug (Not using Spells neither Attack)
+				- Added usage for 'OnGainBuff' and 'OnLoseBuff' (VIP)
+				- Improved Killsteal Function
+				- Re-arranged 'Auto Level Skills' Menu
+				- Fixed Ult Cancelling
+				- Brought a Fix for MMA (Cancelling Ult)
+				- Brought a Fix for SAC (Cancelling Ult)
+
+			2.1.1
+				- Fixed SAC Errors
+				- Fixed Orbwalker not Orbwalking(lel)
+				- Improved Orbwalker
+				- Fixed Spamming Infos about Ult
+				- Improved Lua Script Performance
+				- Fixed Cancelling Ult
+				- Fixed Spamming Errors
+				- Fixed AutoSkillsLevel Spamming Errors
+				- Fixed Packet Errors
+				- Improved Ult Anti-Breaking
+				- Fixed Right-Click to Interrupt Bug
+
+			2.1.2
+				- Fixed Level Sequence Bug
+				- Improved the Auto-Updater (Thanks to Honda7)
+				- Improved Script's Performance
+				- Fixed Spamming Errors about 'ward' and 'Mob'
+				- Fixed Ult Cancelling (VIP)
+
+			2.1.3 - 2.1.6
+				- Useless Fix-Bugs made by my Laziness
+
+			2.1.7
+				- Added SOW Support as Main Orbwalker
+				- Added Lib Updater
+				- Improved Auto-Updater
+				- Fixed a Range bug:
+					- Target Selector was selecting the Target in E-Range or Q-Range even if E / Q wasn't available, so this was Lethal in a Team-Fight as Kata wasn't casting Ult
 
   	]] --
 
 -- / Hero Name Check / --
 if myHero.charName ~= "Katarina" then return end
 -- / Hero Name Check / --
+_G.Kata_Autoupdate = true
+
+-- / Lib Auto-Update Function / --
+local lib_Required = {
+	["SOW"]			= "https://raw.githubusercontent.com/Hellsing/BoL/master/Common/SOW.lua",
+	["VPrediction"]	= "https://raw.githubusercontent.com/Hellsing/BoL/master/Common/VPrediction.lua"
+}
+
+local lib_downloadNeeded, lib_downloadCount = false, 0
+
+function AfterDownload()
+	lib_downloadCount = lib_downloadCount - 1
+	if lib_downloadCount == 0 then
+		lib_downloadNeeded = false
+		print("<font color=\"#FF0000\">Katarina - The Sinister Blade:</font> <font color=\"#FFFFFF\">Required libraries downloaded successfully, please reload (double F9).</font>")
+	end
+end
+
+for lib_downloadName, lib_downloadUrl in pairs(lib_Required) do
+	local lib_fileName = LIB_PATH .. lib_downloadName .. ".lua"
+
+	if FileExist(lib_fileName) then
+		require(lib_downloadName)
+	else
+		lib_downloadNeeded = true
+		lib_downloadCount = lib_downloadCount and lib_downloadCount + 1 or 1
+		DownloadFile(lib_downloadUrl, lib_fileName, function() AfterDownload() end)
+	end
+end
+
+if lib_downloadNeeded then return end
+-- / Lib Auto-Update Function / --
 
 -- / Auto-Update Function / --
-local Kata_Autoupdate = true
-local UPDATE_SCRIPT_NAME = "Katarina - The Sinister Blade"
-local UPDATE_HOST = "raw.github.com"
-local UPDATE_PATH = "/UglyOldGuy/BoL/master/Katarina%20-%20The%20Sinister%20Blade.lua".."?rand="..math.random(1,10000)
-local UPDATE_FILE_PATH = SCRIPT_PATH..GetCurrentEnv().FILE_NAME
-local UPDATE_URL = "https://"..UPDATE_HOST..UPDATE_PATH
+local script_downloadName = "Katarina - The Sinister Blade"
+local script_downloadHost = "raw.github.com"
+local script_downloadPath = "/UglyOldGuy/BoL/master/Katarina%20-%20The%20Sinister%20Blade.lua" .. "?rand=" .. math.random(1, 10000)
+local script_downloadUrl = "https://" .. script_downloadHost .. script_downloadPath
+local script_filePath = SCRIPT_PATH .. GetCurrentEnv().FILE_NAME
 
-function AutoupdaterMsg(msg) print("<font color=\"#FF0000\">"..UPDATE_SCRIPT_NAME..":</font> <font color=\"#FFFFFF\">"..msg..".</font>") end
-if Kata_Autoupdate then
-	local ServerData = GetWebResult(UPDATE_HOST, UPDATE_PATH)
-	if ServerData then
-		local ServerVersion = string.match(ServerData, "local version = \"%d+.%d+\"")
-		ServerVersion = string.match(ServerVersion and ServerVersion or "", "%d+.%d+")
-		if ServerVersion then
-			ServerVersion = tonumber(ServerVersion)
-			if tonumber(version) < ServerVersion then
-				AutoupdaterMsg("New version available"..ServerVersion)
-				AutoupdaterMsg("Updating, please don't press F9")
-				DownloadFile(UPDATE_URL, UPDATE_FILE_PATH, function () AutoupdaterMsg("Successfully updated. ("..version.." => "..ServerVersion.."), press F9 twice to load the updated version.") end)	 
+function script_Messager(msg) print("<font color=\"#FF0000\">" .. script_downloadName .. ":</font> <font color=\"#FFFFFF\">" .. msg .. ".</font>") end
+
+if _G.Kata_Autoupdate then
+	local script_webResult = GetWebResult(script_downloadHost, script_downloadPath)
+	if script_webResult then
+		local script_serverVersion = string.match(script_webResult, "local%s+version%s+=%s+\"%d+.%d+\"")
+		
+		if script_serverVersion then
+			script_serverVersion = tonumber(string.match(script_serverVersion or "", "%d+%.?%d*"))
+
+			if not script_serverVersion then
+				script_Messager("Please contact the developer of the script \"" .. script_downloadName .. "\", since the auto updater returned an invalid version.")
+				return
+			end
+
+			if tonumber(version) < script_serverVersion then
+				script_Messager("New version available: " .. script_serverVersion)
+				script_Messager("Updating, please don't press F9")
+				DelayAction(function () DownloadFile(script_downloadUrl, script_filePath, function() script_Messager("Successfully updated the script, please reload!") end) end, 2)
 			else
-				AutoupdaterMsg("You have got the latest version ("..ServerVersion..")")
+				script_Messager("You've got the latest version: " .. script_serverVersion)
 			end
 		end
 	else
-		AutoupdaterMsg("Error downloading version info")
+		script_Messager("Error downloading server version!")
 	end
 end
 -- / Auto-Update Function / --
@@ -289,7 +404,7 @@ function OnTick()
 		end	
 		if WardJumpKey then
 			moveToCursor()
-			local WardPos = GetDistanceSqr(mousePos) <= SkillWard.range*SkillWard.range and mousePos or getMousePos()
+			local WardPos = GetDistanceSqr(mousePos) <= SkillWard.range * SkillWard.range and mousePos or getMousePos()
 			wardJump(WardPos.x, WardPos.z)
 		end
 		if KatarinaMenu.killsteal.smartKS then
@@ -336,9 +451,9 @@ function Variables()
 	--- Items Vars ---
 	--- Orbwalking Vars ---
 	--->
-		lastAttack = 0
-		lastAttackCD = 0
-		lastWindUpTime = 0
+		vPred = VPrediction()
+
+		kSOW = SOW(vPred)
 	---<
 	--- Orbwalking Vars ---
 	--- TickManager Vars ---
@@ -501,56 +616,52 @@ function KatarinaMenu()
 	--->
 		KatarinaMenu = scriptConfig("Katarina - The Sinister Blade", "Katarina")
 		---> Combo Menu
-		KatarinaMenu:addSubMenu("["..myHero.charName.." - Combo Settings]", "combo")
-			KatarinaMenu.combo:addParam("comboKey", "Full Combo Key (X)", SCRIPT_PARAM_ONKEYDOWN, false, 88)
-			KatarinaMenu.combo:addParam("stopUlt", "Stop "..SkillR.name.." (R) If Target Can Die", SCRIPT_PARAM_ONOFF, false)
-			KatarinaMenu.combo:addParam("autoE", "Auto E if not in "..SkillR.name.." (R) Range while Ult", SCRIPT_PARAM_ONOFF, false)
-			KatarinaMenu.combo:addParam("detonateQ", "Try to Proc "..SkillQ.name.." (Q) Mark", SCRIPT_PARAM_ONOFF, false)
+		KatarinaMenu:addSubMenu("[" .. myHero.charName .. " - Combo Settings]", "combo")
+			KatarinaMenu.combo:addParam("comboKey", "Full Combo Key (SBTW)", SCRIPT_PARAM_ONKEYDOWN, false, 32)
+			KatarinaMenu.combo:addParam("stopUlt", "Stop " .. SkillR.name .. " (R) If Target Can Die", SCRIPT_PARAM_ONOFF, false)
+			KatarinaMenu.combo:addParam("autoE", "Auto E if not in " .. SkillR.name .. " (R) Range while Ult", SCRIPT_PARAM_ONOFF, false)
+			KatarinaMenu.combo:addParam("detonateQ", "Try to Proc " .. SkillQ.name .. " (Q) Mark", SCRIPT_PARAM_ONOFF, false)
 			KatarinaMenu.combo:addParam("comboItems", "Use Items with Burst", SCRIPT_PARAM_ONOFF, true)
-			KatarinaMenu.combo:addParam("comboOrbwalk", "Orbwalk in Combo", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.combo:permaShow("comboKey")
 		---<
 		---> Harass Menu
-		KatarinaMenu:addSubMenu("["..myHero.charName.." - Harass Settings]", "harass")
-			KatarinaMenu.harass:addParam("harassKey", "Harass Hotkey (T)", SCRIPT_PARAM_ONKEYDOWN, false, 84)
+		KatarinaMenu:addSubMenu("[" .. myHero.charName .. " - Harass Settings]", "harass")
+			KatarinaMenu.harass:addParam("harassKey", "Harass Hotkey (C)", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('C'))
 			KatarinaMenu.harass:addParam("hMode", "Harass Mode", SCRIPT_PARAM_LIST, 1, { "Q+E+W", "Q+W" })
 			KatarinaMenu.harass:addParam("detonateQ", "Proc Q Mark", SCRIPT_PARAM_ONOFF, true)
-			KatarinaMenu.harass:addParam("wharass", "Always "..SkillW.name.." (W)", SCRIPT_PARAM_ONOFF, true)
-			KatarinaMenu.harass:addParam("harassOrbwalk", "Orbwalk in Harass", SCRIPT_PARAM_ONOFF, true)
+			KatarinaMenu.harass:addParam("wharass", "Always " .. SkillW.name .. " (W)", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.harass:permaShow("harassKey")
 		---<
 		---> Farming Menu
-		KatarinaMenu:addSubMenu("["..myHero.charName.." - Farming Settings]", "farming")
+		KatarinaMenu:addSubMenu("[" .. myHero.charName .. " - Farming Settings]", "farming")
 			KatarinaMenu.farming:addParam("farmKey", "Farming ON/Off (Z)", SCRIPT_PARAM_ONKEYTOGGLE, true, 90)
-			KatarinaMenu.farming:addParam("qFarm", "Farm with "..SkillQ.name.." (Q)", SCRIPT_PARAM_ONOFF, true)
-			KatarinaMenu.farming:addParam("wFarm", "Farm with "..SkillW.name.." (W)", SCRIPT_PARAM_ONOFF, true)
-			KatarinaMenu.farming:addParam("eFarm", "Farm with "..SkillE.name.." (E)", SCRIPT_PARAM_ONOFF, false)
+			KatarinaMenu.farming:addParam("qFarm", "Farm with " .. SkillQ.name .. " (Q)", SCRIPT_PARAM_ONOFF, true)
+			KatarinaMenu.farming:addParam("wFarm", "Farm with " .. SkillW.name .. " (W)", SCRIPT_PARAM_ONOFF, true)
+			KatarinaMenu.farming:addParam("eFarm", "Farm with " .. SkillE.name .. " (E)", SCRIPT_PARAM_ONOFF, false)
 			KatarinaMenu.farming:permaShow("farmKey")
 		---<
 		---> Clear Menu		
-		KatarinaMenu:addSubMenu("["..myHero.charName.." - Clear Settings]", "clear")
-			KatarinaMenu.clear:addParam("clearKey", "Jungle/Lane Clear Key", SCRIPT_PARAM_ONKEYDOWN, false, 86)
+		KatarinaMenu:addSubMenu("[" .. myHero.charName .. " - Clear Settings]", "clear")
+			KatarinaMenu.clear:addParam("clearKey", "Jungle/Lane Clear Key (V)", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('V'))
 			KatarinaMenu.clear:addParam("JungleFarm", "Use Skills to Farm Jungle", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.clear:addParam("ClearLane", "Use Skills to Clear Lane", SCRIPT_PARAM_ONOFF, true)
-			KatarinaMenu.clear:addParam("clearQ", "Clear with "..SkillQ.name.." (Q)", SCRIPT_PARAM_ONOFF, true)
-			KatarinaMenu.clear:addParam("clearW", "Clear with "..SkillW.name.." (W)", SCRIPT_PARAM_ONOFF, true)
-			KatarinaMenu.clear:addParam("clearE", "Clear with "..SkillE.name.." (E)", SCRIPT_PARAM_ONOFF, true)
-			KatarinaMenu.clear:addParam("clearOrbM", "OrbWalk Minions", SCRIPT_PARAM_ONOFF, true)
-			KatarinaMenu.clear:addParam("clearOrbJ", "OrbWalk Jungle", SCRIPT_PARAM_ONOFF, true)
+			KatarinaMenu.clear:addParam("clearQ", "Clear with " .. SkillQ.name .. " (Q)", SCRIPT_PARAM_ONOFF, true)
+			KatarinaMenu.clear:addParam("clearW", "Clear with " .. SkillW.name .. " (W)", SCRIPT_PARAM_ONOFF, true)
+			KatarinaMenu.clear:addParam("clearE", "Clear with " .. SkillE.name .. " (E)", SCRIPT_PARAM_ONOFF, true)
 		---<
 		---> KillSteal Menu
-		KatarinaMenu:addSubMenu("["..myHero.charName.." - KillSteal Settings]", "killsteal")
+		KatarinaMenu:addSubMenu("[" .. myHero.charName .. " - KillSteal Settings]", "killsteal")
 			KatarinaMenu.killsteal:addParam("smartKS", "Use Smart Kill Steal", SCRIPT_PARAM_ONOFF, true)
 			-- KatarinaMenu.killsteal:addParam("wardKS", "Use Wards to KS", SCRIPT_PARAM_ONOFF, true)
-			KatarinaMenu.killsteal:addParam("ultKS", "Use "..SkillR.name.." (R) to KS", SCRIPT_PARAM_ONOFF, true)
+			KatarinaMenu.killsteal:addParam("ultKS", "Use " .. SkillR.name .. " (R) to KS", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.killsteal:addParam("itemsKS", "Use Items to KS", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.killsteal:addParam("Ignite", "Auto Ignite", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.killsteal:permaShow("smartKS")
 		---<
 		---> Drawing Menu			
-		KatarinaMenu:addSubMenu("["..myHero.charName.." - Drawing Settings]", "drawing")
+		KatarinaMenu:addSubMenu("[" .. myHero.charName .. " - Drawing Settings]", "drawing")
 			if VIP_USER then
-				KatarinaMenu.drawing:addSubMenu("["..myHero.charName.." - LFC Settings]", "lfc")
+				KatarinaMenu.drawing:addSubMenu("[" .. myHero.charName .. " - LFC Settings]", "lfc")
 					KatarinaMenu.drawing.lfc:addParam("LagFree", "Activate Lag Free Circles", SCRIPT_PARAM_ONOFF, false)
 					KatarinaMenu.drawing.lfc:addParam("CL", "Length before Snapping", SCRIPT_PARAM_SLICE, 300, 75, 2000, 0)
 					KatarinaMenu.drawing.lfc:addParam("CLinfo", "Higher length = Lower FPS Drops", SCRIPT_PARAM_INFO, "")
@@ -563,7 +674,7 @@ function KatarinaMenu()
 			KatarinaMenu.drawing:addParam("drawE", "Draw Shunpo (E) Range", SCRIPT_PARAM_ONOFF, false)
 		---<
 		---> Misc Menu	
-		KatarinaMenu:addSubMenu("["..myHero.charName.." - Misc Settings]", "misc")
+		KatarinaMenu:addSubMenu("[" .. myHero.charName .. " - Misc Settings]", "misc")
 			KatarinaMenu.misc:addParam("wardJumpKey", "Ward Jump Hotkey (G)", SCRIPT_PARAM_ONKEYDOWN, false, 71)
 			KatarinaMenu.misc:addParam("jumpAllies", "Jump To Allies if In Danger", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.misc:addParam("ZWItems", "Auto Zhonyas/Wooglets", SCRIPT_PARAM_ONOFF, true)
@@ -574,6 +685,13 @@ function KatarinaMenu()
 			KatarinaMenu.misc:addParam("AutoLevelSkills", "Auto Level Skills (Requires Reload)", SCRIPT_PARAM_LIST, 1, { "No", "Prioritise Q", "Prioritise W"  })
 			KatarinaMenu.misc:permaShow("wardJumpKey")
 		---<
+		---> Orbwalking Menu
+		KatarinaMenu:addSubMenu("[" .. myHero.charName .. "] - Orbwalking Settings", "Orbwalking")
+			kSOW:LoadToMenu(KatarinaMenu.Orbwalking)
+		---<
+		---> Version Info
+		KatarinaMenu:addParam("kataVer", "Version: ", SCRIPT_PARAM_INFO, version)
+		---<
 		---> Target Selector		
 			TargetSelector = TargetSelector(TARGET_LESS_CAST, SkillE.range, DAMAGE_MAGIC, true)
 			TargetSelector.name = "Katarina"
@@ -581,7 +699,7 @@ function KatarinaMenu()
 		---<
 		---> Arrange Priorities
 			if heroManager.iCount < 10 then -- borrowed from Sidas Auto Carry, modified to 3v3
-	   			PrintChat(" >> Too few champions to arrange priority")
+	   			script_Messager("Too few champions to arrange priority!")
 			elseif heroManager.iCount == 6 and TTMAP then
 				ArrangeTTPriorities()
 			else
@@ -599,9 +717,6 @@ function FullCombo()
 	--->
 		if not SkillR.castingUlt then
 			if ValidTarget(Target) and Target ~= nil then
-				if KatarinaMenu.combo.comboOrbwalk then
-					OrbWalking(Target)
-				end
 				if KatarinaMenu.combo.comboItems then
 					UseItems(Target)
 				end
@@ -614,10 +729,6 @@ function FullCombo()
 					CastW(Target)
 				end
 				CastR()
-			else
-				if KatarinaMenu.combo.comboOrbwalk then
-					moveToCursor()
-				end
 			end
 		end
 	---<
@@ -630,9 +741,6 @@ function HarassCombo()
 	--- Smart Harass --
 	--->
 		if ValidTarget(Target) and Target ~= nil then
-			if KatarinaMenu.harass.harassOrbwalk then
-				OrbWalking(Target)
-			end
 			--- Harass Mode 1 Q+W+E ---
 			if KatarinaMenu.harass.hMode == 1 then
 				CastQ(Target)
@@ -651,10 +759,6 @@ function HarassCombo()
 				CastW(Target)
 			end
 			--- Harass Mode 2 ---
-		else
-			if KatarinaMenu.harass.harassOrbwalk then
-				moveToCursor()
-			end
 		end
 	---<
 	--- Smart Harass ---
@@ -734,9 +838,6 @@ function MixedClear()
 		if KatarinaMenu.clear.JungleFarm then
 			local JungleMob = GetJungleMob()
 			if JungleMob ~= nil then
-				if KatarinaMenu.clear.clearOrbJ then
-					OrbWalking(JungleMob)
-				end
 				if KatarinaMenu.clear.clearQ and SkillQ.ready and GetDistanceSqr(JungleMob) <= SkillQ.range*SkillQ.range then
 					CastQ(JungleMob)
 				end
@@ -745,10 +846,6 @@ function MixedClear()
 				end
 				if KatarinaMenu.clear.clearE and SkillE.ready and GetDistanceSqr(JungleMob) <= SkillE.range*SkillE.range then
 					CastE(JungleMob)
-				end
-			else
-				if KatarinaMenu.clear.clearOrbJ then
-					moveToCursor()
 				end
 			end
 		end
@@ -759,9 +856,6 @@ function MixedClear()
 		if KatarinaMenu.clear.ClearLane then
 			for _, minion in pairs(enemyMinions.objects) do
 				if  ValidTarget(minion) and minion ~= nil then
-					if KatarinaMenu.clear.clearOrbM then
-						OrbWalking(minion)
-					end
 					if KatarinaMenu.clear.clearQ and SkillQ.ready and GetDistanceSqr(minion) <= SkillQ.range*SkillQ.range then
 						CastQ(minion)
 					end
@@ -770,10 +864,6 @@ function MixedClear()
 					end
 					if KatarinaMenu.clear.clearE and SkillE.ready and GetDistanceSqr(minion) <= SkillE.range*SkillE.range then 
 						CastE(minion)
-					end
-				else
-					if KatarinaMenu.clear.clearOrbM then
-						moveToCursor()
 					end
 				end
 			end
@@ -1433,72 +1523,21 @@ function OnLoseBuff(unit, buff)
 end
 -- / OnLoseBuff Function / --
 
--- / OrbWalking Functions / --
---- Orbwalking Target ---
---->
-	function OrbWalking(Target)
-		if not SkillR.castingUlt then
-			if TimeToAttack() and GetDistanceSqr(Target) <= (myHero.range + GetDistance(myHero.minBBox))*(myHero.range + GetDistance(myHero.minBBox)) then
-				myHero:Attack(Target)
-			elseif heroCanMove() then
-				moveToCursor()
+-- / On Process Spell / --
+function OnProcessSpell(object,spell)
+	--- Tick Manager Check ---
+	--->
+		if not TManager.onSpell:isReady() and KatarinaMenu.misc.uTM then return end
+	---<
+	--->
+		if object == myHero then
+			if spell.name:lower():find("katarinar") then
+				SkillR.castingUlt = true
 			end
 		end
-	end
----<
---- Orbwalking Target ---
---- Check When Its Time To Attack ---
---->
-	function TimeToAttack()
-		return (GetTickCount() + GetLatency() * .5 > lastAttack + lastAttackCD)
-	end
----<
---- Check When Its Time To Attack ---
---- Prevent AA Canceling ---
---->
-	function heroCanMove()
-		return (GetTickCount() + GetLatency() * .5 > lastAttack + lastWindUpTime + 20)
-	end
----<
---- Prevent AA Canceling ---
---- Move to Mouse ---
---->
-	function moveToCursor()
-		if GetDistance(mousePos) then
-			local moveToPos = myHero + (Vector(mousePos) - myHero):normalized()*300
-			if not VIP_USER then
-				myHero:MoveTo(moveToPos.x, moveToPos.z)
-			else
-				Packet('S_MOVE', {x = moveToPos.x, y = moveToPos.z}):send()
-			end
-		end		
-	end
----<
---- Move to Mouse ---
---- On Process Spell ---
---->
-	function OnProcessSpell(object,spell)
-		--- Tick Manager Check ---
-		--->
-			if not TManager.onSpell:isReady() and KatarinaMenu.misc.uTM then return end
-		---<
-		--->
-			if object == myHero then
-				if spell.name:lower():find("katarinar") then
-					SkillR.castingUlt = true
-				end
-
-				if spell.name:lower():find("attack") then
-					lastAttack = GetTickCount() - GetLatency()*0.5
-					lastWindUpTime = spell.windUpTime*1000
-					lastAttackCD = spell.animationTime*1000
-				end
-			end
-		---<
-	end
----<
---- On Process Spell ---
--- / OrbWalking Functions / --
+	---<
+end
+-- / On Process Spell / --
 
 -- / FPS Manager Functions / --
 class 'TickManager'
@@ -1607,12 +1646,16 @@ function Checks()
 	end
 	--- Updates & Checks if Target is Valid ---
 	--->
+		TargetSelector.range = TargetSelectorRange()
+
 		tsTarget = GetTarget()
 		if tsTarget and tsTarget.type == myHero.type then
 			Target = tsTarget
 		else
 			Target = nil
 		end
+
+		kSOW:ForceTarget(Target)
 	---<
 	--- Updates & Checks if Target is Valid ---	
 	--- Checks and finds Ignite ---
@@ -1686,6 +1729,9 @@ function Checks()
 	--- Setting Cast of Ult ---
 	--->
 		if SkillR.castingUlt and not WardJumpKey then
+			kSOW:DisableAttacks()
+			kSOW.Move = false
+
 			if _G.AutoCarry then
 				if _G.AutoCarry.MainMenu ~= nil then
 						if _G.AutoCarry.CanAttack ~= nil then
@@ -1706,6 +1752,9 @@ function Checks()
 				_G.MMA_LastHit		= false
 			end
 		elseif not SkillR.castingUlt then
+			kSOW:EnableAttacks()
+			kSOW.Move = true
+
 			if _G.AutoCarry then 
 				if _G.AutoCarry.MainMenu ~= nil then
 						if _G.AutoCarry.CanAttack ~= nil then
@@ -1758,6 +1807,12 @@ function isLow(Name)
 	--- Check Potions HP ---
 end
 -- / isLow Function / --
+
+-- / TargetSelectorRange Function / --
+function TargetSelectorRange()
+	return (SkillQ.ready and not SkillE.ready) and SkillQ.range or (not SkillQ.ready and SkillE.ready) and SkillE.range or SkillR.range
+end
+-- / TargetSelectorRange Function / --
 
 -- / GetTarget Function / --
 function GetTarget()
