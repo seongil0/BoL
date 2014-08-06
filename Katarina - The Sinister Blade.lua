@@ -1,4 +1,4 @@
-local version = "2.17"
+local version = "2.171"
 
 --[[
 
@@ -284,6 +284,7 @@ local version = "2.17"
 				- Improved Auto-Updater
 				- Fixed a Range bug:
 					- Target Selector was selecting the Target in E-Range or Q-Range even if E / Q wasn't available, so this was Lethal in a Team-Fight as Kata wasn't casting Ult
+				- Fixed Ward-Jump not moving to Cursor
 
   	]] --
 
@@ -1807,6 +1808,19 @@ function isLow(Name)
 	--- Check Potions HP ---
 end
 -- / isLow Function / --
+
+-- / moveToCursor Function / --
+function moveToCursor()
+	if GetDistance(mousePos) then
+		local moveToPos = myHero + (Vector(mousePos) - myHero):normalized()*300
+		if not VIP_USER then
+			myHero:MoveTo(moveToPos.x, moveToPos.z)
+		else
+			Packet('S_MOVE', {x = moveToPos.x, y = moveToPos.z}):send()
+		end
+	end		
+end
+-- / moveToCursor Function / --
 
 -- / TargetSelectorRange Function / --
 function TargetSelectorRange()
