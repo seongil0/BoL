@@ -1,4 +1,4 @@
-local version = "2.172"
+local version = "2.173"
 
 --[[
 
@@ -285,6 +285,7 @@ local version = "2.172"
 				- Fixed a Range bug:
 					- Target Selector was selecting the Target in E-Range or Q-Range even if E / Q wasn't available, so this was Lethal in a Team-Fight as Kata wasn't casting Ult
 				- Fixed Ward-Jump not moving to Cursor
+				- Fixed a but about the TargetSelector Range
 
   	]] --
 
@@ -1824,7 +1825,7 @@ end
 
 -- / TargetSelectorRange Function / --
 function TargetSelectorRange()
-	return (SkillQ.ready and not SkillE.ready) and SkillQ.range or (not SkillQ.ready and SkillE.ready) and SkillE.range or SkillR.range
+	return (SkillQ.ready and SkillE.ready) and SkillE.range or (SkillQ.ready and not SkillE.ready) and SkillQ.range or (not SkillQ.ready and SkillE.ready) and SkillE.range or SkillR.range
 end
 -- / TargetSelectorRange Function / --
 
