@@ -34,17 +34,18 @@
 	      - Updated Orbwalker
 	      - Updated Damage Calculations
 	      - Fixed All Path Lib Errors
+	1.7.3 - Updated Combo a little
+	      - Updated Orbwalker No longer sticks to target if spells on cd
+	      - You can now use your favorite orbwalker in lane clear,harass mode with this script
 ]]--
 
 if myHero.charName ~= 'Riven' then return end
 
-require "SxOrbWalk"
-
 	Spells = {
-		Q = {key = _Q, string = 'Q', name = 'Broken Wings',   range = 300, ready = false, data = nil, color = 0x663300},
-		W = {key = _W, string = 'W', name = 'Ki Burst',       range = 260, ready = false, data = nil, color = 0x333300},
-		E = {key = _E, string = 'E', name = 'Valor',          range = 390, ready = false, data = nil, color = 0x666600},
-		R = {key = _R, string = 'R', name = 'Blade of Exile', range = 900, ready = false, data = nil, color = 0x993300}
+		Q = {key = _Q, name = 'Broken Wings',   range = 300, ready = false, data = nil, color = 0x663300},
+		W = {key = _W, name = 'Ki Burst',       range = 260, ready = false, data = nil, color = 0x333300},
+		E = {key = _E, name = 'Valor',          range = 390, ready = false, data = nil, color = 0x666600},
+		R = {key = _R, name = 'Blade of Exile', range = 900, ready = false, data = nil, color = 0x993300}
 	}
 
 	Ignite = (myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") and SUMMONER_1) or (myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") and SUMMONER_2) or nil
@@ -79,22 +80,19 @@ require "SxOrbWalk"
 		
 		RivenMenu:addSubMenu('~[Combo Settings]~', 'combo')
 			RivenMenu.combo:addParam('ulti',     'Use R for Potential Kills', SCRIPT_PARAM_ONOFF, true)
-			RivenMenu.combo:addParam('forceAAs', 'Force AAs with Passive', SCRIPT_PARAM_ONOFF,    true)
-			RivenMenu.combo:addParam('maxStacks', 'Max Passive Stacks',   SCRIPT_PARAM_SLICE, 2,  0, 3)
+			RivenMenu.combo:addParam('orb',      'Use Built In Orbwalker', SCRIPT_PARAM_ONOFF, true)
 			RivenMenu.combo:addParam('anim',     'Cancel Animation With:',    SCRIPT_PARAM_LIST, 2, {"Laugh", "Movement"})
 
 		RivenMenu:addSubMenu('~[Harass Settings]~', 'harass')
-			RivenMenu.harass:addParam('q',     'Use Q Harass', SCRIPT_PARAM_ONOFF, true)
+			RivenMenu.harass:addParam('q',     'Use Q Semi-Harass', SCRIPT_PARAM_ONOFF, true)
+			RivenMenu.harass:addParam('mode',  'Harass Mode',    SCRIPT_PARAM_LIST, 2, {"Always", "OnKey", "Never"})			
+			RivenMenu.harass:addParam('orb',   'Use Built In Orbwalker', SCRIPT_PARAM_ONOFF, true)
 
 		RivenMenu:addSubMenu('~[Clear Settings]~', 'clear')
 			RivenMenu.clear:addParam('q',     'Use Q Clear', SCRIPT_PARAM_ONOFF, true)
 			RivenMenu.clear:addParam('w',     'Use W Clear', SCRIPT_PARAM_ONOFF, true)
 			RivenMenu.clear:addParam('e',     'Use E Clear', SCRIPT_PARAM_ONOFF, true)
-
-		RivenMenu:addSubMenu('~[SxOrb Settings]~', 'sxorb')
-			SxOrb:LoadToMenu(RivenMenu.sxorb, true)
-			SxOrb:RegisterHotKey("harass",    RivenMenu, "harassKey")
-			SxOrb:RegisterHotKey("laneclear", RivenMenu, "clearKey" )
+			RivenMenu.clear:addParam('orb',   'Use Built In Orbwalker', SCRIPT_PARAM_ONOFF, true)
 
 		RivenMenu:addSubMenu('~[Kill Settings]~', 'kill')
 			RivenMenu.kill:addParam('enabled', 'Enable KillSteal',    SCRIPT_PARAM_ONOFF, true)
@@ -104,15 +102,15 @@ require "SxOrbWalk"
 			RivenMenu.kill:addParam('Ignite',  'Auto Ignite Enemies', SCRIPT_PARAM_ONOFF, true)
 
 		RivenMenu:addSubMenu('~[Draw Ranges]~', 'draw')
-			for _, spell in pairs(Spells) do
-				RivenMenu.draw:addParam(spell.string, 'Draw '..spell.name..' ('..spell.string..')', SCRIPT_PARAM_ONOFF, true)
+			for string, spell in pairs(Spells) do
+				RivenMenu.draw:addParam(string, 'Draw '..spell.name..' ('..string..')', SCRIPT_PARAM_ONOFF, true)
 			end		
 		RivenMenu:addParam('comboKey',  'Combo Key  [X]',  SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
 		RivenMenu:addParam('harassKey', 'Harass Key [C]',  SCRIPT_PARAM_ONKEYDOWN, false, GetKey('C'))
 		RivenMenu:addParam('clearKey',  'Clear Key  [V]',  SCRIPT_PARAM_ONKEYDOWN, false, GetKey('V'))
 		RivenMenu:addTS(TS)
 
-PrintChat("<font color='#663300'>Just Riven 1.2 Loaded</font>")
+PrintChat("<font color='#663300'>Just Riven 1.7.3 Loaded</font>")
 
 function OnTick()
 	Target = GetTarget()
@@ -127,8 +125,13 @@ function OnTick()
 	end
 
 	if RivenMenu.comboKey then
-		Orb(Target)
+		if RivenMenu.combo.orb then
+			Orb(Target)
+		end
 		CastCombo(Target)
+		if BuffInfo.P.stacks > 0 and ValidTarget(Target, AARange(Target)) then
+			Attack(Target)
+		end
 	end
 	if RivenMenu.clearKey then
 		Clear()
@@ -142,13 +145,10 @@ function OnTick()
 end 
 
 function OnDraw()
-	for _, spell in pairs(Spells) do
-		if spell.ready and RivenMenu.draw[spell.string] then
+	for string, spell in pairs(Spells) do
+		if spell.ready and RivenMenu.draw[string] then
 			DrawCircle(myHero.x, myHero.y, myHero.z, spell.range, spell.color)
 		end
-	end
-	if Target then
-		DrawCircle(myHero.x, myHero.y, myHero.z, AARange(Target), Spells.Q.color)
 	end
 end
 
@@ -188,18 +188,23 @@ end
 function OnSendPacket(packet)
 	local p = Packet(packet)
 	if p:get('name') == 'S_CAST' and p:get('sourceNetworkId') == myHero.networkID then
-		DelayAction(function() CancelAnimation() end, Latency())
-		if Target and RivenMenu.comboKey then
-			if p:get('spellId') == 0 then
-				DelayAction(function() ResetAA() end, Latency())
-			elseif p:get('spellId') == 1 and Spells.Q.ready then
-				DelayAction(function() Cast(_Q, Target, Spells.Q.range) end, Latency())
-			elseif p:get('spellId') == 2 and Spells.Q.ready then
-				DelayAction(function() Cast(_Q, Target, Spells.Q.range) end, Latency())
-			elseif p:get('spellId') > 3 then
-				DelayAction(function() ResetAA() end, Latency())
-				DelayAction(function() Cast(_W, Target, Spells.W.range) end, Latency())
+		DelayAction(function() 
+			CancelAnimation()
+			if RivenMenu.comboKey or RivenMenu.harassKey and ValidTarget(Target, AARange(Target)) then
+				Attack(Target)
+			elseif RivenMenu.clearKey and ValidTarget(JungleTarget(), AARange(JungleTarget())) then
+				Attack(JungleTarget())
+			elseif RivenMenu.clearKey and ValidTarget(MinionTarget(), AARange(MinionTarget())) then
+				Attack(MinionTarget())
 			end
+		end, Latency())
+		if p:get('spellId') > 3 then
+			DelayAction(function()
+				if RivenMenu.comboKey or RivenMenu.harassKey and ValidTarget(Target, AARange(Target)) then
+					Attack(Target)
+				end
+			end, Latency())
+			DelayAction(function() Cast(_W, Target, Spells.W.range) end, Latency())
 		end
 	end
 end
@@ -209,7 +214,7 @@ function OnRecvPacket(packet)
 		packet.pos = 1
  		if packet:DecodeF() == myHero.networkID then
  			Orbwalking.lastAA = Clock() - Latency()
- 			if ValidTarget(Target, 350) then
+ 			if ValidTarget(Target, Items.HYDRA.range) then
  				if Items.HYDRA.ready then
 					DelayAction(function() CastItem(Items.HYDRA.id)  end, Latency())
 				elseif Items.TIAMAT.ready then
@@ -217,8 +222,7 @@ function OnRecvPacket(packet)
 				end
 			end
  		end
- 	end
-	if packet.header == 0x34 then
+	elseif packet.header == 0x34 then
 		packet.pos = 1
 		if packet:DecodeF() == myHero.networkID then
 			packet.pos = 9
@@ -226,9 +230,8 @@ function OnRecvPacket(packet)
 				Orbwalking.lastAA = 0
 			end
 		end
-	end
 	-- Thanks to Bilbao :3 --
-	if packet.header == 0x65 then
+	elseif packet.header == 0x65 then
   		packet.pos = 5
   		local dmgType  = packet:Decode1()
   		local targetId = packet:DecodeF()
@@ -239,7 +242,6 @@ function OnRecvPacket(packet)
   					Cast(_Q, Target, Spells.Q.range)
   				end
 			end
-			Orbwalking.lastAA = 0
   		end
  	end
 end
@@ -254,28 +256,12 @@ end
 
 function CastCombo(target)
 	if ValidTarget(target) then
-		local distance  = GetDistanceSqr(target)
-		local EQRange   = Spells.E.ready and Spells.Q.ready and Spells.E.range + Spells.Q.range
-		local EWRange   = Spells.E.ready and Spells.Q.ready and Spells.E.range + Spells.W.range
 		if RivenMenu.combo.ulti and Ult(target) and Spells.R.ready and InRange(target) then
 			CastSpell(_R)
 		end
-		if EQ then
-			Cast(_E, target, EQRange)
-		elseif EW then
-			Cast(_E, target, EWRange)
-		else
+		if Spells.E.ready then
 			Cast(_E, target, Spells.E.range)
 		end		
-		if RivenMenu.combo.forceAAs then
-			if BuffInfo.P.stacks < 1 then
-				if not InRange(target) or not CanAttack() then
-					Cast(_Q, target, Spells.Q.range)
-				end
-			end
-		else
-			Cast(_Q, target, Spells.Q.range)
-		end
 		if not Items.TIAMAT.ready or Items.HYDRA.ready then 
 			Cast(_W, target, Spells.W.range)
 		end
@@ -326,7 +312,7 @@ function IgniteCheck(target)
 end
 
 function Cast(spell, target, range, packet)
-	return GetDistanceSqr(target.visionPos) < range * range and (not packet and CastSpell(spell, target.visionPos.x, target.visionPos.z) or Packet("S_CAST", { spellId = spell, toX = target.x, toY = target.z, fromX = target.x, fromY = target.z }):send())
+	return target and GetDistanceSqr(target.visionPos) < range * range and (not packet and CastSpell(spell, target.visionPos.x, target.visionPos.z) or Packet("S_CAST", { spellId = spell, toX = target.x, toY = target.z, fromX = target.x, fromY = target.z }):send())
 end
 
 function CancelAnimation()
@@ -335,33 +321,46 @@ end
 
 function Clear()
 	local QOn = Spells.Q.ready and RivenMenu.clear.q
-	local WOn = Spells.Q.ready and RivenMenu.clear.w
-	local EOn = Spells.Q.ready and RivenMenu.clear.e
+	local WOn = Spells.W.ready and RivenMenu.clear.w
+	local EOn = Spells.E.ready and RivenMenu.clear.e
+	local Minion = MinionTarget()
+	local Jungle = JungleTarget()
+	local FocusTarget = Jungle ~= nil and Jungle or Minion ~= nil and Minion
+		if RivenMenu.clear.orb then
+			Orb(FocusTarget)
+		end
+	if FocusTarget then
+		if QOn and ValidTarget(FocusTarget, Spells.Q.range) then
+			CastSpell(_Q, FocusTarget.x, FocusTarget.z)	
+		elseif WOn and ValidTarget(FocusTarget, Spells.W.range) then
+			CastSpell(_W, FocusTarget.x, FocusTarget.z)
+		elseif EOn and ValidTarget(FocusTarget, Spells.E.range) then
+			CastSpell(_E, FocusTarget.x, FocusTarget.z)
+		end
+	end
+	if BuffInfo.P.stacks > 0 and ValidTarget(FocusTarget, AARange(FocusTarget)) then
+		Attack(FocusTarget)
+	end
+end
+
+function MinionTarget()
 	EnemyMinions:update()
 	for _, minion in pairs(EnemyMinions.objects) do
-		if minion and not minion.dead and minion.visible then
-			if GetDistanceSqr(minion) < Spells.Q.range * Spells.Q.range and QOn then
-				CastSpell(_Q, minion.x, minion.z)
-			end
-			if GetDistanceSqr(minion) < Spells.W.range * Spells.W.range and WOn then
-				CastSpell(_W)
-			end
+		if minion and ValidTarget(minion, 400) then
+			return minion
 		end
 	end
+	return nil
+end
+
+function JungleTarget()
 	JungleMinions:update()
 	for _, jungleminion in pairs(JungleMinions.objects) do
-		if jungleminion and not jungleminion.dead and jungleminion.visible then
-			if GetDistanceSqr(jungleminion) < Spells.Q.range * Spells.Q.range and QOn then
-				CastSpell(_Q, jungleminion.x, jungleminion.z)
-			end
-			if GetDistanceSqr(jungleminion) < Spells.W.range * Spells.W.range and WOn then
-				CastSpell(_W)
-			end
-			if GetDistanceSqr(jungleminion) < Spells.Q.range * Spells.Q.range and EOn then
-				CastSpell(_E, jungleminion.x, jungleminion.z)
-			end
+		if jungleminion and ValidTarget(jungleminion, 400) then
+			return jungleminion
 		end
 	end
+	return nil
 end
 
 function Orb(target)
@@ -369,21 +368,16 @@ function Orb(target)
       	Attack(target)
     elseif CanMove() then
     	local MovePos = Vector(myHero) + 400 * (Vector(mousePos) - Vector(myHero)):normalized()
-    	local AARange = target and AARange(target)
-        if not target then
-            Packet('S_MOVE', { x = MovePos.x, y = MovePos.z }):send()
-        elseif target and not InRange(target) then
-        	Packet('S_MOVE', { x = MovePos.x, y = MovePos.z }):send()
-		end
+    	Packet('S_MOVE', { x = MovePos.x, y = MovePos.z }):send()
     end
 end
 
 function CanAttack()
-	return Clock() + Latency()  > Orbwalking.lastAA
+	return Clock() + Latency()  > Orbwalking.lastAA + AnimationTime()
 end
 
 function AARange(target)
-	return myHero.range + myHero.boundingRadius + target.boundingRadius
+	return target and myHero.range + myHero.boundingRadius + target.boundingRadius
 end
 
 function InRange(target)
@@ -401,6 +395,10 @@ end
 
 function WindUpTime()
 	return (1 / (myHero.attackSpeed * Orbwalking.windUp))
+end
+
+function AnimationTime()
+	return (1 / (myHero.attackSpeed * Orbwalking.animation))
 end
 
 function Latency()
