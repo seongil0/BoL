@@ -1,5 +1,5 @@
 -- Script Name: Just Riven
--- Script Ver.: 1.7
+-- Script Ver.: 1.7.5
 -- Author     : Skeem
 
 --[[ Changelog:
@@ -37,6 +37,9 @@
 	1.7.3 - Updated Combo a little
 	      - Updated Orbwalker No longer sticks to target if spells on cd
 	      - You can now use your favorite orbwalker in lane clear,harass mode with this script
+	1.7.5 - Fixed Nil Errors?
+	      - Fixed Lane Clear/Wave Clear
+	      - Still nothing on harass for now
 ]]--
 
 if myHero.charName ~= 'Riven' then return end
@@ -110,7 +113,7 @@ if myHero.charName ~= 'Riven' then return end
 		RivenMenu:addParam('clearKey',  'Clear Key  [V]',  SCRIPT_PARAM_ONKEYDOWN, false, GetKey('V'))
 		RivenMenu:addTS(TS)
 
-PrintChat("<font color='#663300'>Just Riven 1.7.3 Loaded</font>")
+PrintChat("<font color='#663300'>Just Riven 1.7.5 Loaded</font>")
 
 function OnTick()
 	Target = GetTarget()
@@ -256,6 +259,9 @@ end
 
 function CastCombo(target)
 	if ValidTarget(target) then
+		if Items.YGB.ready and InRange(target) then
+			CastItem(Items.YGB.id)
+		end
 		if RivenMenu.combo.ulti and Ult(target) and Spells.R.ready and InRange(target) then
 			CastSpell(_R)
 		end
@@ -330,15 +336,15 @@ function Clear()
 			Orb(FocusTarget)
 		end
 	if FocusTarget then
-		if QOn and ValidTarget(FocusTarget, Spells.Q.range) then
+		if QOn and GetDistance(FocusTarget) < Spells.Q.range then
 			CastSpell(_Q, FocusTarget.x, FocusTarget.z)	
-		elseif WOn and ValidTarget(FocusTarget, Spells.W.range) then
+		elseif WOn and GetDistance(FocusTarget) < Spells.W.range then
 			CastSpell(_W, FocusTarget.x, FocusTarget.z)
-		elseif EOn and ValidTarget(FocusTarget, Spells.E.range) then
+		elseif EOn and GetDistance(FocusTarget) < Spells.E.range then
 			CastSpell(_E, FocusTarget.x, FocusTarget.z)
 		end
 	end
-	if BuffInfo.P.stacks > 0 and ValidTarget(FocusTarget, AARange(FocusTarget)) then
+	if BuffInfo.P.stacks > 0 and InRange(FocusTarget) then
 		Attack(FocusTarget)
 	end
 end
@@ -381,12 +387,14 @@ function AARange(target)
 end
 
 function InRange(target)
-	return GetDistanceSqr(target.visionPos, myHero.visionPos) < AARange(target) * AARange(target)
+	return target and GetDistanceSqr(target.visionPos, myHero.visionPos) < AARange(target) * AARange(target)
 end
 
 function Attack(target)
-	Orbwalking.lastAA = Clock() + Latency()
-	Packet('S_MOVE', {type = 3, targetNetworkId = target.networkID}):send()
+	if target then
+		Orbwalking.lastAA = Clock() + Latency()
+		Packet('S_MOVE', {type = 3, targetNetworkId = target.networkID}):send()
+	end
 end
 
 function CanMove()
