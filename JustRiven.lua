@@ -1,5 +1,5 @@
 -- Script Name: Just Riven
--- Script Ver.: 1.7.5
+-- Script Ver.: 1.7.7
 -- Author     : Skeem
 
 --[[ Changelog:
@@ -40,6 +40,11 @@
 	1.7.5 - Fixed Nil Errors?
 	      - Fixed Lane Clear/Wave Clear
 	      - Still nothing on harass for now
+	1.7.7 - Fixed Auto Ignite for new patch
+	      - Fixed Tiamat canceling W animation
+	      - Added Q if not in AA range (might add a passive limiter if it Qs too fast let me know)
+	      - Fixed some AA Canceling issues
+	      - New printchat (best part of update)
 ]]--
 
 if myHero.charName ~= 'Riven' then return end
@@ -51,7 +56,7 @@ if myHero.charName ~= 'Riven' then return end
 		R = {key = _R, name = 'Blade of Exile', range = 900, ready = false, data = nil, color = 0x993300}
 	}
 
-	Ignite = (myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") and SUMMONER_1) or (myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") and SUMMONER_2) or nil
+	Ignite = (myHero:GetSpellData(SUMMONER_1).name:find("summonerdot") and SUMMONER_1) or (myHero:GetSpellData(SUMMONER_2).name:find("summonerdot") and SUMMONER_2) or nil
 	EnemyMinions  = minionManager(MINION_ENEMY,  400, player, MINION_SORT_HEALTH_ASC)
 	JungleMinions = minionManager(MINION_JUNGLE, 400, player, MINION_SORT_MAXHEALTH_DEC)
 
@@ -73,7 +78,7 @@ if myHero.charName ~= 'Riven' then return end
 		animation  = 0.625,
 	}
 
-	TS = TargetSelector(TARGET_LESS_CAST_PRIORITY, 500, DAMAGE_PHYSICAL)
+	TS = TargetSelector(TARGET_LESS_CAST_PRIORITY, 500, DAMAGE_PHYSICAL, true)
 	TS.name = 'Riven'
 	
 	RivenMenu = scriptConfig('~[Just Riven]~', 'Riven')
@@ -105,6 +110,7 @@ if myHero.charName ~= 'Riven' then return end
 			RivenMenu.kill:addParam('Ignite',  'Auto Ignite Enemies', SCRIPT_PARAM_ONOFF, true)
 
 		RivenMenu:addSubMenu('~[Draw Ranges]~', 'draw')
+			RivenMenu.draw:addParam('target', 'Draw Circle on Target', SCRIPT_PARAM_ONOFF, true)
 			for string, spell in pairs(Spells) do
 				RivenMenu.draw:addParam(string, 'Draw '..spell.name..' ('..string..')', SCRIPT_PARAM_ONOFF, true)
 			end		
@@ -113,7 +119,7 @@ if myHero.charName ~= 'Riven' then return end
 		RivenMenu:addParam('clearKey',  'Clear Key  [V]',  SCRIPT_PARAM_ONKEYDOWN, false, GetKey('V'))
 		RivenMenu:addTS(TS)
 
-PrintChat("<font color='#663300'>Just Riven 1.7.5 Loaded</font>")
+PrintChat("<font color='#663300'>Just Riven 1.7.7 GGWP</font>")
 
 function OnTick()
 	Target = GetTarget()
@@ -148,10 +154,14 @@ function OnTick()
 end 
 
 function OnDraw()
+	if myHero.dead then return end
 	for string, spell in pairs(Spells) do
 		if spell.ready and RivenMenu.draw[string] then
 			DrawCircle(myHero.x, myHero.y, myHero.z, spell.range, spell.color)
 		end
+	end
+	if RivenMenu.draw.target and ValidTarget(Target) then
+		DrawCircle(Target.x, Target.y, Target.z, Target.range, 0xFF0000)
 	end
 end
 
@@ -193,21 +203,24 @@ function OnSendPacket(packet)
 	if p:get('name') == 'S_CAST' and p:get('sourceNetworkId') == myHero.networkID then
 		DelayAction(function() 
 			CancelAnimation()
-			if RivenMenu.comboKey or RivenMenu.harassKey and ValidTarget(Target, AARange(Target)) then
-				Attack(Target)
-			elseif RivenMenu.clearKey and ValidTarget(JungleTarget(), AARange(JungleTarget())) then
-				Attack(JungleTarget())
-			elseif RivenMenu.clearKey and ValidTarget(MinionTarget(), AARange(MinionTarget())) then
-				Attack(MinionTarget())
-			end
 		end, Latency())
-		if p:get('spellId') > 3 then
+		if p:get('spellId') == 0 then
+			ResetAA()
+		elseif p:get('spellId') == 1 then
+			if ValidTarget(Target, Items.HYDRA.range) then
+ 				if Items.HYDRA.ready then
+					DelayAction(function() CastItem(Items.HYDRA.id)  end, Latency())
+				elseif Items.TIAMAT.ready then
+					DelayAction(function() CastItem(Items.TIAMAT.id) end, Latency())
+				end
+			end
+		elseif p:get('spellId') > 3 then
 			DelayAction(function()
+				ResetAA()
 				if RivenMenu.comboKey or RivenMenu.harassKey and ValidTarget(Target, AARange(Target)) then
 					Attack(Target)
 				end
 			end, Latency())
-			DelayAction(function() Cast(_W, Target, Spells.W.range) end, Latency())
 		end
 	end
 end
@@ -219,9 +232,9 @@ function OnRecvPacket(packet)
  			Orbwalking.lastAA = Clock() - Latency()
  			if ValidTarget(Target, Items.HYDRA.range) then
  				if Items.HYDRA.ready then
-					DelayAction(function() CastItem(Items.HYDRA.id)  end, Latency())
+					DelayAction(function() CastItem(Items.HYDRA.id) ResetAA()  end, Latency())
 				elseif Items.TIAMAT.ready then
-					DelayAction(function() CastItem(Items.TIAMAT.id) end, Latency())
+					DelayAction(function() CastItem(Items.TIAMAT.id) ResetAA() end, Latency())
 				end
 			end
  		end
@@ -230,7 +243,7 @@ function OnRecvPacket(packet)
 		if packet:DecodeF() == myHero.networkID then
 			packet.pos = 9
 			if packet:Decode1() == 0x11 then
-				Orbwalking.lastAA = 0
+				ResetAA()
 			end
 		end
 	-- Thanks to Bilbao :3 --
@@ -267,8 +280,11 @@ function CastCombo(target)
 		end
 		if Spells.E.ready then
 			Cast(_E, target, Spells.E.range)
-		end		
-		if not Items.TIAMAT.ready or Items.HYDRA.ready then 
+		end
+		if not InRange(target) and Spells.Q.ready and BuffInfo.P.stacks < 3 then
+			Cast(_Q, target, Spells.Q.range)
+		end
+		if not Items.TIAMAT.ready or Items.HYDRA.ready and not Spells.Q.ready then 
 			Cast(_W, target, Spells.W.range)
 		end
 	end
@@ -282,7 +298,7 @@ function Ult(target)
 				 W  = Spells.W.ready and getDmg('W', target, myHero) + R1 or 0,
 				 R2 = Spells.R.ready and getDmg('R', target, myHero) + R1 or 0}
 
-	return ((Dmg.P*4) + (Dmg.A*4) + (Dmg.Q*3) + Dmg.W + Dmg.R2) > target.health
+	return ((Dmg.P*3) + (Dmg.A*3) + (Dmg.Q*3) + Dmg.W + Dmg.R2) > target.health
 end
 
 function UltOn()
@@ -296,11 +312,11 @@ function KillSteal()
 			if Spells.R.ready and enemy.health <= RDmg then
 				if RivenMenu.kill.killR == 1 then
 					if UltOn() then
-						Cast(_R, enemy, Spells.R.range, true)
+						Cast(_R, enemy, Spells.R.range)
 					end
 				elseif RivenMenu.kill.killR == 2 then
 					if UltOn() then
-						Cast(_R, enemy, Spells.R.range, true)						
+						Cast(_R, enemy, Spells.R.range)						
 					else
 						CastSpell(_R)	
 					end
@@ -393,7 +409,7 @@ end
 function Attack(target)
 	if target then
 		Orbwalking.lastAA = Clock() + Latency()
-		Packet('S_MOVE', {type = 3, targetNetworkId = target.networkID}):send()
+		myHero:Attack(target)
 	end
 end
 
