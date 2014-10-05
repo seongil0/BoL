@@ -1,4 +1,4 @@
-local version = "2.175"
+local version = "2.176"
 
 --[[
 
@@ -1590,9 +1590,9 @@ function Checks()
 	--- Updates & Checks if Target is Valid ---	
 	--- Checks and finds Ignite ---
 	--->
-		if myHero:GetSpellData(SUMMONER_1).name:find("SummonerDot") then
+		if myHero:GetSpellData(SUMMONER_1).name:find("Summonerdot") then
 			ignite = SUMMONER_1
-		elseif myHero:GetSpellData(SUMMONER_2).name:find("SummonerDot") then
+		elseif myHero:GetSpellData(SUMMONER_2).name:find("Summonerdot") then
 			ignite = SUMMONER_2
 		end
 	---<
