@@ -1,4 +1,4 @@
-local version = "2.173"
+local version = "2.175"
 
 --[[
 
@@ -286,7 +286,9 @@ local version = "2.173"
 					- Target Selector was selecting the Target in E-Range or Q-Range even if E / Q wasn't available, so this was Lethal in a Team-Fight as Kata wasn't casting Ult
 				- Fixed Ward-Jump not moving to Cursor
 				- Fixed a but about the TargetSelector Range
-
+			2.1.75
+				- Fixed Reconnect Issue
+				- Fixed Resets
   	]] --
 
 -- / Hero Name Check / --
@@ -412,13 +414,6 @@ function OnTick()
 		if KatarinaMenu.killsteal.smartKS then
 			KillSteal()
 		end
-		if KatarinaMenu.misc.AutoLevelSkills == 1 then
-			if myHero.level == 6 or myHero.level == 11 or myHero.level == 16 then
-				LevelSpell(_R)
-			end
-		else
-			autoLevelSetSequence(levelSequence[KatarinaMenu.misc.AutoLevelSkills-1])
-		end
 		if KatarinaMenu.misc.jumpAllies then
 			DangerCheck()
 		end
@@ -458,16 +453,6 @@ function Variables()
 		kSOW = SOW(vPred)
 	---<
 	--- Orbwalking Vars ---
-	--- TickManager Vars ---
-	--->
-		TManager =
-		{
-			onTick	= TickManager(20),
-			onDraw	= TickManager(80),
-			onSpell	= TickManager(15)
-		}
-	---<
-	--- TickManager Vars ---
 	if VIP_USER then
 		--- LFC Vars ---
 		--->
@@ -683,8 +668,6 @@ function KatarinaMenu()
 			KatarinaMenu.misc:addParam("ZWHealth", "Min Health % for Zhonyas/Wooglets", SCRIPT_PARAM_SLICE, 15, 0, 100, -1)
 			KatarinaMenu.misc:addParam("aHP", "Auto Health Pots", SCRIPT_PARAM_ONOFF, true)
 			KatarinaMenu.misc:addParam("HPHealth", "Min % for Health Pots", SCRIPT_PARAM_SLICE, 50, 0, 100, -1)
-			KatarinaMenu.misc:addParam("uTM", "Use Tick Manager/FPS Improver",SCRIPT_PARAM_ONOFF, false)
-			KatarinaMenu.misc:addParam("AutoLevelSkills", "Auto Level Skills (Requires Reload)", SCRIPT_PARAM_LIST, 1, { "No", "Prioritise Q", "Prioritise W"  })
 			KatarinaMenu.misc:permaShow("wardJumpKey")
 		---<
 		---> Orbwalking Menu
@@ -1332,7 +1315,9 @@ function OnSendPacket(packet)
 		if SkillR.castingUlt and not WardJumpKey then
 				if (SendP:get('name') == 'S_MOVE' or SendP:get('name') == 'S_CAST') and SendP:get('sourceNetworkId') == myHero.networkID and (SendP:get('spellId') ~= SUMMONER_1 and SendP:get('spellId') ~= SUMMONER_2) then
 				if KatarinaMenu.combo.stopUlt then
-					if not SkillQ.ready and not SkillW.ready and not SkillE.ready and ValidTarget(Target) and Target ~= nil and Target.health > (qDmg + wDmg + eDmg) then
+					if ValidTarget(Target, SkillE.range) and SkillQ.ready and SkillW.ready and SkillE.ready and Target.health <= (qDmg + wDmg + eDmg) then
+						return
+					else
 						-- PrintChat("Debug 1")
 						SendP:block()
 					end
@@ -1429,11 +1414,6 @@ end
 
 -- / On Draw Function / --
 function OnDraw()
-	--- Tick Manager Check ---
-	--->
-		if not TManager.onDraw:isReady() and KatarinaMenu.misc.uTM then return end
-	---<
-	--->
 	--- Drawing Our Ranges ---
 	--->
 		if not myHero.dead then
@@ -1527,10 +1507,6 @@ end
 
 -- / On Process Spell / --
 function OnProcessSpell(object,spell)
-	--- Tick Manager Check ---
-	--->
-		if not TManager.onSpell:isReady() and KatarinaMenu.misc.uTM then return end
-	---<
 	--->
 		if object == myHero then
 			if spell.name:lower():find("katarinar") then
@@ -1541,49 +1517,6 @@ function OnProcessSpell(object,spell)
 end
 -- / On Process Spell / --
 
--- / FPS Manager Functions / --
-class 'TickManager'
---- TM Init Function ---
---->
-	function TickManager:__init(ticksPerSecond)
-		self.TPS = ticksPerSecond
-		self.lastClock = 0
-		self.currentClock = 0
-	end
----<
---- TM Init Function ---
---- TM Type Function ---
---->
-	function TickManager:__type()
-		return "TickManager"
-	end
----<
---- TM Init Function ---
---- Set TPS Function ---
---->
-	function TickManager:setTPS(ticksPerSecond)
-		self.TPS = ticksPerSecond
-	end
----<
---- Set TPS Function ---
---- Get TPS Function ---
---->
-	function TickManager:getTPS(ticksPerSecond)
-		return self.TPS
-	end
----<
---- Get TPS Function ---
---- TM Ready Function ---
---->
-	function TickManager:isReady()
-		self.currentClock = os.clock()
-		if self.currentClock < self.lastClock + (1 / self.TPS) then return false end
-		self.lastClock = self.currentClock
-		return true
-	end
----<
---- TM Ready Function ---
--- / FPS Manager Functions / --
 if VIP_USER then
 	-- / Lag Free Circles Functions / --
 	--- Draw Circle Next Level Function ---
@@ -1630,11 +1563,6 @@ end
 
 -- / Checks Function / --
 function Checks()
-	--- Tick Manager Check ---
-	--->
-		if not TManager.onTick:isReady() and KatarinaMenu.misc.uTM then return end
-	---<
-	--- Tick Manager Check ---
 	if VIP_USER then
 		--- LFC Checks ---
 		--->
