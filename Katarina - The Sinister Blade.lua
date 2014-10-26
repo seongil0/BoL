@@ -1,4 +1,4 @@
-local version = "2.176"
+local version = "2.180"
 
 --[[
 
@@ -289,6 +289,11 @@ local version = "2.176"
 			2.1.75
 				- Fixed Reconnect Issue
 				- Fixed Resets
+				
+			2.1.80
+			        - Fixed Ignite
+			        - Fixed Attempting to reconnect
+			        - Fixed Some lags
   	]] --
 
 -- / Hero Name Check / --
@@ -864,19 +869,9 @@ function CastQ(enemy)
 	--->
 		if not SkillQ.ready or (GetDistanceSqr(enemy) > SkillQ.range*SkillQ.range) then
 			return false
-		end
-		if ValidTarget(enemy) and enemy ~= nil then 
-			if VIP_USER then
-				Packet("S_CAST", {spellId = _Q, targetNetworkId = enemy.networkID}):send()
-				return true
-			else
-				CastSpell(_Q, enemy)
-				return true
-			end
-			if SkillQ.timeToHit == 0 or GetTickCount() >= SkillQ.timeToHit then
-				SkillQ.timeToHit = GetTickCount() + (SkillQ.delay + (GetDistance(myHero, enemy) / SkillQ.projSpeed))
-				return true
-			end
+		else
+			CastSpell(_Q, enemy)
+			return true
 		end
 		return false
 	---<
@@ -890,15 +885,9 @@ function CastE(enemy)
 	--->
 		if not SkillE.ready or (GetDistanceSqr(enemy) > SkillE.range*SkillE.range) then
 			return false
-		end
-		if ValidTarget(enemy) and enemy ~= nil then 
-			if VIP_USER then
-				Packet("S_CAST", {spellId = _E, targetNetworkId = enemy.networkID}):send()
-				return true
-			else
-				CastSpell(_E, enemy)
-				return true
-			end
+		else
+			CastSpell(_E, enemy)
+			return true
 		end
 		return false
 	---<
@@ -1590,9 +1579,9 @@ function Checks()
 	--- Updates & Checks if Target is Valid ---	
 	--- Checks and finds Ignite ---
 	--->
-		if myHero:GetSpellData(SUMMONER_1).name:find("Summonerdot") then
+		if myHero:GetSpellData(SUMMONER_1).name:find("summonerdot") then
 			ignite = SUMMONER_1
-		elseif myHero:GetSpellData(SUMMONER_2).name:find("Summonerdot") then
+		elseif myHero:GetSpellData(SUMMONER_2).name:find("summonerdot") then
 			ignite = SUMMONER_2
 		end
 	---<
@@ -1742,11 +1731,7 @@ end
 function moveToCursor()
 	if GetDistance(mousePos) then
 		local moveToPos = myHero + (Vector(mousePos) - myHero):normalized()*300
-		if not VIP_USER then
-			myHero:MoveTo(moveToPos.x, moveToPos.z)
-		else
-			Packet('S_MOVE', {x = moveToPos.x, y = moveToPos.z}):send()
-		end
+		myHero:MoveTo(moveToPos.x, moveToPos.z)
 	end		
 end
 -- / moveToCursor Function / --
