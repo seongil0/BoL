@@ -1,5 +1,5 @@
 --[[
-        [Script] Leblanc - The Deceiver by Skeem 1.4
+        [Script] Leblanc - The Deceiver by Skeem 1.6
         
                 Features:
                         - Prodiction for VIPs, NonVIP prediction
@@ -74,7 +74,9 @@
                               - Fixed vPrediction Usage
                               - Added vPrediction HitChance
                               - Added Use E when W cooldown in harass
+                        1.6   -
                               - Updated to Work
+                              - Updated Summoners
 ]]--
 
 -- Name Check --  
